@@ -1,0 +1,716 @@
+% Please compile this document using LuaLaTeX.
+% XeLaTeX and PDFLaTeX will not work.
+
+\newif\iffull\fulltrue
+\newif\ifacm\acmfalse
+
+%% For double-blind review submission, w/o CCS and ACM Reference (max submission space)
+\ifacm
+    \documentclass[acmsmall,screen]{acmart}
+    %% For double-blind review submission, w/ CCS and ACM Reference
+    %\documentclass[acmsmall,review,anonymous]{acmart}\settopmatter{printfolios=true}
+    %% For single-blind review submission, w/o CCS and ACM Reference (max submission space)
+    %\documentclass[acmsmall,review]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
+    %% For single-blind review submission, w/ CCS and ACM Reference
+    %\documentclass[acmsmall,review]{acmart}\settopmatter{printfolios=true}
+    %% For final camera-ready submission, w/ required CCS and ACM Reference
+    %\documentclass[acmsmall]{acmart}\settopmatter{}
+\else
+    \documentclass{extarticle}
+\fi
+
+\ifacm
+    %%% If you see 'ACMUNKNOWN' in the 'setcopyright' statement below,
+    %%% please first submit your publishing-rights agreement with ACM (follow link on submission page).
+    %%% Then please update our instructions page and copy-and-paste the NEW commands into your article.
+    %%% Please contact us in case of questions; allow up to 10 min for the system to propagate the information.
+    %%%
+    %%% The following is specific to POPL '22 and the paper
+    %%% 'On Incorrectness Logic and Kleene Algebra with Top and Tests'
+    %%% by Cheng Zhang, Arthur Azevedo de Amorim, and Marco Gaboardi.
+    %%%
+    \acmPrice{}
+    \acmDOI{10.1145/3498690}
+    \acmYear{2022}
+    \copyrightyear{2022}
+    \acmSubmissionID{popl22main-p160-p}
+    \acmJournal{PACMPL}
+    \acmVolume{6}
+    \acmNumber{POPL}
+    \acmArticle{29}
+    \acmMonth{1}
+    \startPage{1}
+
+    %% Copyright information
+    %% Supplied to authors (based on authors' rights management selection;
+    %% see authors.acm.org) by publisher for camera-ready submission;
+    %% use 'none' for review submission.
+    \setcopyright{rightsretained}
+    %\setcopyright{acmcopyright}
+    %\setcopyright{acmlicensed}
+    %\setcopyright{rightsretained}
+    %\copyrightyear{2018}           %% If different from \acmYear
+
+    %% Bibliography style
+    \bibliographystyle{ACM-Reference-Format}
+    %% Citation style
+    %% Note: author/year citations are required for papers published as an
+    %% issue of PACMPL.
+    \citestyle{acmauthoryear}   %% For author/year citations
+
+\else 
+
+    %% Bibliography style
+    \bibliographystyle{plainnat}
+
+\fi
+
+
+
+%%%%% PACKAGES
+
+\ifacm 
+\else 
+    \usepackage{amsmath}
+    \usepackage{amssymb}
+    \usepackage{amsthm}
+    \usepackage[numbers]{natbib}
+    \usepackage[margin=3cm]{geometry}
+\fi
+
+% For adding inline comments in the text.
+\usepackage[margin=false,inline=true]{fixme}
+\FXRegisterAuthor{aaa}{anaaa}{\color{cyan}AAA}
+\FXRegisterAuthor{mg}{anmg}{\color{red}MG}
+\FXRegisterAuthor{cz}{ancz}{\color{orange}CZ}
+% \newcommand{\aaa}[1]{\aaanote{#1}}
+% \newcommand{\mg}[1]{\mgnote{#1}}
+% \newcommand{\cz}[1]{\cznote{#1}}
+\newcommand{\aaa}[1]{}
+\newcommand{\mg}[1]{}
+\newcommand{\cz}[1]{}
+
+\usepackage{stmaryrd}
+
+\usepackage{stackengine}
+\usepackage{mathrsfs}
+\usepackage{braket}
+\usepackage{annotate-equations}
+\usepackage{scalerel}
+
+% graphs
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata,positioning}
+
+% commutative diagram
+\usepackage{tikz-cd}
+
+% inference rule
+\usepackage{mathpartir}
+
+% ref
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+% item spacing
+\usepackage{enumitem}
+
+% for code
+\usepackage{listings}
+
+% for better table
+\usepackage{booktabs}
+
+% subcaption
+\usepackage{subcaption} %% For complex figures with subfigures/subcaptions
+                        %% http://ctan.org/pkg/subcaption
+
+% unicode math symbols
+\usepackage{unicode-math}
+% support for hat, overline, underline, vec, and sim combining charactors
+\protected\def\afteracc{\directlua{
+    local nest = tex.nest[tex.nest.ptr]
+    local last = nest.tail
+    if not (last and last.id == 18) then
+      error'I can only put accents on simple noads.'
+    end
+    if last.sub or last.sup then
+      error'If you want accents on a superscript or subscript, please use braces.'
+    end
+    local acc = node.new(21, 1)
+    acc.nucleus = last.nucleus
+    last.nucleus = nil
+    local is_bottom = token.scan_keyword'bot' and 'bot_accent' or 'accent'
+    acc[is_bottom] = node.new(23)
+    acc[is_bottom].fam, acc[is_bottom].char = 0, token.scan_int()
+    nest.head = node.insert_after(node.remove(nest.head, last), nil, acc)
+    nest.tail = acc
+    node.flush_node(last)
+  }}
+\AtBeginDocument{
+\begingroup
+  \def\UnicodeMathSymbol#1#2#3#4{%
+    \ifx#3\mathaccent
+      \def\mytmpmacro{\afteracc#1 }%
+      \global\letcharcode#1=\mytmpmacro
+      \global\mathcode#1="8000
+    \else\ifx#3\mathbotaccentwide
+      \def\mytmpmacro{\afteracc bot#1 }%
+      \global\letcharcode#1=\mytmpmacro
+      \global\mathcode#1="8000
+    \fi\fi
+  }
+  \input{unicode-math-table}
+\endgroup
+}
+
+% math font, this is needed to render \setminus command
+\setmathfont{latinmodern-math}
+\setmathfont[range=\setminus]{STIX Two Math}
+\setmathfont[range=\similarrightarrow]{STIX Two Math}
+
+% move proof to the end
+\iffull
+    \usepackage[conf={restate}]{proof-at-the-end}
+\else
+    \usepackage[conf={restate, no link to proof}]{proof-at-the-end}
+\fi
+% enable the following to debug proofs
+% \renewenvironment{proofEnd}{%
+%     \begin{proof}%
+% }{%
+%     \end{proof}%
+% }
+
+\newtheorem{corollary}{Corollary}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+
+\newtheorem{definition}{Definition}
+\newtheorem*{definition*}{Definition}
+\newtheorem{example}{Example}
+\newtheorem{remark}{Remark}
+
+%%%% Macros %%%%%
+
+% Math?
+\newcommand{\true}{\mathrm{true}}
+\newcommand{\false}{\mathrm{false}}
+\newcommand{\At}{\mathbf{At}}
+
+
+% operators
+\newcommand{\dom}[1]{\mathrm{dom}(#1)}
+\newcommand{\cod}[1]{\mathrm{cod}(#1)}
+\DeclareMathOperator{\post}{\mathrm{post}}
+\newcommand{\reject}{\mathinner{\mathtt{Reject}}}
+\newcommand{\accept}{\mathinner{\mathtt{Accept}}}
+\DeclareMathOperator*{\bigplus}{\scalerel*{+}{\sum}}
+
+
+% commands 
+\newcommand{\command}[1]{{\mathtt{#1}}}
+\newcommand{\comSkip}{\command{skip}}
+\newcommand{\comDiverge}{\command{diverge}}
+\newcommand{\comFork}{\command{fork}}
+\newcommand{\comJoin}{\command{join}}
+\newcommand{\comError}{\command{error ()}}
+\newcommand{\comAssume}[1]{\command{assume}~#1}
+\newcommand{\comITE}[3]{\command{if}~#1~\command{then}~#2~\command{else}~#3}
+\newcommand{\comWhile}[2]{\command{while}~#1~\command{do}~#2}
+\newcommand{\comAssign}[2]{#1:= #2}
+\newcommand{\comLoop}[1]{\command{loop}~#1}
+\newcommand{\comIter}[1]{{#1}^{\star}}
+\newcommand{\comBreakN}[1]{\command{break} ~ #1}
+\newcommand{\comBreak}{\command{break}}
+
+% texts
+\newcommand{\tand}{\text{ and }}
+\newcommand{\totherwise}{\text{otherwise}}
+\newcommand{\tif}{\text{if }}
+\newcommand{\tor}{\text{ or }}
+\newcommand{\twhere}{\text{ where }}
+\newcommand{\tst}{\text{ s.t.\ }}
+
+% typeset
+\newcommand{\itemTitle}[1]{\textbf{#1}}
+\newcommand{\keyword}[1]{\emph{#1}}
+
+
+% set of models
+\newcommand{\theoryOf}[1]{\ensuremath{\mathsf{#1}}}
+\newcommand{\KA}{\theoryOf{KA}}
+\newcommand{\KAT}{\theoryOf{KAT}}
+\newcommand{\GKAT}{\theoryOf{GKAT}}
+\newcommand{\BExp}{\theoryOf{BExp}}
+\DeclareMathOperator{\GS}{\mathrm{GS}}
+
+\newcommand\altxrightarrow[2][0pt]{\mathrel{\ensurestackMath{\stackengine%
+  {\dimexpr#1-7.5pt}{\xrightarrow{\phantom{#2}}}{\scriptstyle\!#2\,}%
+  {O}{c}{F}{F}{S}}}}
+
+\newcommand{\transvia}[1]{
+    \mathrel{\raisebox{-2px}{\(\altxrightarrow[-2px]{#1}\)}}
+}
+
+ 
+
+\begin{document}
+
+%% Title information
+\title{A Symbolic Decision Procedure for GKAT}         
+% \title{Incorrectness Logic and Kleene Algebra With Top and Test}         
+                                        %% [Short Title] is optional;
+                                        %% when present, will be used in
+                                        %% header instead of Full Title.
+% \titlenote{}                            %% \titlenote is optional;
+                                        %% can be repeated if necessary;
+                                        %% contents suppressed with 'anonymous'
+%% \subtitle is optional                     
+ 
+% \subtitlenote{with subtitle note}       %% \subtitlenote is optional;
+%                                         %% can be repeated if necessary;
+%                                         %% contents suppressed with 'anonymous'
+
+
+%% Author information
+%% Contents and number of authors suppressed with 'anonymous'.
+%% Each author should be introduced by \author, followed by
+%% \authornote (optional), \orcid (optional), \affiliation, and
+%% \email.
+%% An author may have multiple affiliations and/or emails; repeat the
+%% appropriate command.
+%% Many elements are not rendered, but should be provided for metadata
+%% extraction tools.
+\ifacm
+    \author{Cheng Zhang}
+    \orcid{0000-0002-8197-6181}            
+    \email{czhang03@bu.edu}          
+
+    % \author{Arthur Azevedo de Amorim}
+    % \orcid{}
+    % \email{arthur.aa@gmail.com}
+
+    % \author{Marco Gaboardi}
+    % \orcid{}
+    % \email{gaboardi@bu.edu}
+
+    \affiliation{
+    % \position{Position1}
+    \department{Department of Computer Science}              %% \department is recommended
+    \institution{Boston University}            %% \institution is required
+    \city{Boston}
+    \state{MA}
+    \postcode{02215}
+    \country{USA}                    %% \country is recommended
+    }
+\else
+    \author{
+        Cheng Zhang \\
+        % \and
+        % Arthur Azevedo de Amorim \\
+        % \and
+        % Marco Gaboardi \\
+    }
+    \date{}
+\fi
+
+\ifacm 
+\else 
+    % In non-ACM format \maketitle needs to happen before abstract
+    \maketitle
+\fi 
+
+
+%% Abstract
+%% Note: \begin{abstract}...\end{abstract} environment must come
+%% before \maketitle command
+\begin{abstract}
+\end{abstract}
+
+\ifacm 
+%% 2012 ACM Computing Classification System (CSS) concepts
+%% Generate at 'http://dl.acm.org/ccs/ccs.cfm'.
+\begin{CCSXML}
+<ccs2012>
+    <concept>
+        <concept_id>10003752.10010124.10010138.10010140</concept_id>
+        <concept_desc>Theory of computation~Program specifications</concept_desc>
+        <concept_significance>500</concept_significance>
+        </concept>
+    <concept>
+        <concept_id>10003752.10010124.10010138.10010141</concept_id>
+        <concept_desc>Theory of computation~Pre- and post-conditions</concept_desc>
+        <concept_significance>500</concept_significance>
+        </concept>
+    <concept>
+        <concept_id>10003752.10010124.10010138.10011119</concept_id>
+        <concept_desc>Theory of computation~Abstraction</concept_desc>
+        <concept_significance>500</concept_significance>
+        </concept>
+    </ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Theory of computation~Program specifications}
+\ccsdesc[500]{Theory of computation~Pre- and post-conditions}
+\ccsdesc[500]{Theory of computation~Abstraction}
+
+%% Keywords
+%% comma separated list
+\keywords{Program Reasoning,
+  Incorrectness Logic, 
+  Hoare Logic,
+Kleene Algebra with Tests,
+}  %% \keywords are mandatory in final camera-ready submission
+
+\fi
+
+
+\ifacm 
+%% \maketitle
+%% Note: in ACM format \maketitle command must come after title commands, author
+%% commands, abstract environment, Computing Classification System
+%% environment and commands, and keywords command.
+\maketitle
+\fi
+
+\section{Symbolic Derivatives}
+
+Given a finite set \(K\), a \emph{symbolic Guarded Kleene Coalgebra with Tests} (sGKCT) \(𝒮 ≜ ⟨S, ϵ, δ⟩\) over a boolean algebra \(ℬ\) consists of a state set \(S\) consists of a accepting boolean \(ϵ\) and a transition function \(δ\):
+\begin{mathpar}
+    ϵ: S → ℬ, \and
+    δ: S → S → K → ℬ,
+\end{mathpar}
+where for all states \(s ∈ S\), all the booleans are ``disjoint''; namely the conjunction of any two expression from the set \(ϵ(s) + \{δ(s, s', p) ∣ s' ∈ S, p ∈ K\}\) are false.
+The ordering on \(𝒮\) is defined pointwise, namely 
+\[⟨ϵ₁, δ₁⟩ ≤ ⟨ϵ₂, δ₂⟩ \text{ when } ∀ s, s' ∈ S, ∀ p ∈ K, ϵ₁(s) ≤ ϵ₂(s) \text{ and } δ₁(s, s', p) ≤ δ₂(s, s', p),\]
+where the ordering on the right hand side is defined in the boolean algebra.
+
+Intuitively, the elements of boolean is treated as the ``symbolic'' transitions, which can be think of as a set of labels by the classical stone's representation theorem. 
+In particular, when the boolean algebra is the free boolean algebra \(\BExp_B\) generated by a finite set \(B\), the labels can be considered as atoms, since \(\BExp_B ≅ 2^{\At_B}\). 
+Then we can explain the intuition for the definition of GKCT
+\begin{itemize}
+    \item \(ϵ(s)\) can be thought of as a set of labels that is accepted by the state \(s\).
+    \item \(δ(s, s', p)\) denotes all the labels that can transition from \(s\) to \(s'\) while executing \(p\).
+\end{itemize}
+Then the labels that is not in either operations are implicitly rejecting.
+
+Given a sGKCT \(𝒮 ≜ ⟨S, ϵ, δ⟩\) and a state \(s ∈ S\), we use the notation \(s ⇒ b\) to denote that \(ϵ(s) ≥ b\), and we use the notation \(s \transvia{b ∣ p} s'\) to denote that \(δ(s)₃(s', p) ≥ b\),
+where the ordering is the typical ordering in boolean algebra.
+
+The symbolic derivatives for GKAT forms a GKCT where the states are represented by GKAT expression \(\GKAT_{K, B}\), and the boolean algebra is the free boolean algebra \(\BExp_B\) over the test alphabet \(B\):
+\begin{mathpar}
+    ϵ: \GKAT_{K, B} → \BExp_B; \and  
+    δ: \GKAT_{K, B} → \GKAT_{K, B} → K → \BExp_B.
+\end{mathpar} 
+the accepting map \(ϵ\) and transition map \(δ\) can be defined by the smallest maps that satisfy the following rules:
+\begin{mathpar}
+    \inferrule{\\}{b ⇒ b} \and 
+    \inferrule{\\}{p \transvia{1 ∣ p} 1} \and 
+    \inferrule{e ⇒ a}{e +_b f ⇒ b a} \and 
+    \inferrule{f ⇒ a}{e +_b f ⇒ b̄ a} \and 
+    \inferrule{e \transvia{a ∣ p} e'}{e +_b f \transvia{b ∧ a ∣ p} e'} \and 
+    \inferrule{f \transvia{a ∣ p} f'}{e +_b f \transvia{b̄ ∧ a ∣ p} f'} \and 
+    \inferrule{e ⇒ a \\ f ⇒ b}{e ⋅ f ⇒ a ∧ b} \and 
+    \inferrule{e ⇒ a \\ f \transvia{b ∣ p} f'}{e ⋅ f \transvia{a ∧ b ∣ p} f'} \and 
+    \inferrule{e \transvia{b ∣ p} e'}{e ⋅ f \transvia{b ∣ p} e' ⋅ f} \and 
+    \inferrule{\\}{e^{(b)} ⇒ b̄} \and 
+    \inferrule{e \transvia{a ∣ p} e'}{e^{(b)} \transvia{b ∧ a ∣ p} e' ⋅ {e}^{(b)}}
+\end{mathpar}
+
+
+\section{Implementing derivatives}
+
+Since the rules listed above is monotonic, that is if we enlarge the boolean in the premise, we also enlarge the boolean in the result. 
+So we can simply pick the largest boolean on the premise, which is either \(ϵ(e)\) or \(δ(e, e', p)\).
+Since the disjunction of two boolean \(a ∨ b\) is the smallest boolean that is greater than both \(a\) and \(b\), thus we can implement \(ϵ\) and \(δ\) by iteration through all the rules, and take the disjunction of all the possible booleans.
+
+\begin{align*}
+    ϵ(b) & ≜ b 
+        &  ϵ(e +_b f) & ≜ (b ∧ ϵ(e)) ∨ (b̄ ∧ ϵ(f))\\
+    ϵ(q) & ≜ 0
+        & ϵ(e ⋅ f) & ≜ ϵ(e) ∧ ϵ(f)\\  
+    ϵ(e^{(b)}) & ≜ b̄ 
+\end{align*}
+
+However, the derivative function \[δ: \GKAT_{K, B} → \GKAT_{K, B} → K → \BExp_B,\] poses challenges in the implementation, since \(\GKAT_{K, B}\) is infinite, so it will be impractical to search through all the expressions.
+However, we can treat the function \(δ\) extensionally: \[\GKAT_{K, B} → K → \BExp_B ⊆ 2^{\GKAT_{K, B} × K × \BExp_B},\]
+and then because the boolean expression don't overlap for each input, hence the boolean expression are necessarily unequal; 
+we can model the set by a partial map, thus all the \(δ\) can be represented as a function to the following partial maps.
+\begin{align*}
+    δ & : \GKAT_{K, B} → (\BExp_B ↛ \GKAT_{K, B} × K) \\
+    δ(b) & ≜ \{\} \\
+    δ(q) & ≜ \{1 ↦ (1, p)\}\\  
+    δ(e +_b f) & ≜ \{b ∧ a ↦ (e', p) ∣ a ↦ (e', p) ∈ δ(e)\} 
+        ∪ \{b̄ ∧ a ↦ (f', p) ∣ a ↦ (f', p) ∈ δ(f)\}\\
+    δ(e ⋅ f) & ≜ \{b ↦ (e' ⋅ f, p) ∣ b ↦ (e, p) ∈ δ(e)\}
+        ∪ \{ϵ(e) ∧ b ↦ (f', p) ∣ b ↦ (f', p) ∈ δ(f)\}\\
+    δ(e^{(b)}) & ≜ \{b ∧ a ↦ (e' ⋅ e^{(b)}, p) ∣ a ↦ (e', p) ∈ δ(e)\}.
+\end{align*}
+FIXME: we still need to think about what representation do we want to go with, with this representation, you can also have duplicated K. We need a good example here of why don't we go with map. One good argument is that this representation is complex.
+
+\section{On the Fly Normalization}
+
+Normalization of a GKAT automaton will remove all the dead state, which are states that cannot lead to an accepting transitions. 
+However, this process is hard to do on-the-fly, mainly because of the difficulty of handling infinite loops.
+\begin{example}
+    We can consider a simple extension to a BFS algorithm, where we will mark a state as either live, dead, or searching. 
+    A state is marked as ``searching'' when it has been explored but not yet known to be dead or alive yet,
+    and when a state loops back to a searching state, then we can declare the detection of a infinite loop, hence marking the transition dead.
+    We consider the following coalgebra over a two element set \(\{1, 2\}\):
+    \[
+    \begin{tikzcd}[row sep=15px]
+        1 \ar[bend right, swap]{r}{b ∣ p} \ar[Rightarrow, swap]{d}{b̄}& 2 \ar[bend right, swap]{l}{b ∣ p}\\  
+        \ &  
+    \end{tikzcd}
+    \]
+    It is clear that both states \(1\) and \(2\) are live,
+    since \(1\) is accepting and \(2\) have a transition to \(1\).
+    However, if we run our search algorithm: to determine whether \(1\) is live, we will need to compute the backtrack of both of its transitions. 
+    We will compute the backtrack from \(b\) first, which computes the liveness of \(2\). Thus we will mark \(1\) as searching. Yet state \(2\) only have one transition to \(1\), because \(1\) is marked as searching, the algorithm will think a infinite loop is discovered and mark \(2\) as dead, which doesn't align with the reality.
+\end{example}
+
+Thus, it is crucial to resolve these loops when we a designing a on-the-fly algorithm.
+In fact, we can utilize a common graph theory technique called \emph{graph condensation} to remove the loops, where it treat all thee strong connected component as a vertex as a new graph, and the edges between the components are preserved. 
+The resulting graph is a directed acyclic graph (DAG), then we can utilize a simple search to find the live state.
+
+\begin{definition}[Graph For sGKCT]
+    Given a sGKCT \(𝒮 ≜ ⟨S, δ, ϵ⟩\), we can construct a (potentially infinite) graph, where the vertices are \(S\) and the edge \((s, s')\) is in the graph when  connected there exists a \(p ∈ K\), s.t. \(δ(s, s', p) ≠ 0\)
+\end{definition}
+
+We will also recall the definition of strongly connected components 
+\begin{definition}[Walk and strongly connected components]
+    A walk from vertex \(s₁\) to vertex \(s₂\) in a graph is a sequence of vertices \([s₁, s₂, …, sₙ]\), s.t. for all \(i\), \((sᵢ, s_{i + 1})\) are edges in the graph.
+    A strongly connected component is a equivalence class on the vertices, where two vertices \(s₁\) and \(s₂\) are equivalent when there is a walk from \(s₁\) to \(s₂\) and there is a walk from \(s₂\) to \(s₁\).
+\end{definition}
+
+And in fact strongly connected components has strong connections with liveness of states.
+
+\begin{lemma}
+    By induction on the length of the walk, if there is a walk from state \(s₁\) and \(s₂\) then if \(s₂\) is live and \(s₁\) is live. 
+    Thus by definition of strongly connected component, a strongly connected component is live if and only if any of the state in the component is live. 
+    And consequently, all the states in a strongly connected component are either all dead or all live.
+\end{lemma}
+
+To identify the strongly connected components, we can run the Tarjan's algorithm along side the normal Hopcroft and Karp's bisimulation algorithm.
+The Tarjan's algorithm is a one pass DFS based algorithm where it assigns each state a \emph{low-link value}, at the end of the algorithm, all the algorithm with the same low-link value will be in the same strongly connected components. 
+Thus instead of marking each state with dead or live, we will mark each state with a low-link value, and each low-link value is marked with either dead or alive.
+This kind of mappings are enabled by the fact that all states in a strongly connected components are either all dead or all live.
+
+\section{The Algorithm}
+
+
+
+
+
+FIXME: proof a theorem that if the transformation shares boolean with the original program, then the decision procedure is nearly linear time. 
+
+
+
+
+% \section{Definitions}
+
+% A deterministic symbolic Kleene Coalgebra with Tests (dsKCT) \(𝒮\) over a finite alphabet \(K\) and a boolean algebra \(ℬ\) is a coalgebra with with the following operation:
+% \[δ: 𝒮 → 𝒮 → ℬ.\]
+% Following notations in previous works,
+% we will sometimes write \(δ_{p}: 𝒮 → 𝒮 → \BExp(B)\) for \(p ∈ K\).
+
+% The boolean term algebra over \(B\) formed by all the boolean terms over \(B\) defined by 
+% \[e ≜ b ∈ B ∣ e₁ ∨ e₂ ∣ e₁ ∧ e₂ ∣ ē,\]
+% modulo boolean algebra equalities. 
+% The operations in the boolean term algebra is syntactical,
+% for example, the logical conjunction of term \(e₁\) and \(e₂\)
+% in the term algebra is the term \(e₁ ∧ e₂\).
+% The boolean term algebra is a free boolean algebra, 
+% this means that all the set map \(Î: B → ℬ\) for any boolean algebra \(ℬ\)
+% can be lifted to a unique boolean algebra homomorphism \(I: \BExp(B) → ℬ\),
+% where \[∀ b ∈ B, I(b) = Î(b).\]
+
+% A sKCT homomorphism is a map \(h: 𝒮 → 𝒮'\) where it preserves both operations:
+% \[
+%     \begin{tikzcd}
+%         𝒮 \ar{d}{ϵ} \ar{r}{h} & 𝒮' \ar{dl}{ϵ} \\  
+%         \BExp(B)
+%     \end{tikzcd} \qquad \qquad
+%     ∀ p ∈ K, 
+%     \begin{tikzcd}[column sep=1.5cm]
+%         𝒮 \ar{d}{δ_{p}} \ar{r}{h} & 𝒮' \ar{d}{δ_{p}} \\  
+%         \BExp(B)^𝒮 & \BExp(B)^{𝒮'} \ar{l}{\BExp(B)^{h}}
+%     \end{tikzcd}    
+% \]
+% where \(\BExp(B)^{h}\) is defined as 
+% \begin{align*}
+%     \BExp(B)^{h} & : (𝒮' → \BExp(B)) → (𝒮 → \BExp(B)) \\
+%     \BExp(B)^{h} & (f) ≜ f ∘ h.
+% \end{align*}
+% Notice the function \(\BExp(B)^{h}\) has the type \(\BExp(B)^{𝒮'} → \BExp(B)^𝒮\)
+% instead of the conventional \(\BExp(B)^{𝒮} → \BExp(B)^{𝒮'}\),
+% this is because \(\BExp(B)^{(-)}\) is a contravariant functor.
+
+% Similarly, sKCT bisimulation \(≡\) between \(𝒮\) and \(𝒮'\) is a 
+% relation \({≡} ⊆ 𝒮 × 𝒮'\) that makes the following diagrams commutes:
+% \[
+%     \begin{tikzcd}
+%         𝒮 \ar[swap]{dr}{ϵ} & 
+%             ≡ \ar[swap]{l}{π₁} \ar{r}{π₂}& 
+%             𝒮' \ar{dl}{ϵ} \\  
+%         & \BExp(B) & 
+%     \end{tikzcd} \qquad \qquad
+%     ∀ p ∈ K, 
+%     \begin{tikzcd}[column sep=1.5cm]
+%         𝒮 \ar{d}{δ_{p}} 
+%             & ≡ \ar[swap]{l}{π₁} \ar{r}{π₂}
+%             & 𝒮' \ar{d}{δ_{p}} \\  
+%         \BExp(B)^𝒮 \ar{r}{\BExp(B)^{(π₁)}}
+%         & \BExp(B)^{(≡)} & \BExp(B)^{𝒮'} \ar[swap]{l}{\BExp(B)^{(π₂)}}
+%     \end{tikzcd}    
+% \]
+
+% \begin{example}
+%     Consider the following two sKCT
+%     \[
+%     \begin{tikzpicture}
+%         \node (0) [state] {0};
+%         \node (1) [state, above right = of 0] {1};
+%         \node (2) [state, below right = of 0] {2};
+%         \path[->] (0) edge node[above]{\(b p\)} (1);
+%         \path[->] (0) edge node[above]{\(b̄ p\)} (2);   
+%         \draw[->, double] (0) -- +(0,1) node[left]{\(1\)};
+%         \draw[->, double] (1) -- +(1,0) node[above]{\(1\)};
+%         \draw[->, double] (2) -- +(1,0) node[above]{\(1\)};
+%     \end{tikzpicture}
+%     \qquad \qquad
+%     \begin{tikzpicture}
+%         \node (0) [state] {0};
+%         \node (1) [state, above right = of 0] {1};
+%         \node (2) [state, below right = of 0] {2};
+%         \path[->] (0) edge node[above]{\(c p\)} (1);
+%         \path[->] (0) edge node[above]{\(c̄ p\)} (2);   
+%         \draw[->, double] (0) -- +(0,1) node[left]{\(1\)};
+%         \draw[->, double] (1) -- +(1,0) node[above]{\(1\)};
+%         \draw[->, double] (2) -- +(1,0) node[above]{\(1\)};
+%     \end{tikzpicture}
+%     \]
+%     They are bisimilar
+% \end{example}
+
+% \begin{proof}
+%     It is clean that both of these sKCT unfolds to the same KCT,
+%     and they both accepts languages \(\{α p β ∣ α, β ∈ \At\}\). 
+%     However, their transition has some overlaps, and some distinction.
+
+%     we consider the following bisimulation \(\{(0,0)\} ∪ \{(a, b) ∣ a, b ∈ \{1,2\}\}\)
+% \end{proof}
+
+
+% \section{Semantics And Relation with KCT}
+
+% There are several representations of free boolean algebra 
+% and all of them are isomorphic. 
+% For example a well-known representation of free boolean algebra is \(2^\At\),
+% Notice 
+% \begin{align}
+%     ⋁ \{α ∣ α ≤ ϕ\} & = ϕ & \text{for } ϕ ∈ \BExp(B), 
+%         \label{the: lor of atom}\\  
+%     \{α ∣ α ≤ ⋁ A\} & = A & \text{for } A ∈ 2^{\At}.
+%         \label{the: atom of lor}
+% \end{align}
+% Then the isomorphism \(f: \BExp(B) ⥲ 2^\At\) is defined by 
+% the following function \(at(ϕ) ≜ \{α ∣ α ≤ ϕ\}\) with the inverse \(at^{-1}(A) ≜ ⋁ A\).
+
+% The classical way to provide semantics to a certain coalgebra is by finding the final coalgebra.
+% \begin{definition}[Final sKCT]
+%     The final sKCT is formed by set of guarded strings \(2^{\GS}\), 
+%     with the operations defined as follows:
+%     \begin{align*}
+%         ϵ(l) & ≜ ⋁ \{α ∣ α ∈ l\} & 
+%         δₚ(l)(l') & ≜ ⋁ \{α ∣ ∃ w ∈ l', α p w ∈ l\}
+%     \end{align*}
+% \end{definition}
+
+% \begin{proof}
+%     We need to show that for all sKCT \(𝒮\), there exists a unique homomorphism \(L\):
+%     \[
+%         \begin{tikzcd}
+%             𝒮 \ar{d}{ϵ} \ar[dashed]{r}{L} & 2^{\GS} \ar{dl}{ϵ} \\  
+%             \BExp(B)
+%         \end{tikzcd} \qquad \qquad
+%         ∀ p ∈ K, 
+%         \begin{tikzcd}[column sep=1.5cm]
+%             𝒮 \ar{d}{δ_{p}} \ar[dashed]{r}{L} & 2^{GS} \ar{d}{δ_{p}} \\  
+%             \BExp(B)^𝒮 & \BExp(B)^{2^{GS}} \ar[dashed]{l}{\BExp(B)^{L}}
+%         \end{tikzcd}
+%     \]
+%     We can simplify these two diagrams as follows
+%     \begin{itemize}
+%         \item If the first diagram commutes, then for all \(s ∈ 𝒮\), 
+%             \(ϵ(s) = ϵ(L(s)) = ⋁ \{α ∣ α ∈ L(s)\}\), which implies
+%             \[α ≤ ϵ(s) ⟺ α ≤ ⋁ \{α ∣ α ∈ L(s)\} ⟺ α ∈ L(s).\]
+%             Furthermore, if \(α ≤ ϵ(s) ⟺ α ∈ L(s)\), we have 
+%             \[ϵ(L(s)) = ⋁ \{α ∣ α ∈ L(s)\} = ⋁ \{α ∣ α ≤ ϵ(s)\} = ϵ(s);\]
+%             thus the first diagram commutes.
+%             Therefore, the first diagram commutes if and only if the following equivalence holds:
+%             \[α ≤ ϵ(s) ⟺ α ∈ L(s).\]
+%         \item If the second diagram commutes, then for all \(s, s' ∈ 𝒮\), 
+%             \[δₚ(s)(s') = \BExp(B)^{L}(δₚ(L(s)))(s') 
+%                 = δₚ(L(s))(L(s')) 
+%                 = ⋁ \{α ∣ ∃ w ∈ L(s'), α p w ∈ L(s)\},\]
+%             which would imply 
+%             \[α p w ∈ L(s) ⟺ ∃ s' ∈ 𝒮, w ∈ L(s') ∧ α ≤ δₚ(s)(s').\]
+%     \end{itemize}
+
+
+
+
+%     where the language \(L(s)\) for each state \(s\) is coinductively defined as follows:
+%     \[L(s) ≜ \{α ∣ α ≤ ϵ(s)\} ∪ \{α p w ∣ p ∈ K, s' ∈ 𝒮, α ≤ δₚ(s)(s'), w ∈ L(s')\}.\]
+%     Notice the following equivalence can be observed from the definition
+%     \begin{align*}
+%         α ∈ L(s) & ⟺ α ≤ ϵ(s), \\
+%         α p w ∈ L(s) & ⟺ ∃ s' ∈ 𝒮, w ∈ L(s') ∧ α ≤ δₚ(s)(s').
+%     \end{align*}
+    
+%     We first show that the diagram commutes:
+%     \begin{align*}
+%         ϵ(L(s)) & = ⋁ \{α ∣ α ∈ L(s)\} \\
+%             & = ⋁ \{α ∣ α ≤ ϵ(s)\} 
+%             = ϵ(s);\\   
+%         \BExp(B)^{L}(δₚ(L(s)))(s')
+%             & = δₚ(L(s))(L(s')) \\
+%             & = ⋁ \{α ∣ ∃ w ∈ L(s'), α p w ∈ L(s)\} \\  
+%             & = ⋁ \{α ∣ α ≤ δₚ(s)(s')\} 
+%             = δₚ(s)(s').
+%     \end{align*}
+
+%     We then show that such a homomorphism is unique,
+%     assume that \(L': 𝒮 → 2^{\GS}\), 
+%     we will show that given any guarded word \(w ∈ 2^{\GS}\), and state \(s ∈ 𝒮\)
+%     \[w ∈ L'(s) ⟺ w ∈ L(s),\]
+%     by induction on \(w\):
+%     \begin{itemize}
+%         \item If \(w = α\) for some atom \(α\),
+%             then \(w ∈ L'(s) \)
+%     \end{itemize}
+% \end{proof}
+
+% Since \(\BExp(B) ≅ 2^\At\) in set, 
+% we can develop the following natural isomorphism:
+% \begin{align*}
+%     ϵ & : 𝒮 → \BExp(B) ≅ 𝒮 → \At → 2; \\  
+%     δ & : 𝒮 → K → 𝒮 → \BExp(B) ≅ 𝒮 → K → 𝒮 → \At → 2 
+%         ≅ 𝒮 → \At → K → 2^{𝒮}.
+% \end{align*} 
+% In other word, a symbolic Kleene Coalgebra with Tests is a ``non-deterministic'' KCT,
+% in the sense that given a atom and a primitive action, it can transition 
+% to multiple states non-deterministically.
+% There we can apply the following determination procedure to it:
+% \begin{align*}
+%     ϵ̂ &:  2^𝒮 → \At → 2 & δ̂ &: 2^𝒮 → \At → K → 2^{𝒮} \\  
+%     ϵ̂_{α} & (S) ≜ ∃ s ∈ S, ϵ(s) = 1, & 
+%     δ̂_{α p} & (S) ≜ \{s' ∣ δ_{α p}(s) = s', s ∈ S\}.
+% \end{align*}
+% In other words, given a sKCT \(𝒮\), then we can construct a KCT \(2^{𝒮}\).
+
+
+
+\end{document}
