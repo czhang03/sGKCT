@@ -33,9 +33,10 @@ its index, low_link value, and whether it is on stack
 - index is assigned incrementally, this grantees that the later element on the stack
     always have higher index on the stack
 - the low_link value represents the **lowest index that the current node can reach**.
-    Thus when a node has the low link value as its index,
-    the node cannot reach any previous element of the stack,
-    hence its entire scc is explored and is on the top of the stack.
+    Thus when a node has the low link value as its index during backtracking,
+    all the child of this node has been explored, 
+    and the node cannot reach any previous element of the stack.
+    Hence, its entire scc is explored and is on the top of the stack.
 - Finally, the on stack boolean simply keeps track of whether the expression is on the stack.
     Keeping track of this value avoids the linear time check of whether 
     a expression is on the stack.
@@ -52,14 +53,13 @@ there are the following cases
     then we will compute the low_link of `e` by the lowest reachable idx of `f` 
     (AKA the low link of `f`).
 - if the derivative `f` is not on stack but explored,
-    then its scc is already constructed with a known liveness,
-    hence we can directly use its liveness to compute whether `e` should be in `acc_or_to_live_scc`
+    then its scc is already constructed with a known liveness:
+    if `f` is in a live SCC, then `e` should be in `to_live_scc`.
 
 Finally, notice that a SCC is live if and only if there exists either 
-a expression that transition to a live SCC, or an accepting expression,
-which is recorded in `acc_or_to_live_scc`.
+a expression that transition to a live SCC, or an accepting expression.
 Thus when constructing the scc, we will compute whether the scc is live 
-by cumulating the result of `acc_or_to_live_scc` for each expression in the scc
+by cumulating the result of `f ∈ to_live_scc` and `ϵ(f) ≠ 0` for each expression `f` in the scc.
 
 ```ocaml
 let cur_idx = 0 
@@ -82,7 +82,10 @@ This only keeps track of the expression on the stack,
 expressions not on the stack but explored are already collected as scc, 
 hence should use `live_scc` instead.*)
 let to_live_scc: exp set = empty
-(* all the currently discovered scc *)
+(* all the currently discovered live scc,
+   each scc is marked by its "representing expression" in the union-find object.
+   for a expression `e`, the representing expression for its scc
+   can be computed by `rep_{scc} e`.*)
 let live_scc: exp set = empty
 
 (** visit the predecessor of e
@@ -120,8 +123,8 @@ let construct_scc_of e : unit =
         (* remove all the vertex on stack until e *)
         let f = stack.pop ();
         infoTbl[f].on_stack := false;
-        scc_is_live := scc_is_live ∨ acc_or_to_live_scc[f]
-        delete f acc_or_to_live_scc;
+        scc_is_live := scc_is_live ∨ f ∈ to_live_scc ∨ ϵ(f) ≠ 0
+        delete f to_live_scc;
         (* add f to the scc of e *)
         union_{scc} e f
     until f = e 
@@ -165,14 +168,15 @@ where
     let is_live e = (rep_{scc} e) ∈ live_scc
     (* bisim algorithm taking into account liveness*)
     let bisim_with_liveness e f: bool = 
-        if ¬ (is_live e) ∧ ¬ (is_live f) then true 
-        else if (is_live e) ∧ ¬ (is_live f) then false
-        else if ¬ (is_live e) ∧ (is_live f) then false
+        (* liveness checks *)
+        if ¬ (is_live e) ∧ ¬ (is_live f) then true   (* both dead *)
+        else if (is_live e) ∧ ¬ (is_live f) then false   (*one dead, one live*)
+        else if ¬ (is_live e) ∧ (is_live f) then false   (*one dead, one live*)
         (*both e and f are live, if e, f accept different atoms,
            then they are not bisimilar*)
         else if ϵ(e) ≠ ϵ(f) then false 
         (*
-        main checking algorithm.
+        main checking algorithm, both `e` and `f` are live,
         require all the transition to follow the following rules:
         - either the transitions are disjoint in booleans
         - or they execute the same action and the resulting states are also bisimular
