@@ -74,14 +74,14 @@ type expInfo = {
 }
 
 let info_of: exp expInfo hashtbl = empty
-(* Whether a expression is accepting or it transitions to a live scc
+(* Whether a expression transitions to a live scc
 
 Notice that if a expression is in the set, then exp is necessarily live,
 but if it is not, exp is not necessarily dead.
 This only keeps track of the expression on the stack,
-expressions not on the stack but explored are formed as scc, 
+expressions not on the stack but explored are already collected as scc, 
 hence should use `live_scc` instead.*)
-let acc_or_to_live_scc: exp set = empty
+let to_live_scc: exp set = empty
 (* all the currently discovered scc *)
 let live_scc: exp set = empty
 
@@ -106,14 +106,13 @@ let visit_predecessor_of e: unit =
         else
             e_to_live_scc := e_to_live_scc ∨ is_live_scc[rep_{scc} f];
     
-    (* if e has any accepting transition, then it is not live 
-    We put this at end, since computing `ϵ(e) ≠ 0` is slow,
-    we hope it is *)
-    acc_or_to_live_scc[e] := e_to_live_scc ∨ (ϵ(e) ≠ 0)
+    (* collect whether `e` has transition to live scc*)
+    if e_to_live_scc then 
+        to_live_scc := to_live_scc ∪ {e}
 
 (** This will collect all the element in the scc of e, and remove them from the stack
     
-This function is called when the entire scc of e is detected
+This procedure is called when the entire scc of e is detected
 *)
 let construct_scc_of e : unit = 
     scc_is_live = false
@@ -152,9 +151,39 @@ let visit e : unit =
         construct_scc_of e
 ```
 
-
-
-Finally, we can allow the bisimulation algorithm to run along side Tarjan's algorithm.
-
+Then we can modify our bisim algorithm to take into account 
+of the liveness of each expression
 ```ocaml
+let equiv e f: bool =
+    (* get the liveness of all the reachable expression from `e` and `f`*)
+    visit e; 
+    visit f;
+    (* run the modified bisim algorithm based on liveness *)
+    bisim_with_liveness e f 
+where 
+    (* e is live when its scc is live *)
+    let is_live e = (rep_{scc} e) ∈ live_scc
+    (* bisim algorithm taking into account liveness*)
+    let bisim_with_liveness e f: bool = 
+        if ¬ (is_live e) ∧ ¬ (is_live f) then true 
+        else if (is_live e) ∧ ¬ (is_live f) then false
+        else if ¬ (is_live e) ∧ (is_live f) then false
+        (*both e and f are live, if e, f accept different atoms,
+           then they are not bisimilar*)
+        else if ϵ(e) ≠ ϵ(f) then false 
+        (*
+        main checking algorithm.
+        require all the transition to follow the following rules:
+        - either the transitions are disjoint in booleans
+        - or they execute the same action and the resulting states are also bisimular
+        *)
+        else forall ψ_e ↦ (e', p) ∈ δ(e), ψ_f ↦ (f', q) ∈ δ(f), 
+        (
+            (* the result has already been marked equal *)
+            equiv_{bisim} e' f' ∨
+            (* when two boolean disjoint, skip *)
+            ψ_e ∧ ψ_f = 0 ∨ 
+            (* in order for e, f to be bisimular, they will need to execute the same action and result in bisimular states*)
+            (p = q ∧ (union_{bisim} e f; bisim_with_liveness e' f'))
+        )
 ```
