@@ -120,7 +120,8 @@ because if `e` needs to be dead, then `f` also needs to be dead,
 since a dead expression cannot have the same semantics as a live expression.
 
 Also we will immediately return the result of `is_both_dead e f` when it is found,
-because `is_both_dead e f` is only called when a discrepancy between 
+i.e. the `return` keyword will trigger the termination of `equiv` function. 
+This approach is valid because `is_both_dead e f` is only called when a discrepancy between 
 the transition of `e` and `f` has been found, thus
 - If both `e` and `f` is dead, all their predecessor is dead, hence equivalent. 
     Thus, we don't need to check their predecessors.
