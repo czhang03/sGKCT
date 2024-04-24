@@ -1,6 +1,7 @@
 
 Algorithm without normalization, this algorithm is defined as a series of assertions, 
-if all the assertion passes, it will return true, otherwise it will terminate and return false. 
+if all the assertion passes, it will return true, 
+otherwise it will terminate at the false asserting and return false. 
 ```ocaml
 let ρ(e) = ¬ ϵ(e) ∧ ¬ (⋁_{ψ ↦ (e', p) ∈ δ(e)} ψ)
 
