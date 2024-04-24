@@ -1,25 +1,139 @@
-Algorithm without normalization
 
+Algorithm without normalization, this algorithm is defined as a series of assertions, 
+if all the assertion passes, it will return true, otherwise it will terminate and return false. 
 ```ocaml
+let ρ(e) = ¬ ϵ(e) ∧ ¬ (⋁_{ψ ↦ (e', p) ∈ δ(e)} ψ)
+
 let bisim e f: bool = 
-    (*if e, f accept different atoms*)
-    if ϵ(e) ≠ ϵ(f) then false else
+    (* already marked equivalent, then return immediately *)
+    if equiv e f then true else 
+
+    (*if e, f has to accept the same atoms*)
+    assert ϵ(e) = ϵ(f) 
+
+    (*Check for rejection, rejection cannot overlap with any transitions *)
+    assert forall ψ_f ↦ (f', q) ∈ δ(f), (ρ(e) ∧ ψ_f = 0)
+    assert forall ψ_e ↦ (e', q) ∈ δ(f), (ρ(f) ∧ ψ_e = 0)
+
     (*
     main checking algorithm.
     require all the transition to follow the following rules:
     - either the transitions are disjoint in booleans
     - or they execute the same action and the resulting states are also bisimular
     *)
-    forall ψ_e ↦ (e', p) ∈ δ(e), ψ_f ↦ (f', q) ∈ δ(f), 
+    assert forall ψ_e ↦ (e', p) ∈ δ(e), ψ_f ↦ (f', q) ∈ δ(f), 
     (
-        (* the result has already been marked equal *)
-        equiv_{bisim} e' f' ∨
         (* when two boolean disjoint, skip *)
         ψ_e ∧ ψ_f = 0 ∨ 
         (* in order for e, f to be bisimular, they will need to execute the same action and result in bisimular states*)
-        (p = q ∧ (union_{bisim} e f; bisim e' f'))
+        (p = q ∧ (union e f; bisim e' f'))
     )
 ```
+
+To incorporate normalization, we will define a `check_dead` function, 
+which will explore all the reachable state of `e` 
+via a DFS (other search algorithm will also work).
+This will check whether each of the reachable state `f` is accepting, i.e. `ϵ(f) ≠ 0`: 
+- if any state is accepting, it will terminate and return `None`
+- if none of the state is accepting, then all the reachable state will be dead, return all the reachable states.
+```ocaml
+let check_dead e: exp set option: 
+    if ϵ(e) = 0 then
+        let explored = ∅
+        (* not accepting *) 
+        for (ψ_e ↦ (e', p) ∈ δ(e))             
+            if check_dead e' = None then 
+                return None
+            else 
+                explored := explored ∪ check_dead e'
+        (* if haven't returned yet, then all the `e'`s are dead*)
+        return explored
+    else 
+        (* accepting *)
+        return None 
+```
+We can also cache the result of `check_dead`, so we make sure that
+we only check each of the dead state exactly once:
+```ocaml
+(* a mutable set holding all the explored dead states*)
+let dead_states : exp set = ∅
+
+let is_dead (e : exp): bool = 
+    if e ∈ dead_states then 
+        return true
+    else if check_dead e = None then 
+        return false 
+    else 
+        dead_states := dead_states ∪ check_dead e
+        return true
+```
+Finally, the `is_dead` functionality can be incorperated into the bisimulation algorithm:
+```ocaml
+let ρ(e) = ¬ ϵ(e) ∧ ¬ (⋁_{ψ ↦ (e', p) ∈ δ(e)} ψ)
+
+(** This function is a helper function for equiv.
+    
+It will check whether `e` and `f` are both dead, 
+if they are both dead, we mark them as equivalent and return the result,
+otherwise we will return false.
+This function is useful because a dead expression cannot be equivalent to a live expression,
+hence, when one expression needs to be dead, the other expression also needs to be dead,
+for the equivalence to hold.*)
+let is_both_dead e f = 
+    if is_dead(e) && is_dead(f) then 
+        union e f; return true 
+    else 
+        return false
+
+let equiv e f: bool = 
+    (* already marked equivalent, then return immediately *)
+    if equiv e f then true else 
+
+    (*if e, f has to accept the same atoms*)
+    assert ϵ(e) = ϵ(f) 
+
+    (*Check for rejection, rejection cannot overlap with any transitions. 
+    In order for intersection to happen, both expression needs to be dead.*)
+    forall ψ_f ↦ (f', q) ∈ δ(f), ( if ρ(e) ∧ ψ_f ≠ 0 then return is_both_dead e f )
+    forall ψ_e ↦ (e', q) ∈ δ(f), ( if ρ(e) ∧ ψ_f ≠ 0 then return is_both_dead e f )
+
+    (*
+    main checking algorithm.
+    require all the transition to follow the following rules:
+    - either the transitions are disjoint in booleans
+    - or they execute the same action and the resulting states are also bisimular
+    *)
+    assert forall ψ_e ↦ (e', p) ∈ δ(e), ψ_f ↦ (f', q) ∈ δ(f), 
+    (
+        (* when two boolean disjoint, skip *)
+        ψ_e ∧ ψ_f = 0 ||
+        (* in order for e, f to be bisimular, they will need to execute the same action and result in bisimular states*)
+        if p = q then union e f; bisim e' f' 
+        (* for two intersecting boolean expression to have different action,
+           both expression needs to be dead *)
+        else if p ≠ q then return is_both_dead e f
+    )
+```
+Notice that we never check wether `e` or `f` is dead individually, 
+but always check whether they are both dead, 
+because if `e` needs to be dead, then `f` also needs to be dead, 
+since a dead expression cannot have the same semantics as a live expression.
+
+Also we will immediately return the result of `is_both_dead e f` when it is found,
+because `is_both_dead e f` is only called when a discrepancy between 
+the transition of `e` and `f` has been found, thus
+- If both `e` and `f` is dead, all their predecessor is dead, hence equivalent. 
+    Thus, we don't need to check their predecessors.
+- If either `e` and `f` is not dead, they cannot be equivalent, 
+    since a discrepancy has already been found. 
+
+
+
+
+
+
+# Old Algorithm, Deprecated
+
 
 Tarjan's algorithm adapt to calculate live states.
 There are two sub-procedure for Tarjan's algorithm, 
