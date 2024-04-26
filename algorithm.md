@@ -80,29 +80,27 @@ otherwise we will return false.
 This function is useful because a dead expression cannot be equivalent to a live expression,
 hence, when one expression needs to be dead, the other expression also needs to be dead,
 for the equivalence to hold.*)
-let is_both_dead e f = 
-    if is_dead(e) && is_dead(f) then 
-        union e f; return true 
-    else 
-        return false
 
 let equiv e f: bool = 
     (* already marked equivalent, then return immediately *)
     if equiv e f then true else 
+    (* both are dead, then they are equivalent *)
+    if e ∈ dead_states && f ∈ dead_states then true else
 
     (*if e, f has to accept the same atoms*)
     assert ϵ(e) = ϵ(f) 
 
     (*Check for rejection, rejection cannot overlap with any transitions. 
     In order for intersection to happen, both expression needs to be dead.*)
-    forall ψ_f ↦ (f', q) ∈ δ(f), ( if ρ(e) ∧ ψ_f ≠ 0 then return is_both_dead e f )
-    forall ψ_e ↦ (e', q) ∈ δ(f), ( if ρ(e) ∧ ψ_f ≠ 0 then return is_both_dead e f )
+    forall ψ_f ↦ (f', q) ∈ δ(f), ( if ρ(e) ∧ ψ_f ≠ 0 then is_dead(f') else false )
+    forall ψ_e ↦ (e', q) ∈ δ(f), ( if ρ(e) ∧ ψ_f ≠ 0 then is_dead(e') else false )
 
     (*
     main checking algorithm.
     require all the transition to follow the following rules:
     - either the transitions are disjoint in booleans
     - or they execute the same action and the resulting states are also bisimular
+    if not, then transition will need to be dead
     *)
     assert forall ψ_e ↦ (e', p) ∈ δ(e), ψ_f ↦ (f', q) ∈ δ(f), 
     (
@@ -112,24 +110,9 @@ let equiv e f: bool =
         if p = q then union e f; bisim e' f' 
         (* for two intersecting boolean expression to have different action,
            both expression needs to be dead *)
-        else if p ≠ q then return is_both_dead e f
+        else (* if p ≠ q *) is_dead(e') && is_dead(f')  
     )
 ```
-Notice that we never check wether `e` or `f` is dead individually, 
-but always check whether they are both dead, 
-because if `e` needs to be dead, then `f` also needs to be dead, 
-since a dead expression cannot have the same semantics as a live expression.
-
-Also we will immediately return the result of `is_both_dead e f` when it is found,
-i.e. the `return` keyword will trigger the termination of `equiv` function. 
-This approach is valid because `is_both_dead e f` is only called when a discrepancy between 
-the transition of `e` and `f` has been found, thus
-- If both `e` and `f` is dead, all their predecessor is dead, hence equivalent. 
-    Thus, we don't need to check their predecessors.
-- If either `e` and `f` is not dead, they cannot be equivalent, 
-    since a discrepancy has already been found. 
-
-
 
 
 
