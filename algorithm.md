@@ -92,8 +92,8 @@ let equiv e f: bool =
 
     (*Check for rejection, rejection cannot overlap with any transitions. 
     In order for intersection to happen, both expression needs to be dead.*)
-    forall ψ_f ↦ (f', q) ∈ δ(f), ( if ρ(e) ∧ ψ_f ≠ 0 then is_dead(f') else false )
-    forall ψ_e ↦ (e', q) ∈ δ(f), ( if ρ(e) ∧ ψ_f ≠ 0 then is_dead(e') else false )
+    assert forall ψ_f ↦ (f', q) ∈ δ(f), ( ρ(e) ∧ ψ_f = 0 || is_dead(f'))
+    assert forall ψ_e ↦ (e', q) ∈ δ(f), ( ρ(e) ∧ ψ_f = 0 || is_dead(e'))
 
     (*
     main checking algorithm.
