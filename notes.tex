@@ -676,34 +676,57 @@ since it is only defined on relations.
 In fact the normalization operation commutes with principle sub-DKCT. This result is intuitive as taking all the reachable states and then normalize is the same as normalize and then take all the reachable state.
 
 \begin{lemma}
-    sub-DKCT preserves principle sub-DKCT, that is, given \(𝒮' ⊑ 𝒮\) and \(s ∈ 𝒮'\), then \[⟨s⟩_{𝒮'} = ⟨s⟩_{𝒮}.\]
+    Given two sub-DKCT \(𝒮₁ ⊑ 𝒮\) and \(𝒮₂ ⊑ 𝒯\), then \[𝒮₁ ⊑ 𝒮₂ ⟺ 𝒮₁ ⊆ 𝒮₂\]
 \end{lemma}
 
 \begin{proof}
-    First by definition, \(s ∈ ⟨s⟩_{𝒮}\),
-    then we show that \(⟨s⟩_{𝒮}\) is the smallest sub-DKCT of \(𝒮'\), that contains \(s\) in \(𝒮\):
-
-    Because \(s ∈ ⟨s⟩_{𝒮'}\) and \(⟨s⟩_{𝒮'} ⊑ 𝒮' ⊑ 𝒮\), 
-    by minimality of \(⟨s⟩_{𝒮}\): \[⟨s⟩_{𝒮} ⊑ ⟨s⟩_{𝒮'} ⊑ 𝒮',\] that is, \(⟨s⟩_{𝒮}\) is a sub-DKCT of \(𝒮'\).
-
-    Given any \(𝒯  ⊑ 𝒮'\) and \(s ∈ 𝒯\), we have \(𝒯 ⊑ 𝒮' ⊑ 𝒮\),
-    thus by minimality of \(⟨s⟩_{𝒮}\): \(⟨s⟩_{𝒮} ⊑ 𝒯\).
-    In other word, \(⟨s⟩_{𝒮}\) is the the minimal sub-algebra of \(𝒮'\) that contains \(s\), reaching desired conclusion.
+    because their transition function are both restriction of \(δ_𝒮\).
 \end{proof}
 
 \begin{lemma}
+    Homomorphism preserves sub-DKCT, given \(h: 𝒮 → 𝒯\):
+    \[𝒮' ⊑ 𝒮 ⟹ h(𝒮') ⊑ h(𝒮) ⊑ 𝒯\]
+\end{lemma}
+
+\begin{proof}
+    consequence of previous lemma.
+\end{proof}
+
+\begin{lemma}
+    Homomorphism preserves principle sub-DKCT. Specifically, given a homomorphism \(h: 𝒮 → 𝒯\), 
+    \[h(⟨s⟩_{𝒮}) = ⟨h(s)⟩_{𝒯},\]
+    where \(h(⟨s⟩_{𝒮})\) is the image of \(⟨s⟩_{𝒮}\) under \(h\).
+\end{lemma}
+
+\begin{proof}
+    Specifically, we will need to show that \(h(⟨s⟩_{𝒮})\) is the smallest sub-DKCT of \(𝒯\) that contain \(h(s)\). First by definition of image, \(h(s) ∈ h(⟨s⟩_{𝒮})\), second because \(h\) is a homomorphism \(𝒮 → 𝒯\), and \(⟨s⟩_{𝒮} ⊑ 𝒮\), thus \(h(⟨s⟩_{𝒮}) ⊑ 𝒯\).
+
+    Finally, take any \(𝒯' ⊑ 𝒯\), and \(h(s) ∈ 𝒯'\). We take the preimage of \(𝒯'\) under \(h\),
+    since \(s ∈ h^{-1}(𝒯)\), thus \(⟨s⟩_{𝒮} ⊑ h^{-1}(𝒯)\), which implies \(h(⟨s⟩_{𝒮}) ⊑ 𝒯\).
+\end{proof}
+
+\begin{corollary}
+    Homomorphism preserves live/dead/accepting states.
+    Given a homomorphism \(h: 𝒮 → 𝒯\) then \(s ∈ 𝒮\) is a live/dead/accepting state if and only if \(h(s) ∈ 𝒯\) is a live/dead/accepting state, respectively.
+\end{corollary}
+
+\begin{proof}
+    First, homomorphism preserves accepting state by definition.
+    Then because homomorphism preserves principle sub-DKCT and a state \(s\) is live if and only if there exists an accepting state \(⟨s⟩\), thus homomorphism will also preserve the liveness of \(s\).
+\end{proof}
+
+\begin{corollary}
+    sub-DKCT preserves principle sub-DKCT, that is, given \(𝒮' ⊑ 𝒮\) and \(s ∈ 𝒮'\), then \[⟨s⟩_{𝒮'} = ⟨s⟩_{𝒮}.\]
+\end{corollary}
+
+\begin{proof}
+    Because inclusion \(i: 𝒮' → 𝒮\) is a homomorphism, thus \[⟨s⟩_{𝒮'} = i(⟨s⟩_{𝒮'}) = ⟨i(s)⟩_𝒮 = ⟨s⟩_{𝒮}. \qedhere\]
+\end{proof}
+
+\begin{corollary}
     sub-DKCT preserves liveness, that is given \(𝒮' ⊑ 𝒮\) and \(s ∈ 𝒮'\), 
     \[s \text{ is live in \(𝒮'\)} ⟺ s \text{ is live in \(𝒮\)}\]
-\end{lemma}
-\begin{proof}
-    recall that sub-DKCT preserves principle sub-DKCT, namely \(⟨s⟩_{𝒮'} = ⟨s⟩_{𝒮}\), thus 
-    \begin{align*}
-        s \text{ is live in \(𝒮'\)} 
-        & ⟺ ⟨s⟩_{𝒮'} \text{ contains an accepting state} \\
-        & ⟺ ⟨s⟩_{𝒮} \text{ contains an accepting state} \\
-        & ⟺ s \text{ is live in \(𝒮\)} 
-    \end{align*}
-\end{proof}
+\end{corollary}
 
 \begin{lemma}
     \(\norm\) is a functor, and it preserves inclusion, that is 
@@ -783,7 +806,7 @@ These two embeddings allows us to construct the following pullback square:
 \end{theorem}
 
 \begin{proof}
-    We can 
+    By computation.
 \end{proof}
 
 \begin{lemma}
@@ -848,19 +871,19 @@ These two embeddings allows us to construct the following pullback square:
 \begin{proof}
     WLOG we will only prove that \(s ∼ t\) will lead to a contradiction.
     We can restrict the simulation diagram of \(∼\) to \(⟨s⟩\) and \(\norm(⟨t⟩)\),
-    let \[∼_{s, t} = \{s', t' ∣ s' ∼ t', s' ∈ ⟨s⟩, t' ∈ \norm(⟨t⟩)\}.\]
+    let \[∼_{s, t̂} = \{s', t' ∣ s' ∼ t', s' ∈ ⟨s⟩, t' ∈ \norm(⟨t⟩)\}.\]
     Note that only \(𝒯\) is restricted to \(\norm(⟨t⟩)\); while \(𝒮\) is restricted to \(⟨s⟩\), without \(\norm\). 
     This discrepancy is because \(s\) is dead, thus \(\norm(⟨s⟩)\) is empty. 
     If we restrict \(∼\) to \(\norm(⟨t⟩) × \norm(⟨s⟩)\), then there will be no element in the restriction, since \(\norm(⟨t⟩) × \norm(⟨s⟩)\) is empty.
 
-    We can show that \(∼_{s, t}\) form a normalized bisimulation between \(⟨s⟩\) and \(\norm(⟨t⟩)\).
+    We can show that \(∼_{s, t̂}\) form a normalized bisimulation between \(⟨s⟩\) and \(\norm(⟨t⟩)\).
     \[
         \begin{tikzcd}[column sep=1cm, row sep=1cm]
             ⟨s⟩ \ar[swap]{d}{δ_𝒮}
-                & ∼_{s, t} \ar{d}{(δ_𝒮, \norm(δ_𝒯))} \ar[swap]{l}{π₁} \ar{r}{π₂}
+                & ∼_{s, t̂} \ar{d}{(δ_𝒮, \norm(δ_𝒯))} \ar[swap]{l}{π₁} \ar{r}{π₂}
                 & \norm(⟨t⟩) \ar{d}{\norm(δ_𝒯)} \\  
             G(⟨s⟩) 
-                & {\overline{∼_{s, t}}}^\At 
+                & {\overline{∼_{s, t̂}}}^\At 
                     \ar[swap]{l}{{π₁}^\At} \ar{r}{{π₂}^\At}
                 & G(\norm(⟨t⟩))
         \end{tikzcd}
@@ -868,10 +891,10 @@ These two embeddings allows us to construct the following pullback square:
     Then we can perform epi-mono factorization on the right square to obtain the range of \(π₂\):
     \[
         \begin{tikzcd}[column sep=1cm, row sep=1cm]
-            ∼_{s, t} \ar[swap]{d}{(δ_𝒮, \norm(δ_𝒯))} \ar{r}{π₂}
+            ∼_{s, t̂} \ar[swap]{d}{(δ_𝒮, \norm(δ_𝒯))} \ar{r}{π₂}
                 & \Img(π₂) \ar[hook]{r}{i} \ar{d}{\norm(δ_𝒯)}
                 & \norm(⟨t⟩) \ar{d}{\norm(δ_𝒯)} \\  
-            {\overline{∼_{s, t}}}^\At  \ar{r}{π₂^{\At}}
+            {\overline{∼_{s, t̂}}}^\At  \ar{r}{π₂^{\At}}
                 & G(\Img(π₂)) \ar[hook]{r}{G(i)}
                 & G(\norm(⟨t⟩))
         \end{tikzcd}
@@ -882,19 +905,48 @@ These two embeddings allows us to construct the following pullback square:
 
     Since \(t\) is a live state, hence there exists an accepting state \(t'\) in \(\norm(⟨t⟩)\); 
     because \(s\) is a dead state, thus all the states in \(⟨s⟩\) is dead.
-    Because \(π₂: {∼_{s, t}} → T\) is surjective, there exists a dead state \(s' ∈ ⟨s⟩\) s.t. \(s' ∼ t'\).
-    However, a dead state cannot be normally bisimilar to a accepting state, since \(((s', p), 1) ∉ \overline{∼_{s, t}}\) for all dead state \(s'\) and action \(p\).
+    Because \(π₂: {∼_{s, t̂}} → T\) is surjective, there exists a dead state \(s' ∈ ⟨s⟩\) s.t. \(s' ∼ t'\).
+    However, a dead state cannot be normally bisimilar to a accepting state, since \(((s', p), 1) ∉ \overline{∼_{s, t̂}}\) for all dead state \(s'\) and action \(p\).
 \end{proof}
 
-
-
-\begin{theorem}[soundness and completenss]
-    Given a normalized bisimulation \({∼} ⊆ 𝒮 × 𝒯\), then for all state \(s ∈ 𝒮\) and \(t ∈ 𝒯\), \(∼\) is sound and complete with respect to trace equivalence
-    \[s ∼ t \text{ or both \(s\) and \(t\) are dead} ⟺ ⟦s⟧ = ⟦t⟧.\]
+\begin{theorem}
+    Homomorphism reflects normalized bisimulation. Let \(h: 𝒮₁ → 𝒮₂\), and a normalized bisimulation \({∼} ⊆ 𝒮₂ × 𝒯\), then there exists a normalized bisimulation \({∼ₕ}: 𝒮₁ × 𝒯\).
+    And similarly for \({∼} ⊆ 𝒯 × 𝒮₂\).
 \end{theorem}
 
 \begin{proof}
-    The \(⟹\) direction can be shown by case analysis on the liveness of \(s\) and \(t\):
+    \(∼ₕ\) can be defined as follows: 
+    \[{∼ₕ} ≜ \{(s, t) ∣ h(s) ∼ t\}.\]
+    Then the function \(h × id: {∼ₕ} → {∼}\), can be lifted to \({{\overline{∼ₕ}}^\At} → {\closSim^\At}\):
+    \[
+        \begin{tikzcd}[column sep=2.5cm]
+            ∼ \ar[swap]{d}{(δ_{𝒮₂}, δ_𝒯)}
+                & ∼ₕ \ar[swap]{l}{h × id} \ar{d}{(δ_{𝒮₁}, δ_𝒯)}   \\ 
+            \closSim^\At
+                & {\overline{∼ₕ}}^\At \ar[dashed]{l}{((id + h × id) × id)^\At}
+        \end{tikzcd}
+    \]
+    The generated function \((id + h × id) × id: {\overline{∼ₕ}} → {\closSim}\) is indeed well-defined by case analysis on the input in \(∼ₕ\), and also by the fact that homomorphism like \(h\) preserves liveness.
+\end{proof}
+
+\begin{definition}
+    A guarded language \(L\) over alphabet \(K, B\) is deterministic when given a list of atoms \(α₀, α₁, α₂, …, αₙ\),
+    there is at most one word in the language \(w ∈ L\) that has the form:
+    \[α₀ p₁ α₁ … pₙ αₙ \text{ for some } pᵢ ∈ K\]
+\end{definition}
+
+\begin{theorem}
+    the set of deterministic guarded language over the alphabet \(K, B\): \(𝒢_{K, B}\) is a DKCT;  
+    and the trace semantics \(⟦-⟧: 𝒮 → 𝒢\) is a homomorphism.
+\end{theorem}
+
+\begin{theorem}[soundness and completeness]
+    the trace of two state \(s ∈ 𝒮\) and \(t ∈ 𝒯\) are trace equivalent if and only if there exists a normalized bisimulation between them
+    \[⟦s⟧ = ⟦t⟧ ⟺ \text{there exists a normalized bisimulation \(∼\) s.t. } s ∼ t.\]
+\end{theorem}
+
+\begin{proof}
+    The \(⟸\) direction can be shown by case analysis on the liveness of \(s\) and \(t\):
     \begin{itemize}
         \item If both \(s\) and \(t\) are live, 
             \[s ∼ t ⟹ (s, t) ∈ \norm(∼) ⟹ ⟦s⟧ = ⟦t⟧.\]
@@ -902,14 +954,20 @@ These two embeddings allows us to construct the following pullback square:
         \item If both \(s\) and \(t\) are dead, since dead states don't have any trace:
             \[⟦s⟧ = ⟦t⟧ = ∅.\]
     \end{itemize}
+    
+    \(⟹\) direction can be shown by constructing the identity normalized bisimulation on languages: \({∼_{id}} ⊆ 𝒢 × 𝒢\) and then reflect both side by the language semantics \(⟦-⟧: 𝒮 → 𝒢\) and \(⟦-⟧: 𝒯 → 𝒢\). Thus we obtain a normalized bisimulation on \(𝒮\) and \(𝒯\).
+\end{proof}
 
-    The \(⟸\) direction can also be shown using similar case analysis:
-    \begin{itemize}
-        \item If both \(s\) and \(t\) are live, then by definition of \(\norm(∼)\)
-            \[⟦s⟧ = ⟦t⟧ ⟹ (s, t) ∈ \norm(∼) ⟹ s ∼ t.\]
-        \item If one of \(s\) and \(t\) is live, and the other is dead, then one would contain traces, yet the other don't. Hence their trace semantics cannot equal.
-        \item If both \(s\) and \(t\) are dead, we have reached our conclusion.
-    \end{itemize}
+\begin{corollary}
+    The language equivalence is the maximal normalized bisimulation.  
+\end{corollary}
+
+\begin{corollary}
+    There exists a normalized bisimulation s.t. \(s ∼ t\) if and only if there exists a normalized bisimulation equivalence \(≡\) s.t. \(s ≡ t\).
+\end{corollary}
+
+\begin{proof}
+    take the \(≡\) to be language equivalence.
 \end{proof}
 
 \begin{corollary}
@@ -939,8 +997,7 @@ These two embeddings allows us to construct the following pullback square:
 \end{proof}
 
 
-Finally, since sub-DKCT preserves semantics, we can restrict \(∼\) to \(⟨s⟩\) and \(⟨t⟩\) to minimize the search space. 
-We denote the restricted normalized bisimulation as \(∼_{s, t}\):
+Since sub-DKCT preserves semantics, we only need to exhibit a normalized bisimulation \({∼} ⊆ ⟨s⟩ × ⟨t⟩\), to shrink the size of the bisimulation:
 \[
     \begin{tikzcd}[column sep=1cm, row sep=1cm]
         ⟨s⟩ \ar[swap]{d}{δ_𝒮}
@@ -953,11 +1010,32 @@ We denote the restricted normalized bisimulation as \(∼_{s, t}\):
     \end{tikzcd}
 \]
 The because sub-DKCT preserves trace semantics, thus the completeness result still holds: 
-\[s ∼_{s, t} t \text{ or both \(s\) and \(t\) are dead} ⟺ ⟦s⟧ = ⟦t⟧,\] 
-Our algorithm will focus on finding \(∼\) in a single DKCT with transition function \(δ\). 
-This approach is general enough, when given \(𝒮\) and \(𝒯\), we can merge them via coproduct \(𝒮 + 𝒯\), where both \(𝒮\) and \(𝒯\) are sub-DKCT of \(𝒮 + 𝒯\), thus preserving the semantics of all the states.
+\[⟦s⟧_𝒮 = ⟦t⟧_𝒯 ⟺ ⟦s⟧_{⟨s⟩} = ⟦t⟧_{⟨t⟩} ⟺ \text{there exists } {∼} ⊆ ⟨s⟩ × ⟨t⟩ \text{ such that } s ∼ t.\]
 
-Given a state \(s ∈ 𝒮\) we will run a simple depth-first search in \(⟨s⟩\) to determine whether \(s\) is dead. Specifically recall that \(s\) is live if and only if there exists an accepting state in \(s\), and if \(s\) is dead, then all of \(⟨s⟩\) is dead
+Finally, to construct a normalized bisimulation using programs, we will need the following inductive construction theorem
+\begin{theorem}[Inductive Construction]
+    Given two DKCT \(𝒮\) and \(𝒯\), and two of their elements \(s ∈ 𝒮\) and \(t ∈ 𝒯\),
+    there exists a normalized bisimulation \(s ∼ t\) between \(⟨s⟩\) and \(⟨t⟩\), if and only if either both \(s\) and \(t\) are dead or for all \(α ∈ \At\), all of the following holds:
+    \begin{enumerate}
+        \item \(δ_{𝒮}(s, α) = \accept ⟺ δ_{𝒯}(t, α) = \accept\);
+        \item\label{itm: transition condition} If \(δ_{𝒮}(s, α) = (s', p)\) and \(δ_{𝒯}(t, α) = (t', p)\), then and there exists a normalized bisimulation \({∼_{s',t'}}\) on \(⟨s'⟩\) and \(⟨t'⟩\), s.t. \(s' ∼_{s',t'} t'\);
+        \item If \(δ_{𝒮}(s, α) = (s', p)\) and \(δ_{𝒯}(t, α) = (t', q)\), s.t. \(p ≠ q\), then both \(s'\) and \(t'\) are dead;
+        \item \(s\) reject \(α\) or transition to a dead state via \(α\) if and only if \(t\) rejects \(α\) or transition to a dead state via \(α\).
+    \end{enumerate}
+\end{theorem}
+
+\begin{proof}
+    We first prove the \(⟹\) direction: if there exists a normalized bisimulation \(∼\), then for all \(α ∈ \At\), \(δ_{𝒮}(s, α) \closSim δ_{𝒯}(t, α)\). And by unfolding the definition of \(\closSim\), we can obtain all the conditions we desired. 
+
+    For the \(⟸\) direction, we can explicitly construct \(∼\) as the union of all the normalized bisimulations \(∼_{s', t'} ⊆ ⟨s'⟩ × ⟨t'⟩\): 
+    \[{∼} = \{(s, t)\} ∪ \{{∼_{s', t'}} ∣ ∃ α ∈ \At, p ∈ K, δ_𝒮(s, α) = (s', p) \text{ and } δ_𝒯(t, α) = (t', p)\}.\]
+    Then, we will need to show \(∼\) is indeed a normalized bisimulation on \(⟨s⟩\) and \(⟨t⟩\), that is for all \(s' ∈ ⟨s⟩\) and \(t' ∈ ⟨t⟩\):
+    \[s' ∼ t' ⟹ δ_𝒮(s', α) \closSim δ_𝒯(t', α).\]
+    We only need to show the above implication for \(s ∼ t\), as other element is already in some normalized bisimulation between sub-DKCTs of \(𝒮\) and \(𝒯\).
+    And the implication \(s ∼ t ⟹ δ_𝒮(s', α) \closSim δ_𝒯(t', α)\) can be proven by unfolding the definition of \(\closSim\).
+\end{proof}
+
+Given a state \(s ∈ 𝒮\) we can run a simple depth-first search in \(⟨s⟩\) to determine whether \(s\) is dead. Specifically recall that \(s\) is live if and only if there exists an accepting state in \(s\), and if \(s\) is dead, then all of \(⟨s⟩\) is dead
 \begin{lstlisting}
 (** return whether the state is accepting*)
 let is_accept (s: state): bool = 
@@ -996,8 +1074,47 @@ let is_dead (s: state): bool =
         dead_states := dead_states [*\(∪\)*] check_dead s
         return true
 \end{lstlisting}
-Then we can design our algorithm to construct \(∼\) from two input...  
-TODO: think a bit about the best way to check for both dead.
+
+Thus our algorithm can be directly obtained from previous theorem, with couple modifications
+\begin{itemize}
+    \item  we will finding normalized bisimulation equivalence \(∼\) in a DKCT with transition function \(δ\), as oppose to in \(𝒮\) and \(𝒯\). 
+    This approach is general enough: when given \(𝒮\) and \(𝒯\), we can merge them via coproduct \(𝒮 + 𝒯\), where both \(𝒮\) and \(𝒯\) are sub-DKCT of \(𝒮 + 𝒯\), thus preserving the semantics of all the states.
+    \item we will find a bisimulation equivalence instead of bisimulation relation, this allows us to use union-find structure to keep track of related states. In particular, the \texttt{union} function will mark two states as equivalent, and \texttt{eq} function will return whether two states has the same representative in the union-find.
+\end{itemize}  
+
+\begin{lstlisting}
+(** computing the normalized bisimulation equivalence using union find *)
+let equiv (s: state) (t: state): bool = 
+    (* if s and t are already in the normalized bisimulation equivalence *)
+    if eq s t then true else 
+
+    (* checking if they are both dead *)
+    if s [*\(∈\)*] dead_states then is_dead t else 
+    if t [*\(∈\)*] dead_states then is_dead s else 
+    
+    (* all of the following condition needs to be true for all atoms *)
+    forall ([*\(α ∈ \At\)*]): 
+        match [*\(δ(s, α), δ(t, α)\)*] with 
+            [*\(\accept, \accept\)*] -> true 
+            [*\((s', p), (t', q)\)*] -> 
+                if p = q 
+                    then equiv s' t' 
+                    else is_dead s' && is_dead t'
+            [*\((s', p), \reject\)*] -> is_dead s'
+            [*\(\reject, (t', p)\)*] -> is_dead t'
+            [*\(\reject, \reject\)*] -> true 
+            _ -> false
+\end{lstlisting}
+TODO: I think I still need to use one of those algorithm package... 
+
+The correctness of this algorithm can be exhibited by the following induction invariant:
+\[\texttt{equiv s t} ⟺ \text{there exists a normalized bisimulation equivalence \(∼\) s.t. \(s ∼ t\)}\]
+Then by the soundness and completeness of normalized bisimulation:
+\[\texttt{equiv s t} ⟺ ⟦s⟧ = ⟦t⟧.\]
+
+
+
+
 
 
 % \section{Definitions}
