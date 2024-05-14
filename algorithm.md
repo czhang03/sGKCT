@@ -83,7 +83,7 @@ for the equivalence to hold.*)
 
 let equiv e f: bool = 
     (* already marked equivalent, then return immediately *)
-    if equiv e f then true else 
+    if eq e f then true else 
     (* both are dead, then they are equivalent *)
     if e ∈ dead_states && f ∈ dead_states then true else
 
