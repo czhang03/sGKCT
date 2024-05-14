@@ -1098,7 +1098,8 @@ let equiv (s: state) (t: state): bool =
             [*\(\accept, \accept\)*] -> true 
             [*\((s', p), (t', q)\)*] -> 
                 if p = q 
-                    then equiv s' t' 
+                    (* mark s and t as bisimular and check the rest*)
+                    then union s t; equiv s' t' 
                     else is_dead s' && is_dead t'
             [*\((s', p), \reject\)*] -> is_dead s'
             [*\(\reject, (t', p)\)*] -> is_dead t'
