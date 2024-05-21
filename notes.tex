@@ -491,7 +491,7 @@ FIXME: we still need to think about what representation do we want to go with, w
 
 \section{Normalized Bisimulation}
 
-Bisimilarity implies language sematnical equivalence \[s ∼ t ⟹ ⟦s⟧ = ⟦t⟧\], however the converse doesn't hold unless we are working in a \emph{normal} GKAT coalgebra.
+Bisimilarity implies language semantical equivalence \[s ∼ t ⟹ ⟦s⟧ = ⟦t⟧\], however the converse doesn't hold unless we are working in a \emph{normal} GKAT coalgebra.
 It is well known that two states in a normal GKAT coalgebra if and only if they have the same language semantics \[s ∼ t ⟺ ⟦s⟧ = ⟦t⟧.\]
 However, instead of normalizing automatons, we can in fact, check for normality on the fly, this is important to design a derivatives based decision algorithm.
 
@@ -1015,7 +1015,7 @@ The because sub-DKCT preserves trace semantics, thus the completeness result sti
 Finally, to construct a normalized bisimulation using programs, we will need the following inductive construction theorem
 \begin{theorem}[Inductive Construction]
     Given two DKCT \(𝒮\) and \(𝒯\), and two of their elements \(s ∈ 𝒮\) and \(t ∈ 𝒯\),
-    there exists a normalized bisimulation \(s ∼ t\) between \(⟨s⟩\) and \(⟨t⟩\), if and only if either both \(s\) and \(t\) are dead or for all \(α ∈ \At\), all of the following holds:
+    there exists a normalized bisimulation equivalence \({∼} ⊆ ⟨s⟩ × ⟨t⟩\) s.t. \(s ∼ t\), if and only if either both \(s\) and \(t\) are dead or for all \(α ∈ \At\), all of the following holds:
     \begin{enumerate}
         \item \(δ_{𝒮}(s, α) = \accept ⟺ δ_{𝒯}(t, α) = \accept\);
         \item\label{itm: transition condition} If \(δ_{𝒮}(s, α) = (s', p)\) and \(δ_{𝒯}(t, α) = (t', p)\), then and there exists a normalized bisimulation \({∼_{s',t'}}\) on \(⟨s'⟩\) and \(⟨t'⟩\), s.t. \(s' ∼_{s',t'} t'\);
@@ -1034,6 +1034,10 @@ Finally, to construct a normalized bisimulation using programs, we will need the
     We only need to show the above implication for \(s ∼ t\), as other element is already in some normalized bisimulation between sub-DKCTs of \(𝒮\) and \(𝒯\).
     And the implication \(s ∼ t ⟹ δ_𝒮(s', α) \closSim δ_𝒯(t', α)\) can be proven by unfolding the definition of \(\closSim\).
 \end{proof}
+
+\begin{corollary}
+    when constructing \(∼\) notice that 
+\end{corollary}
 
 Given a state \(s ∈ 𝒮\) we can run a simple depth-first search in \(⟨s⟩\) to determine whether \(s\) is dead. Specifically recall that \(s\) is live if and only if there exists an accepting state in \(s\), and if \(s\) is dead, then all of \(⟨s⟩\) is dead
 \begin{lstlisting}
@@ -1320,6 +1324,17 @@ Then by the soundness and completeness of normalized bisimulation:
 %     δ̂_{α p} & (S) ≜ \{s' ∣ δ_{α p}(s) = s', s ∈ S\}.
 % \end{align*}
 % In other words, given a sKCT \(𝒮\), then we can construct a KCT \(2^{𝒮}\).
+
+ 
+\section{Symbolic Coalgebra}
+
+\begin{theorem}
+    Given two states \(s, t\) there exists a normalized bisimulation \({∼} ⊆ ⟨s⟩ × ⟨t⟩\) if and only if the following is true 
+    \begin{itemize}
+        \item \(ϵ(s) = ϵ(t)\)
+        \item for all \((b, s', p) ∈ δ(s)\), \(b ∧ \)
+    \end{itemize}
+\end{theorem}
 
 
 
