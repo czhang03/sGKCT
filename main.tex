@@ -1,0 +1,1855 @@
+% Please compile this document using LuaLaTeX.
+% XeLaTeX and PDFLaTeX will not work.
+
+\newif\iffull\fulltrue
+
+\documentclass{extarticle}
+
+
+%%%%% PACKAGES
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage[margin=2.5cm]{geometry}
+
+% Biblatex
+\usepackage[style=numeric]{biblatex}
+\addbibresource{refs.bib}
+
+% For adding inline comments in the text.
+\usepackage[margin=false,inline=true]{fixme}
+\FXRegisterAuthor{aaa}{anaaa}{\color{cyan}AAA}
+\FXRegisterAuthor{mg}{anmg}{\color{red}MG}
+\FXRegisterAuthor{cz}{ancz}{\color{orange}CZ}
+% \newcommand{\aaa}[1]{\aaanote{#1}}
+% \newcommand{\mg}[1]{\mgnote{#1}}
+% \newcommand{\cz}[1]{\cznote{#1}}
+\newcommand{\aaa}[1]{}
+\newcommand{\mg}[1]{}
+\newcommand{\cz}[1]{}
+
+\usepackage{stmaryrd}
+
+\usepackage{stackengine}
+\usepackage{mathrsfs}
+\usepackage{braket}
+\usepackage{annotate-equations}
+\usepackage{scalerel}
+
+% graphs
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata,positioning}
+
+% commutative diagram
+\usepackage{tikz-cd}
+
+% ref
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+% inference rule
+\usepackage{mathpartir}
+% cross-referencing infer rule
+% based on https://tex.stackexchange.com/questions/340788/cross-referencing-inference-rules
+\makeatletter
+\let\originferrule\inferrule
+\DeclareDocumentCommand \inferrule { s O {} m m}{%
+  \IfBooleanTF{#1}%
+  {%
+    \mpr@inferstar[#2]{#3}{#4}%
+  }{%
+    \mpr@inferrule[#2]{#3}{#4}%
+  }%
+  \IfValueT{#2}%
+  {%
+    \my@name@inferrule{#2}%
+  }%
+}
+\NewDocumentCommand \my@name@inferrule { m }{%
+  \def\@currentlabelname{\textsc{#1}}%
+}
+\makeatother
+
+% item spacing
+\usepackage{enumitem}
+
+% for code
+\usepackage{listings}
+\lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
+\lstset{framextopmargin=50pt,frame=bottomline}
+\lstset{language=caml, escapeinside={[*}{*]}}
+
+% for algorithm
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+% switch statement for pattern matching
+\algnewcommand\algorithmicmatch{\textbf{match}}
+\algnewcommand\algorithmicwith{\textbf{with}}
+\algnewcommand\algorithmiccase{\textbf{case}}
+\algnewcommand\algorithmicdefault{\textbf{default}}
+\algnewcommand\Skip{\textbf{skip}}
+\algdef{SE}[MATCH]{Match}{EndMatch}[1]{\algorithmicmatch\ #1\ \algorithmicwith}{\algorithmicend\ \algorithmicmatch}%
+\algdef{SE}[CASE]{Case}{EndCase}[1]{\algorithmiccase\ #1 \algorithmicthen}{\algorithmicend\ \algorithmiccase}%
+\algdef{SE}[DEFAULT]{Default}{EndDefault}{\algorithmicdefault\ }{\algorithmicend\ \algorithmicdefault}%
+\algtext*{EndMatch}%
+\algtext*{EndCase}%
+\algtext*{EndDefault}%
+
+% for better table
+\usepackage{booktabs}
+
+% subcaption
+\usepackage{subcaption} %% For complex figures with subfigures/subcaptions
+                        %% http://ctan.org/pkg/subcaption
+
+% unicode math symbols
+\usepackage{unicode-math}
+% support for hat, overline, underline, vec, and sim combining charactors
+\protected\def\afteracc{\directlua{
+    local nest = tex.nest[tex.nest.ptr]
+    local last = nest.tail
+    if not (last and last.id == 18) then
+      error'I can only put accents on simple noads.'
+    end
+    if last.sub or last.sup then
+      error'If you want accents on a superscript or subscript, please use braces.'
+    end
+    local acc = node.new(21, 1)
+    acc.nucleus = last.nucleus
+    last.nucleus = nil
+    local is_bottom = token.scan_keyword'bot' and 'bot_accent' or 'accent'
+    acc[is_bottom] = node.new(23)
+    acc[is_bottom].fam, acc[is_bottom].char = 0, token.scan_int()
+    nest.head = node.insert_after(node.remove(nest.head, last), nil, acc)
+    nest.tail = acc
+    node.flush_node(last)
+  }}
+\AtBeginDocument{
+\begingroup
+  \def\UnicodeMathSymbol#1#2#3#4{%
+    \ifx#3\mathaccent
+      \def\mytmpmacro{\afteracc#1 }%
+      \global\letcharcode#1=\mytmpmacro
+      \global\mathcode#1="8000
+    \else\ifx#3\mathbotaccentwide
+      \def\mytmpmacro{\afteracc bot#1 }%
+      \global\letcharcode#1=\mytmpmacro
+      \global\mathcode#1="8000
+    \fi\fi
+  }
+  \input{unicode-math-table}
+\endgroup
+}
+
+% math font, this is needed to render \setminus command
+\setmathfont{latinmodern-math}
+\setmathfont[range=\setminus]{STIX Two Math}
+\setmathfont[range=\similarrightarrow]{STIX Two Math}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+
+\newtheorem{definition}{Definition}
+\newtheorem*{definition*}{Definition}
+\newtheorem{example}[definition]{Example}
+\newtheorem{remark}[definition]{Remark}
+
+%%%% Macros %%%%%
+
+% Math?
+\newcommand{\true}{\mathrm{true}}
+\newcommand{\false}{\mathrm{false}}
+\newcommand{\At}{\mathbf{At}}
+
+
+% operators
+\newcommand{\dom}[1]{\mathrm{dom}(#1)}
+\newcommand{\cod}[1]{\mathrm{cod}(#1)}
+\DeclareMathOperator{\post}{\mathrm{post}}
+\newcommand{\reject}{\mathinner{\mathrm{rej}}}
+\newcommand{\accept}{\mathinner{\mathrm{acc}}}
+\DeclareMathOperator*{\bigplus}{\scalerel*{+}{\sum}}
+\newcommand{\clos}[1]{\mathrel{\overline{#1}}}
+\DeclareMathOperator{\norm}{\mathrm{norm}}
+\DeclareMathOperator{\dead}{\mathrm{dead}}
+\DeclareMathOperator{\symb}{\mathrm{symb}}
+\DeclareMathOperator{\unsymb}{\symb^{-1}}
+
+
+% commands 
+\newcommand{\command}[1]{{\mathtt{#1}}}
+\newcommand{\comAssume}[1]{\command{assume}~#1}
+\newcommand{\comITE}[3]{\command{if}~#1~\command{then}~#2~\command{else}~#3}
+\newcommand{\comWhile}[2]{\command{while}~#1~\command{do}~#2}
+
+% set of models
+\newcommand{\theoryOf}[1]{\ensuremath{\mathsf{#1}}}
+\newcommand{\Exp}{\theoryOf{Exp}}
+\newcommand{\GKAT}{\theoryOf{GKAT}}
+\newcommand{\Bool}{\theoryOf{Bool}}
+\DeclareMathOperator{\GS}{\mathrm{GS}}
+
+\newcommand\altxrightarrow[2][0pt]{\mathrel{\ensurestackMath{\stackengine%
+  {\dimexpr#1-7.5pt}{\xrightarrow{\phantom{#2}}}{\scriptstyle\!#2\,}%
+  {O}{c}{F}{F}{S}}}}
+\newcommand{\transvia}[1]{
+    \mathrel{\raisebox{-2px}{\(\altxrightarrow[-2px]{#1}\)}}
+}
+
+ 
+
+\begin{document}
+
+%% Title information
+\title{One-The-Fly Decision Procedures For GKAT}         
+% \title{Incorrectness Logic and Kleene Algebra With Top and Test}         
+                                        %% [Short Title] is optional;
+                                        %% when present, will be used in
+                                        %% header instead of Full Title.
+% \titlenote{}                            %% \titlenote is optional;
+                                        %% can be repeated if necessary;
+                                        %% contents suppressed with 'anonymous'
+%% \subtitle is optional                     
+ 
+% \subtitlenote{with subtitle note}       %% \subtitlenote is optional;
+%                                         %% can be repeated if necessary;
+%                                         %% contents suppressed with 'anonymous'
+
+
+%% Author information
+%% Contents and number of authors suppressed with 'anonymous'.
+%% Each author should be introduced by \author, followed by
+%% \authornote (optional), \orcid (optional), \affiliation, and
+%% \email.
+%% An author may have multiple affiliations and/or emails; repeat the
+%% appropriate command.
+%% Many elements are not rendered, but should be provided for metadata
+%% extraction tools.
+\author{
+    Cheng Zhang \and 
+    Hang Ji \and 
+    Ines Santacruz \and 
+    Marco Gaboardi
+}
+\date{}
+
+% In non-ACM format \maketitle needs to happen before abstract
+\maketitle
+
+
+%% Abstract
+%% Note: \begin{abstract}...\end{abstract} environment must come
+%% before \maketitle command
+\begin{abstract}
+\end{abstract}
+
+\section{Introduction}
+
+\paragraph{Notation: } In this paper, we will use un-curried notation to apply curried functions, for example, given a function \(δ: X → Y → Z\), we will write the function applications as follow \(δ(x): Y → Z\) and \(δ(x, y): Z\). And when drawing commutative diagram, we will leave function restriction implicit. Specifically given \(A' ⊆ A\), and a function \(h: A → B\), we will draw:
+\[
+    \begin{tikzcd}
+        A' \ar{r}{h} & B
+    \end{tikzcd}
+\]
+where the function \(h\) is implicitly restricted to \(A'\).
+For bifunctors like \((-) × (-)\), we will write function lifting by applying the bifunctors on these functions: for example, given \(h₁: A₁ → B₁\) and \(h₂: A₂ → B₂\), we will use \[h₁ × h₂: A₁ × A₂ → B₁ × B₂\] to denote the bifunctorial lift of \(h₁\) and \(h₂\) via product \((-) × (-)\).
+
+\section{Preliminary}
+
+\subsection{Concepts in Universal Coalgebra}
+
+Our notion of normalized bisimulation is inherently coalgebraic, thus it is empirical for us to recall some notions and theorems in coalgebra.
+Given a functor \(F\) on the category of set and functions, a \emph{coalgebra over \(F\)} or \emph{\(F\)-coalgebra} consists of a set \(S\) and a function \(δ_S: S → F(S)\).
+We typically call \(F\) the \emph{signature} of the coalgebra, \(S\) the states of the coalgebra, and \(δ_S\) the transition function of the coalgebra.
+We will sometimes use the states \(S\) to denote the coalgebra, when no ambiguity can arise. 
+
+A homomorphism between two \(F\)-coalgebra \(S\) and \(T\) is a map \(h: S → T\) that preserves the transition function; diagrammatical, the following diagram commutes:
+\[
+    \begin{tikzcd}
+        S \ar{r}{h} \ar[swap]{d}{δ_S} & T \ar{d}{δ_T} \\  
+        F(S) \ar{r}{F(h)} & F(T)
+    \end{tikzcd}    
+\]
+
+When we can restrict the homomorphism map into a inclusion map \(i: S' → S\) for \(S' ⊆ S\), then we say that \(S'\) is a \emph{sub-coalgebra} of \(S\), denoted as \(S' ⊑ S\). Specifically, the following diagram commutes when \(S' ⊑ S\):
+\[
+    \begin{tikzcd}
+        S' \ar[hook]{r}{i} \ar[swap]{d}{δ_{S'}} & S \ar{d}{δ_S} \\  
+        F(S') \ar[hook]{r}{F(i)} & F(S)
+    \end{tikzcd}    
+\]
+In fact, the transition function \(δ_{S'}\) is uniquely determined by the states \(S'\)~\cite[Proposition 6.1]{rutten_UniversalCoalgebraTheory_2000}.
+
+The sub-coalgebras are preserved under homomorphic images and pre-images: 
+\begin{lemma}[Theorem 6.3~\cite{rutten_UniversalCoalgebraTheory_2000}]\label{thm:hom-(pre)img-preserve-sub-coalg}
+    given a homomorphism \(h: S → T\), and sub-coalgebras \(S' ⊑ S\) and \(T' ⊑ T\), then 
+    \[h(S') ⊑ T \text{ and } h^{-1}(T') ⊑ S.\]
+\end{lemma}
+
+One particularly important sub-coalgebra of and coalgebra \(S\) is the least coalgebra generated by a single element \(s\), we will typically denote it as \(⟨s⟩_{S}\), and call it \emph{principle sub-coalgebra} generated by \(s\). We will omit the subscript \(S\) when it can be inferred from context or irrelevant.
+As we will see later, principle sub-coalgebra \(⟨s⟩_S\) is important because it models all the reachable state of \(s\) in \(S\).
+
+Principle sub-coalgebra always exists, because sub-coalgebra of any coalgebra forms a complete lattice~\cite[theorem 6.4]{rutten_UniversalCoalgebraTheory_2000}.
+And similar to sub-coalgebra, principle sub-coalgebra is also preserved under homomorphic image:
+\begin{theorem}\label{thm:homo-img-preserve-principle-sub-coalg}
+    Homomorphic image preserves principle sub-GKAT coalgebra. Specifically, given a homomorphism \(h: S → T\):
+    \[h(⟨S⟩_S) = ⟨h(s)⟩_T\]
+\end{theorem}
+
+\begin{proof}
+    We will need to show that \(h(⟨s⟩_{S})\) is the smallest sub-GKAT coalgebra of \(S\) that contain \(h(s)\). First by definition of image, \(h(s) ∈ h(⟨s⟩_{S})\); second by \cref{thm:hom-(pre)img-preserve-sub-coalg}, \(h(⟨S⟩_S) ⊑ T\).
+
+    Finally, take any \(T' ⊑ T\) and \(h(s) ∈ T'\), recall that by \cref{thm:hom-(pre)img-preserve-sub-coalg}, \(h^{-1}(T') ⊑ S\). We can then derive that \(h(⟨s⟩_S) ⊑ T'\): 
+    \begin{align*}
+        h(s) ∈ T' 
+        & ⟹ s ∈ h^{-1}(T') \\  
+        & ⟹ ⟨s⟩_S ⊑ h^{-1}(T') & \text{definition of \(⟨s⟩_S\)}\\  
+        & ⟹ h(⟨s⟩_S) ⊑ T' & \text{take the image of \(h\) and \cref{thm:hom-(pre)img-preserve-sub-coalg}}
+    \end{align*}
+    Hence \(h(⟨s⟩_S)\) is the smallest sub-GKAT coalgebra of \(T\) that contains \(h(s)\).
+\end{proof}
+
+% bisimulation
+
+A \emph{final coalgebra} \(ℱ\) over a signature \(F\), sometimes called the \emph{behavior} of coalgebras over \(F\), is a \(F\)-coalgebra s.t. for all \(F\)-coalgebra \(S\), there exists a unique homomorphism \(⟦-⟧_S: S → ℱ\).
+
+Given two \(F\)-coalgebra \(S\) and \(T\), the \emph{behavioral equivalence} between states in \(S\) and \(T\) can be computed by a notion called \emph{bisimulation}.
+A relation \({∼} ⊆ S × T\) is called a \emph{bisimulation relation} if it forms a \(F\)-coalgebra: \[δ_{∼}: {∼} → F(∼),\] 
+And its projection functions \(π₁: S × T → S\) and \(π₂: S × T → T\) are both homomorphisms:
+\[
+    \begin{tikzcd}
+        S \ar[swap]{d}{δ_S}
+            & ∼ \ar[swap]{l}{π₁} \ar{r}{π₂} \ar{d}{δ_{∼}} 
+            & T \ar{d}{δ_T}\\  
+        F(S) & F(∼) \ar{l}{F(π₁)} \ar[swap]{r}{F(π₂)} & F(T)
+    \end{tikzcd}
+\]
+As we will see later, bisimulation or variation of bisimulation indeed correspond to important semantical equivalences.
+
+\subsection{Guarded Kleene Algebra With Tests}
+
+\subsection{GKAT Coalgebra}
+
+% definition
+GKAT coalgebra~\cite{smolka_GuardedKleeneAlgebra_2020,schmid_GuardedKleeneAlgebra_2021}, is a coalgebraic systems for GKAT.
+Specifically GKAT coalgebras over a alphabet \(K, B\) are coalgebras over the following functor:
+\[G(S) ≜ (2 + S × K)^{\At_B},\] 
+where \(2 ≜ \{\accept, \reject\}\). Intuitively given a state \(s ∈ S\) and an atom \(α ∈ \At\), \(δ(s, α)\) will deterministically execute one of the following: reject \(α\), denoted as \(δ(s, α) = \reject\); accept \(α\), denoted \(δ(s, α) = \accept\); or transition to a state \(s' ∈ S\) and execute action \(p ∈ K\), denoted as \(δ(s, α) = (s', p)\).
+
+This deterministic behavior contrast that of Kleene coalgebra with tests~\cite{kozen_CoalgebraicTheoryKleene_2017}, where for each atom, the state can accept or  reject the atom (but not both), yet the state can also non-deterministically transition to multiple different state via the same atom, while executing different actions.
+% TODO: I think this belongs in the intro
+As we will see later, the deterministic behavior of GKAT coalgebra not only enables a further optimized symbolic algorithm than KCT~\cite{pous_SymbolicAlgorithmsLanguage_2015}, but also present challenges. Specifically, GKAT coalgebra requires normalization to compute finite trace equivalences~\cite{smolka_GuardedKleeneAlgebra_2020}, where we will remove all the state that cannot lead to acceptance. 
+It seems like we need to traverse the entire automaton to identify these ``dead states'', however we have shown that these dead state detection can be invoked lazily, only when discrepancy between bisimulation are found.  
+
+\subsection{Liveness and Sub-GKAT coalgebras}
+
+% liveness
+
+Traditionally, live and dead states are defined by whether they can reach an accepting state~\cite{smolka_GuardedKleeneAlgebra_2020}. However, recall that principle sub-coalgebra \(⟨s⟩_S\) models reachable states of \(s\) in coalgebra \(S\). Thus the classical definition is equivalent to the following:
+\begin{definition}[liveness of states]\label{def:liveness-of-states}
+    A state \(s\) is \emph{accepting} if there exists a \(α ∈ \At\) s.t. \(δ(s, α) = \accept\). A state \(s'\) is \emph{live} if there exists an accepting state \(s' ∈ ⟨s⟩\). A state \(s'\) is \emph{dead} if there is no accepting state in \(⟨s⟩\).
+\end{definition}
+This alternative liveness definition can help us formally prove important theorems regarding reachability and liveness without performing induction on traces. We can show the following lemmas as examples:
+\begin{lemma}\label{thm:dead-iff-all-reachable-dead}
+    A state \(s\) is dead if and only if all elements in \(⟨s⟩\) is dead.
+\end{lemma}
+\begin{proof}
+    \(⟸\) direction is true, because \(s ∈ ⟨s⟩\): if all \(⟨s⟩\) is dead, then \(s\) is dead. 
+    \(⟹\) direction can be proven as follows.
+    Take \(s' ∈ ⟨s⟩\), then \(⟨s'⟩ ⊑ ⟨s⟩\) by definition. 
+    Since there is no accepting state in \(⟨s⟩\), thus there cannot be any accepting state in \(⟨s'⟩\), hence \(⟨s'⟩\) is also dead.
+\end{proof}
+
+\begin{theorem}[homomorphism perserves liveness]\label{thm:hom-preserve-liveness}
+    Given a homomorphism \(h: S → T\) and a state \(s ∈ S\):
+    \[\text{\(s\) is live} ⟺ \text{\(h(s)\) is live}\]
+\end{theorem}
+
+\begin{proof}
+    Because homomorphic image preserves principle sub-GKAT coalgebra~\cref{thm:homo-img-preserve-principle-sub-coalg}
+    \[h(⟨s⟩_S) = ⟨h(s)⟩_T;\]
+    therefore for any state \(s' ∈ S\):
+    \[s' ∈ ⟨s⟩_S ⟺ h(s') ∈ h(⟨s⟩_S) ⟺ h(s') ∈ ⟨h(s)⟩_T.\]
+    And because \(s'\) is accepting if and only if \(h(s')\) accepting by definition of homomorphism; then \(⟨s⟩_S\) contains an accepting state if and only if \(h(⟨s⟩_S) = ⟨h(s)⟩_T\) contains an accepting state. 
+    Therefore \(s\) is live in \(S\) if and only if \(h(s)\) is live in \(T\).
+\end{proof}
+
+\begin{corollary}[sub-coalgebra perserves liveness]\label{thm:sub-coalg-preserve-liveness}
+    Given a sub-coalgebra \(S' ⊑ S\), then for all states \(s ∈ S'\),
+    \[\text{\(s\) is live in \(S'\)} ⟺ \text{\(s\) is live in \(S\)}.\]
+\end{corollary}
+
+\begin{proof}
+    take the homomorphism \(h\) in \cref{thm:hom-preserve-liveness} to be the inclusion homomorphism \(i: S' → S\).
+\end{proof}
+
+\begin{corollary}[bisimulation preserves liveness]\label{thm:bisim-preserve-liveness}
+    If there exists a bisimulation \(∼\) between GKAT coalgebra \(S\) and \(T\) s.t. \(s ∼ t\) for some states \(s ∈ S\) and \(t ∈ T\), then \(s\) and \(t\) has to be either both accepting, both live or both dead.
+\end{corollary}
+
+\begin{proof}
+    Because for a \(∼\) is a bisimulation when both \(π₁: {∼} → S\) and \(π₂: {∼} → T\) are homomorphisms.
+    Therefore, 
+    \begin{align*}
+        s \text{ is live in } S 
+        & ⟺ π₁((s, t)) \text{ is live in } S 
+            & π₁((s, t)) = s\\  
+        & ⟺ (s, t) \text{ is live in } {∼} 
+            & \text{\(π₁\) is a homomorphism}\\  
+        & ⟺ π₂((s, t)) \text{ is live in } T 
+            & \text{\(π₂\) is a homomorphism} \\
+        & ⟺ t \text{ is live in } T 
+            & π₂((s, t)) = t
+    \end{align*}
+\end{proof}
+
+
+% The signature of GKAT coalgebra \(G\) is a simple polynomial functor~\cite[Definition 2.2.1]{jacobs_IntroductionCoalgebraMathematics_2016}, implying that it preserves the inclusion function:
+% \begin{lemma}%used in the comments below
+%     Given a inclusion \(i: S' → S\) for \(S' ⊆ S\), then \(G(i): G(S') → G(S)\) is also a inclusion in the sense that:
+%     \[∀ m ∈ G(S'), G(i)(m) = m.\]
+% \end{lemma}
+% This implies that for a sub-GKAT coalgebra \(S' ⊑ S\), then the restriction of transition function will satisfy the the diagram for sub-coalgebra.
+% \[
+%     \begin{tikzcd}
+%         S' \ar{d}{δ_S} \ar[hook]{r}{i} & S \ar{d}{δ_S} \\  
+%         G(S') \ar[hook]{r}{G(i)} & G(S)
+%     \end{tikzcd}
+% \]
+% Then by the uniqueness of transition for sub-coalgebra~\cite[Proposition 6.1]{rutten_UniversalCoalgebraTheory_2000}, the transition of \(S'\) is necessarily the restriction of \(δ_S\). A nice consequence of this observation is that the ordering between sub-GKAT coalgebra is exactly the subset ordering.
+% \begin{lemma}[ordering in sub-GKAT coalgebra]\label{thm:sub-GKAT coalgebra-is-subset}
+%     Given two sub-GKAT coalgebra \(S₁ ⊑ S\) and \(S₂ ⊑ S\), then 
+%     \[S₁ ⊑ S₂ ⟺ S₁ ⊆ S₂.\]
+% \end{lemma}
+
+% \begin{proof}
+%     \(⟹\) direction is true by definition, and \(⟸\) direction is true because both \(S₁\) and \(S₂\) are sub-GKAT coalgebra, thus their transition functions are both restrictions of \(δ_S\). Hence the commutativity of the following diagram can be verified by computation:
+%     \[
+%     \begin{tikzcd}
+%         S₁ \ar[hook]{r}{i} \ar{d}{δ_S} & S₂ \ar[hook]{r}{i} \ar{d}{δ_S} & S \ar{d}{δ} \\  
+%         G(S₁) \ar[hook]{r}{G(i)} & G(S₂) \ar[hook]{r}{G(i)} & G(S)
+%     \end{tikzcd}
+% \]
+% \end{proof}
+
+% trace semantics
+\subsection{Normalization And Trace Semantics}
+
+(Possibly infinite) trace model \(𝒢_ω\) is the natural semantics of states in a GKAT coalgebra, specifically it forms the final coalgebra of GKAT coalgebras~\cite{schmid_GuardedKleeneAlgebra_2021}.
+The finality of the model means that every state in any GKAT coalgebra \(S\) can be assigned a semantics under the unique homomorphism \(⟦-⟧^{ω}_{S}: S → 𝒢_ω\); and such semantical equivalences can indeed be identified by bisimulation~\cite{schmid_GuardedKleeneAlgebra_2021}:
+\[⟦s⟧^{ω}_{S} = ⟦t⟧^{ω}_{T} ⟺ \text{exists a bisimulation \({∼} ⊆ S × T\), s.t. \(s ∼ t\)}.\]
+
+The infinite trace equivalences is relatively easy to compute efficiently, as bisimulation is, in general, compatible with derivative based computation on-the-fly algorithm~\cite{kozen_CoalgebraicTheoryKleene_2017,almeida_DecidingKATHoare_2012,pous_SymbolicAlgorithmsLanguage_2015}. 
+However, the \emph{finite} trace model \(𝒢\) is only the final coalgebra of GKAT coalgebras without dead states, which we call \emph{normal GKAT coalgebra}~\cite{smolka_GuardedKleeneAlgebra_2020}. Fortunately every GKAT coalgebra can be normalized by rerouting all the transition from dead states to rejection
+\begin{align*}
+    \norm(δ_S) & : S → G(S) \\
+    \norm(δ_S)(s, α) & ≜ \begin{cases}
+        \reject & \text{if } δ_S(s, α) = (s', p) \text{ and \(s'\) is dead}\\
+        δ_S(s, α) & \text{otherwise}
+    \end{cases}
+\end{align*}
+We denote the normalized coalgebra \((S, \norm(δ_S))\) as \(\norm(S)\).
+This means that the finite trace semantics \(⟦-⟧\) is the unique coalgebra homomorphism \(\norm(S) → \norm(𝒢)\). Hence the finite trace equivalence between \(s ∈ S\) and \(t ∈ T\) can be computed by first normalizing \(S\) and \(T\), then decide whether there is a bisimulation on \(\norm(S)\) and \(\norm(T)\) that includes \((s, t)\).
+For a more intuitive account for the trace semantics, we refer the reader to the work of \Citeauthor{smolka_GuardedKleeneAlgebra_2020}~\cite{smolka_GuardedKleeneAlgebra_2020}.
+
+Then by the finality of GKAT colagebra, the soundness and completeness of bisimulation is a simple corollary in universal coalgebra~\cite{smolka_GuardedKleeneAlgebra_2020,jacobs_IntroductionCoalgebraMathematics_2016,rutten_UniversalCoalgebraTheory_2000}. No matter through explicit construction~\cite{smolka_GuardedKleeneAlgebra_2020} or (weak) pullback~\cite{jacobs_IntroductionCoalgebraMathematics_2016,rutten_UniversalCoalgebraTheory_2000}, both completeness proof shows that the language equivalence: \[{≡} ≜ \{(s,t) ∣ ⟦s⟧_S = ⟦t⟧_T\}\] is indeed a bisimulation. 
+This result, together with soundness result \(s ∼ t ⟹ ⟦s⟧_S = ⟦t⟧_T\) means that the language equivalence \(≡\) is indeed the largest bisimulation, which allows us to work with bisimulation equivalence instead of bisimulation.
+
+\begin{definition}
+    A \emph{bisimulation equivalence} in \(S\) is a bisimulation between \(S\) and itself, and it is also an equivalence relation.
+\end{definition}
+
+\begin{theorem}\label{thm:bisim-iff-bisim-equiv}
+    Given two states \(s, t ∈ S\), then there exists a bisimulation \(∼\) s.t. \(s ∼ t\) if and only if there exists a bisimulation equivalence \(≃\) s.t. \(s ≃ t\).
+\end{theorem}
+
+\begin{proof}
+    The \(⟹\) direction can just take \(≃\) to be the language equivalence \(≡\), which is a bisimulation equivalence, and because \(≡\) is maximal, therefore \({∼} ⊑ {≡}\), and \((s, t) ∈ {∼} ⊆ {≡}\).
+
+    The \(⟸\) direction is true because all bisimulation is a bisimulation equivalence, thus we can take \(∼\) to just be the given bisimulation equivalence \(≃\).
+\end{proof}
+
+% Although \(\norm(S)\) might not be a homomorphic image of \(S\), normalization does satisfy many nice properties of homomorphic images. For example, it is monotonic and it preserves principle sub-GKAT coalgebra, like in \cref{thm:homo-img-preserve-principle-sub-coalg} 
+% \begin{lemma}[monotonicity]\label{thm:monotonicity-norm}
+%     For all GKAT coalgebra \(S\) and \(T\):
+%     \[S ⊑ T ⟹ \norm(S) ⊑ \norm(T).\]
+% \end{lemma}
+
+% \begin{theorem}[\(\norm\) preserves principle sub coalgebra]\label{thm:norm-preserve-principle-sub-coalg}
+%     Given a GKAT coalgebra \(S\) and a live state \(s ∈ S\):
+%     \[⟨s⟩_{\norm(S)} = \norm(⟨s⟩_{S}).\]
+% \end{theorem}
+
+% \begin{proof}
+%     We need to show \(\norm(⟨s⟩_{S})\) is the smallest sub-GKAT coalgebra in \(\norm(S)\) that contains \(s\). 
+    
+%     First, \(\norm(⟨s⟩_{S})\) contains \(s\) because \(s\) is live. 
+%     Second, take any \(T ⊑ \norm(S)\), we will use \(⟨T⟩_S\) to denote the smallest sub-GKAT coalgebra in \(S\) that contains all the states in \(T\). 
+%     Since \(T\) is a sub-GKAT coalgebra of \(\norm(S)\), \(⟨T⟩_S ∖ T\) can only contain dead states, thus \(\norm(⟨T⟩_S) = T\).
+%     \begin{align*}
+%         & ⟨s⟩_{S} ⊑ ⟨T⟩_S & \text{\(⟨T⟩_S\) contains \(s\)} \\  
+%         ⟹ {}& \norm(⟨s⟩_{S}) ⊑ \norm(⟨T⟩_S) & \text{monotonicity: \cref{thm:monotonicity-norm}} \\  
+%         ⟹ {}& \norm(⟨s⟩_{S}) ⊑ T & \norm(⟨T⟩_S) = T
+%     \end{align*}
+% \end{proof}
+
+
+\section{On-The-Fly Bisimulation}
+
+The original algorithm for deciding GKAT equivalences~\cite{smolka_GuardedKleeneAlgebra_2020} requires the entire automaton to be known prior to the execution of the bisimulation algorithm; specifically, in order to compute the liveness of a state \(s\), it is necessary iterate through all its reachable states \(⟨s⟩\) to see if there are any accepting states within.
+This limitation poses challenges to design an efficient on-the-fly algorithm for GKAT.
+In order to make the decision procedure scalable, we will need to merge the normalization and bisimulation procedure, so that our algorithm can normalized the automaton only when we need to.
+
+In this section, we introduce an algorithm that merges bisimulation and normalization where we only need to test the liveness of the state when a disparity in the bisimulation has been found.
+For example, when one automaton leads to reject where the other transition to a state, then we will need to verify whether that state is dead or not.
+
+This on-the-fly algorithm inherits the efficiency of the original algorithm~\cite{smolka_GuardedKleeneAlgebra_2020}, where the worst case will require two passes of the automaton, where one pass will try to establish a bisimulation, when failed the other pass will kick in and compute whether the failed states are dead.
+In some special case, the on-the-fly algorithm can even out perform the original algorithm; for example, when the two input automata are bisimular (even when they are not normal), the on-the-fly algorithm can skip the liveness checking, only performing the bisimulation.
+
+
+
+\begin{theorem}[sub-coalgebra perserve bisimulation]\label{thm:sub-coalg-preserve-bisim}
+    Given any sub-coalgebra \(S' ⊑ S\) and \(T' ⊑ T\),
+    \begin{itemize}
+        \item Given a bisimulation \(∼\) between \(S'\) and \(T'\), then \(∼\) is also a bisimulation between \(S\) and \(T\);
+        \item if there exists a bisimulation \(∼\) between \(S\) and \(T\), then the restriction 
+        \begin{mathpar}
+            ∼_{S', T'} ≜ \{(s, t) ∣ s ∈ S', t ∈ T', s ∼ t\}
+        \end{mathpar}
+        forms a bisimulation between \(S'\) and \(T'\).
+    \end{itemize}
+\end{theorem}
+
+\begin{proof}
+    To prove that bisimulation \(∼\) between \(S'\) and \(T'\) is also a bisimulation of \(S\) and \(T\), we can simply enlarge the diagram by the inclusion homomorphism
+    \[
+        \begin{tikzcd}
+            S \ar{d}{δ_S} & S' \ar[hook',swap]{l}{i} \ar{d}{δ_S}
+            & ∼ \ar[swap]{l}{π₁} \ar{r}{π₂} \ar{d}{δ_∼}
+            & T' \ar[hook]{r}{i} \ar{d}{δ_S} & T \ar{d}{δ_T}\\  
+            G(S) & G(S') \ar[hook',swap]{l}{G(i)} 
+            & G(∼) \ar[swap]{l}{G(π₁)} \ar{r}{G(π₂)} & T' \ar[hook]{r}{G(i)} & T \\  
+        \end{tikzcd}
+    \]
+    Because the inclusion homomorphism \(i\) doesn't change the input thus, we have:
+    \begin{mathpar}
+        {∼} \xrightarrow{π₁} S' \xrightarrow{i} S = {∼} \xrightarrow{π₁} S \and 
+        {∼} \xrightarrow{π₂} T' \xrightarrow{i} T = {∼} \xrightarrow{π₂} T
+    \end{mathpar}
+
+    To prove that the bisimulation can be restricted, we first realize that \(∼_{S', T'}\) is a pre-image of the maximal bisimulation \(≣_{S', T'}\) along the inclusion homomorphism \(i: {∼} → {≡_{S, T}}\).
+    This means that \(∼_{S', T'}\) can be formed by a pullback square:
+    \[
+        \begin{tikzcd}
+            ∼_{S', T'} \ar{r}{i} \ar[swap]{d}{i} \ar[phantom, very near start]{dr}{\scalebox{1.5}{\(\lrcorner\)}} & ≣_{S', T'} \ar{d}{i}\\ 
+            {∼} \ar[swap]{r}{i} & {≡_{S, T}}
+        \end{tikzcd}
+    \]
+    Recall that elementary polynomial functor~\cite{jacobs_IntroductionCoalgebraMathematics_2016} like \(G\) preserves pullback, hence the pullback also uniquely generates a GKAT coalgebra~\cite{rutten_UniversalCoalgebraTheory_2000}
+\end{proof}
+
+\begin{lemma}[bisimulation between dead states]\label{thm:bisim-between-dead}
+    Given two dead states \(s ∈ S\) and \(t ∈ T\), then the singleton bisimulation 
+    \begin{mathpar}
+        {∼} ≜ \{(s,t)\} \and 
+        δ_{∼}((s,t), α) ≜ \reject
+    \end{mathpar}
+    is a bisimulation between \(S\) and \(T\).
+\end{lemma}
+
+\begin{proof}
+    By computation
+\end{proof}
+
+\begin{theorem}[inductive construction]\label{thm:inductive-construction}
+    Given two GKAT coalgebra \(S\) and \(T\), and two of their elements \(s ∈ S\) and \(t ∈ T\),
+    there exists a bisimulation \({∼} ⊆ ⟨s⟩ × ⟨t⟩\) s.t. \(s ∼ t\), if and only if all of the following holds:
+    \begin{enumerate}
+        \item\label{itm:acc-condition} for all \(α ∈ \At\), \(δ_{S}(s, α) = \accept ⟺ δ_{T}(t, α) = \accept\);
+        \item\label{itm:transition-bisim} If \(δ_{S}(s, α) = (s', p)\) and \(δ_{T}(t, α) = (t', p)\), then there exists a bisimulation \({∼_{s',t'}}\) on \(⟨s'⟩\) and \(⟨t'⟩\), s.t. \(s' ∼_{s',t'} t'\);
+        \item\label{itm:transition-dead} If \(δ_{S}(s, α) = (s', p)\) and \(δ_{T}(t, α) = (t', q)\), s.t. \(p ≠ q\), then both \(s'\) and \(t'\) are dead;
+        \item\label{itm:rej-or-dead} \(s\) reject \(α\) or transition to a dead state via \(α\) if and only if \(t\) rejects \(α\) or transition to a dead state via \(α\).
+    \end{enumerate}
+\end{theorem}
+
+\begin{proof}
+    We first prove \(⟹\) direction, recall the definition of bisimulation:
+    \[
+        \begin{tikzcd}
+            S \ar[swap]{d}{\norm(δ_S)} 
+            & ∼ \ar{d}{δ_∼} \ar[swap]{l}{π₁} \ar{r}{π₂}
+            & T \ar{d}{\norm(δ_T)}\\  
+            G(S) 
+            & G(∼) \ar{l}{G(π₁)} \ar[swap]{r}{G(π₂)} 
+            & G(T) 
+        \end{tikzcd}
+    \]
+
+    The condition \labelcref{itm:acc-condition} holds:
+    \begin{align*}
+        δ_S(s, α) = \accept 
+        & ⟺ \norm(δ_S)(s, α) = \accept 
+        ⟺ \norm(δ_∼)((s,t), α) = \accept \\ 
+        & ⟺ \norm(δ_T)(t, α) = \accept 
+        ⟺ δ_T(t, α) = \accept
+    \end{align*}
+
+    The condition~\labelcref{itm:transition-bisim} holds, by case analysis on the liveness of \(s'\) and \(t'\).
+    First note that \(s'\) and \(t'\) has to be both live or both dead: because \(δ_S(s, α) = (s', p)\), then \(\norm(δ_S)(s', α)\) can either be rejection or \((s',p)\), and so is \(\norm(δ_T)(t', α)\). Finally because \(s ∼ t\), then
+    \[s' \text{ is live} ⟺ \norm(δ_S)(s, α) = (s', p) ⟺ \norm(δ_T)(t, α) = (t', p) ⟺ t' \text{ is live}.\]
+    \begin{itemize}
+        \item If both \(s'\) and \(t'\) are live, then \(s' ∼ t'\), the bisimulation \(∼_{s', t'}\) is just \(∼\) restricted to \(⟨s'⟩\) and \(⟨t'⟩\).
+        \item If both \(s'\) and \(t'\) are dead, then \(∼_{s', t'}\) can just be the singleton relation, according to~\cref{thm:bisim-between-dead}.
+    \end{itemize}
+
+    The condition~\labelcref{itm:transition-dead} holds: by the proof of condition~\labelcref{itm:transition-bisim}, \(s'\) and \(t'\) has to be either both live or both dead; if they are both live, then there cannot be a element in \(G(∼)\) that can project to \((s', p)\) under \(π₁\) but projects to \((t', q)\) under \(π₂\). Thus both \(s'\) and \(t'\) has to be dead.
+
+    The condition~\labelcref{itm:rej-or-dead} holds: 
+    \begin{align*}
+        δ_S(s, α) \text{ rejects or transition to dead states} 
+    & ⟺ \norm(δ_S)(s, α) = \reject \\
+    & ⟺ \norm(δ_T)(t, α) = \reject \\
+    & ⟺ δ_T(t, α) \text{ rejects or transition to dead states}.
+    \end{align*}
+
+    We then show the \(⟸\) direction, we use \(≡_{s', t'}\) to denote the maximal bisimulation between \(⟨s'⟩\) and \(⟨t'⟩\).
+    \[{∼'} ≜ ⋃ \{≡_{s', t'} ∣ ∃ α ∈ \At, p ∈ K, δ_S(s, α) = (s', p) \text{ and } δ_T(t, α) = (t', p)\}.\]
+    Notice because \(⟨s'⟩ ⊑ ⟨s⟩\) and \(⟨t'⟩ ⊑ ⟨t⟩\), then \(≡_{s', t'}\) is a bisimulation between \(⟨s⟩\) and \(⟨t⟩\), and because bisimulation is closed under arbitrary union~\cite{rutten_UniversalCoalgebraTheory_2000}, then \(∼'\) is a bisimulation between \(⟨s⟩\) and \(⟨t⟩\).
+
+    We then augment \(∼'\) with \((s, t)\) to obtain the bisimulation we required:
+    \begin{mathpar}
+        {∼} ≜ {∼'} ∪ \{(s, t)\} \and 
+        δ_{∼}((s₁, t₁), α) ≜ \begin{cases}
+            δ_{∼'}((s,t), α) & (s,t) ≠ (s₁, t₁) \\  
+            \accept & \norm(δ_S)(s, α) = \norm(δ_T)(s, α) = \accept \\  
+            \reject & \norm(δ_S)(s, α) = \norm(δ_T)(s, α) = \reject \\  
+            ((s₂, t₂), p) & \norm(δ_S)(s, α) = (s₂, p) \text{ and } \norm(δ_T)(s, α) = (t₂, p) \\  
+        \end{cases}
+    \end{mathpar}
+    The above definition of \(δ_{∼}\) is indeed well-defined, by case analysis on the result of \(δ_S\) and \(δ_T\) using the condition above:
+    \begin{itemize}
+        \item If \(δ_S(s, α) = \accept\), then by condition~\labelcref{itm:acc-condition}, \(δ_T(t, α) = \accept\) therefore \[\norm(δ_S)(s, α) = \norm(δ_T)(s, α) = \accept.\]
+        \item If \(δ_S(s, α)\) transitions to a dead state or reject, then by conditions~\labelcref{itm:rej-or-dead} \(δ_T(t, α)\) will also transition to a dead state or reject, then \[norm(δ_S)(s, α) = \norm(δ_T)(s, α) = \reject.\]
+        \item If \(δ_S(s, α) = (s', p)\), then by condition~\labelcref{itm:acc-condition} and condition~\labelcref{itm:rej-or-dead}, \(δ_T(t, α) = (t', q)\). By the contrapositive of condition~\labelcref{itm:transition-dead}, if either \(s, t\) are live, then \(p = q\).
+
+        Then by condition~\labelcref{itm:transition-bisim}, there exists a bisimulation \(∼_{s', t'}\) between \(⟨s'⟩\) and \(⟨t'⟩\) s.t. \(s' ∼_{s', t'} t'\). Because bisimulation preserves liveness (\cref{thm:bisim-preserve-liveness}), \(s', t'\) has to be both dead or live, the both dead case is handled by the previous item, both live case will give us the case we desired:
+        \[\norm(δ_S)(s, α) = (s', p) \text{ and } \norm(δ_T)(t, α) = (t', p)\]
+    \end{itemize}
+    And the diagram bisimulation needing to satisfy can be verified by unfolding the definition.
+\end{proof}
+
+The above theorem already gives us a way to recursively construct a algorithm that include \(s ∼ t\), this consequently will let us decide the trace equivalence of \(s\) and \(t\): \(⟦s⟧ = ⟦t⟧\).
+However, this algorithm can be further optimized, we will then derive that a dead state can never relate to live states. This means that when checking the bisimulation of states \(s\) and \(t\), if we already know one of them is dead, we only need to check whether the other is dead, instead of going through the convoluted process mentioned in~\cref{thm:inductive-construction}.
+
+However because homomorphism preserves liveness, if we already know one of the \(s\) and \(t\) is dead, the other has to be dead.
+
+\begin{theorem}\label{thm:bisim-one-dead}
+    Given two states \(s ∈ S\) and \(t ∈ T\), if \(s\) is a dead state in \(S\), then there exists a bisimulation \(∼\) between \(S\) and \(T\) where \(s ∼ t\) if and only if \(t\) is dead. Similarly for \(t ∈ T\).
+\end{theorem}
+
+\begin{proof}
+    if there exists a bisimulation \(∼\), s.t. \(s ∼ t\), because \(s\) is dead and bisimulation preserves liveness~\cref{thm:bisim-preserve-liveness}, then \(t\) is dead. 
+
+    And if both \(t\) and \(s\) is dead, then a bisimulation can by constructed by~\cref{thm:bisim-between-dead}.
+\end{proof}
+
+\section{The Algorithm}
+
+In this section we will present the pseudo-code for our on-the-fly algorithm. 
+In order to implement the the inductive construction theorem (\cref{thm:inductive-construction}), we will need to determine the liveness of the state. This can be simply computed via a DFS from the state being checked. 
+
+\begin{algorithm}
+    \caption{Check whether a state \(s\) is dead}\label{alg:check-dead-main}
+    \begin{algorithmic}
+        \Function{isDeadLoop}{$s ∈ S$, explored}
+        \If {\(s ∈\) explored} {\Return explored} 
+        \Else { 
+            \For{\(α ∈ \At\)}{}{
+                \Match{\(δ_{S}(s, α)\)}
+                \Case{\(\accept\)} {\Return none} \Comment{\(s\) transition to accept}\EndCase
+                \Case{($s', p$)}{ 
+                    \If{\Call{IsDead}{s'} = none} {\Return none} \Comment{\(s\) transitions to a live state \(s'\)}
+                    \Else { explored \(←\) (explored \(∪\) \Call{isDeadLoop}{$s'$, explored}) } \EndIf
+                } \EndCase
+                \EndMatch
+            }\EndFor}
+        \EndIf
+        \State {\Return explored}    
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+
+By~\cref{thm:dead-iff-all-reachable-dead}, if \(s\) is dead then all the reachable states of \(s\) (denoted by \(⟨s⟩\)). Then by returning all the reachable states of \(s\), we can cache these states to avoid checking them again. To encapsulate the caching, we have the following function, which we will actually use in our bisimulation algorithm.
+
+\begin{algorithm}
+    \caption{A cached algorithm to check whether a state is dead}\label{alg:is-dead}
+    \begin{algorithmic}
+        \State{deadStates \(← ∅\)}
+
+        \Function{isDead}{$s ∈ S$}
+        \If {\(s ∈\) deadStates} {\Return true} 
+        \ElsIf {\Call{isDeadLoop}{$s, ∅$} = none} {\Return false}
+        \Else 
+            \State {deadStates \(←\) (deadStates \(∪\) \Call{isDeadLoop}{$s, ∅$})}
+            \State {\Return {true}}
+        \EndIf
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+
+Given the direct correspondence between bisimulation and bisimulation equivalence and bisimulation in sub-algebra:
+\begin{align*}
+    & ∃ \text{ bisimulation } {∼} ⊆ ⟨s⟩ × ⟨t⟩ \text{ s.t. } s ∼ t \\
+    & ⟺ ∃ \text{ bisimulation } {∼} ⊆ (⟨s⟩∪⟨t⟩) × (⟨s⟩∪⟨t⟩) \text{ s.t. } s ∼ t 
+        & \text{\cref{thm:sub-coalg-preserve-bisim}}\\  
+    & ⟺ ∃ \text{ bisimulation equivalence } {≃} ⊆ (⟨s⟩∪⟨t⟩) × (⟨s⟩∪⟨t⟩) \text{ s.t. } s ≃ t 
+        & \text{\cref{thm:bisim-iff-bisim-equiv}}
+\end{align*}
+we can safely replace the bisimulation in inductive construction (\cref{thm:inductive-construction}) with bisimulation equivalence. 
+Dealing with equivalence relations allows us to leverage efficient data structures like union find in our bisimulation algorithm. 
+
+We will use \(\Call{union}{$s,t$}\) to denote the operation to equate \(s\) and \(t\) in a union-find, and use \(\Call{eq}{$s,t$}\) to check if \(s\) and \(t\) belongs to the same equivalence class, i.e. share the same representative.
+Specifically, we will use the union-find structures to keep track of the equivalence classes that we are in the process of checking, hence avoiding repeatedly checking the same pair of states to remove infinite loops.
+
+Our on-the-fly bisimulation algorithm will decide whether there exists a bisimulation relation in \(⟨s⟩ ∪ ⟨t⟩\) s.t. \(s ∼ t\). This algorithm generally reproduce the setting of inductive construction theorem~\cref{thm:inductive-construction};
+except by~\cref{thm:bisim-one-dead}, in the special case where \(s\) or \(t\) is dead, then we will only need to check whether the other is dead.
+
+\begin{algorithm}
+    \caption{On-the-fly bisimulation algorithm}\label{alg:bisim}
+    \begin{algorithmic}
+        \Function{equiv}{$s ∈ S, t ∈ T$}
+        \If {\Call{eq}{$s, t$}} {\Return true}
+        \ElsIf {\(s ∈\) deadStates} {\Return \Call{isDead}{$t$}} 
+        \ElsIf {\(t ∈\) deadStates} {\Return \Call{isDead}{$s$}} 
+        \Else 
+        \For{\(α ∈ \At\)}{}{
+            \Comment{Inductive construction,~\cref{thm:inductive-construction}}
+            \Match{$δ_{S}(s, α), δ_{T}(t, α)$}
+            \Case{\(\accept, \accept\)} {\Skip} \EndCase
+            \Case{\(\reject, \reject\)} {\Skip} \EndCase
+            \Case{\(\reject, (t', q)\)} {\Call{isDead}{$t'$}} \EndCase
+            \Case{\((s', p), \reject\)} {\Call{isDead}{$s'$}} \EndCase
+            \Case{\((s', p), (t', q)\)} {
+                \If {\(p = q\)} {\Call{union}{$s, t$}; \Call{equiv}{$s, t$}} 
+                \ElsIf {\Call{isDead}{$s$} and \Call{isDead}{$s$}} {\Skip}
+                \Else { \Return false }
+                \EndIf
+            } \EndCase
+            \Default {\Return false} \Comment{the results format does not match} \EndDefault
+            \EndMatch
+        }\EndFor
+        \EndIf
+        \Return true \Comment{no mismatch found}
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+
+The soundness and completeness of this algorithm can be observed by the fact that \emph{when the algorithm terminate}, the algorithm returns true. if and only if there exists a bisimulation between \(⟨s⟩\) and \(⟨t⟩\) s.t. \(s ∼ t\), which is then logically equivalent to trace equivalence.
+Such equivalence is a direct consequence of~\cref{thm:bisim-one-dead,thm:inductive-construction}.
+
+
+\section{Symbolic algorithm}
+
+\subsection{Symbolic GKAT Coalgebra}
+
+Given an alphabet \(K, B\), a \emph{symbolic GKAT coalgebra} \(Ŝ ≜ ⟨S, ϵ̂, δ̂⟩\) consists of a state set \(S\) consists of a accepting boolean \(ϵ̂\) and a transition function \(δ̂\):
+\begin{mathpar}
+    ϵ̂: S → \Bool_B, \and
+    δ̂: S → S → K → \Bool_B,
+\end{mathpar}
+where \(\Bool_B\) is the free boolean algebra over \(B\) (boolean expressions modulo boolean algebra axioms), and for all states \(s ∈ S\), all the booleans results are ``disjoint''; namely the conjunction of any two expression from the set \(ϵ̂(s) + \{δ̂(s, s', p) ∣ s' ∈ S, p ∈ K\}\) are false in \(\Bool_B\).
+The ordering on two symbolic coalgebra on the same carrier \(S\) is defined pointwise, namely 
+\[⟨ϵ̂₁, δ̂₁⟩ ≤ ⟨ϵ̂₂, δ₂⟩ \text{ if and only if } ∀ s, s' ∈ S, ∀ p ∈ K, \hat{ϵ₁}(s) ≤ \hat{ϵ₂}(s) \text{ and } \hat{δ₁}(s, s', p) ≤ \hat{δ₂}(s, s', p).\]
+
+Intuitively, the expressions in \(\Bool_B\) is treated as the ``symbolic'' transitions, which can be think of as a set of atoms by the isomorphism \(\Bool_B ≅ 2^{\At_B}\). 
+Then we can explain the intuition for the definition of symbolic GKAT coalgebra:
+\begin{itemize}
+    \item \(ϵ̂(s)\) can be thought of as all the atoms that is accepted by the state \(s\).
+    \item \(δ̂(s, s', p)\) denotes all the atoms that can transition from \(s\) to \(s'\) while executing \(p\).
+\end{itemize}
+Then the atoms excluded by both operations are implicitly rejecting. Formally, we can define a boolean expression that contains all the atoms that will be rejected 
+\[ρ̂(s) = ¬ (ϵ̂(s) ∨ ⋁ \{b ∣ ∃ s' ∈ S, p ∈ K, δ̂(s, s', p) = b\}).\]
+
+This intuition gives us a isomorphism between between GKAT coalgebra and symbolic GKAT coalgebra. Formally, given a GKAT coalgebra \(⟨S, δ⟩\), then its corresponding symbolic GKAT coalgebra will share the same states \(S\), with the transition defined as follows:
+\begin{align*}
+    ϵ̂(s) & ≜ ⋁ \{α ∈ \At ∣ δ(s, α) = \accept\} & 
+    δ̂(s, s', p) & ⋁ \{α ∈ \At ∣ δ(s, α) = (s', p)\}.
+\end{align*}
+We will denote the above map as \(\symb\), i.e. \(\symb(⟨S, δ⟩) ≜ ⟨S, ϵ̂, δ̂⟩\). Notice that we are implicitly using atoms as an element in the boolean algebra, indeed an atom can be thought about as a conjunction.
+
+The inverse of \(\symb\) is denoted as \(\unsymb\) where given a symbolic GKAT coalgebra \(⟨S, ϵ̂, δ̂⟩\), we construct a GKAT coalgebra over states \(S\) with the following transition:
+\[δ(s, α) ≜ \begin{cases}
+    \accept & α ∈ ϵ̂(s) \\  
+    (s', p) & α ∈ δ̂(s, s', p) \\  
+    \reject & \text{otherwise}
+\end{cases}\]
+Notice the \(δ\) is well-defined, that is given any \(s ∈ S\) and \(α ∈ \At\), \(δ(s,α)\) can only take on one value; because symbolic GKAT coalgebra is deterministic.
+
+\subsection{Decision Procedure Of Symbolic GKAT coalgebra}
+
+The formulation of symbolic GKAT coalgebra is mathematically nice, yet inefficient. Between most states \(s, s' ∈ S\) and action \(p ∈ K\), \(δ(s, s', p)\) will always be false. Therefore, we can developed a set representation of the derivative, where we will typically denote using \(Δ̂\):
+\[Δ̂: S → 𝒫(\Bool_B × S × K).\]
+we always assume transition functions denoted this way are \emph{deterministic}; specifically, all the boolean expression in the following set are disjoint: \[\{b ∣ ∃ s' ∈ S, p ∈ K, (b, s', p) ∈ Δ̂(s)\}.\] 
+
+Intuitively, if \((b, s', p) ∈ Δ̂(s)\), then \(s\) will transition to \(s'\) for all the atoms \(α ≤ b\) while executing \(p\). Notice that the above statement does not imply that \emph{all} \(α\) that makes \(s\) transition to \(s'\) while executing \(p\) will be covered by \(b\); that is, there can exists a \((b', s', p) ∈ Δ̂(s)\), where \(b ≠ b'\).
+
+This means that the set representation of a symbolic GKAT coalgebra no on longer uniquely correspond to a GKAT coalgebra.
+\begin{example}
+    
+\end{example}
+
+However, every set representation of a symbolic GKAT coalgebra, indeed correspond to a GKAT coalgebra, specifically given a set representation \(⟨S, ϵ̂, Δ̂⟩\), we can construct a symbolic GKAT \(⟨S, ϵ̂, δ̂⟩\), by defining the following \(δ̂\):
+\[δ̂(s, s', p) = ⋁ \{b ∣ (b, s', p) ∈ Δ̂(s)\}.\]
+More importantly, the map described above is surjective. This means that all the GKAT coalgebra can indeed be represented as at least one set-representation.
+Similarly, set representation can also be converted to GKAT coalgebra: given a set representation \(⟨S, ϵ̂, Δ̂⟩\), we can lower it into a GKAT coalgebra \(⟨S, δ⟩\), by constructing the following \(δ\):
+\[δ(s, α) ≜ \begin{cases}
+    \accept & α ∈ ϵ̂(s) \\  
+    (s', p) & ∃ b ≥ α, (b, s', p) ∈ Δ̂(s) \\  
+    \reject & \text{otherwise}
+\end{cases}\]
+Indeed, lowering the set representation directly to GKAT coalgebra give the same result as converting to symbolic GKAT coalgebra and then lowering. This fact is essential for us to relate these semantics. 
+
+Finally, we can lift the inductive construction theorem (\cref{thm:inductive-construction}) to set representation of GKAT coalgebras, giving a sound and complete symbolic decision procedure. 
+In the following lemmas, we will use \(S, T\) to denote some GKAT coalgebra, and \(Ŝ, T̂\) will be as some set-represented symbolic GKAT coalgebra that corresponds to \(S\). 
+Formally, if we lower \(Ŝ\) to GKAT coalgebra, we will obtain exactly \(S\); similarly for \(T̂\).
+
+\begin{lemma}
+    We let the \(s ∈ S\) and \(t ∈ T\) be two states, then the following equivalence between conditions in \cref{thm:inductive-construction} hold: 
+    \begin{itemize}
+        \item condition~\labelcref{itm:acc-condition} in inductive construction holds if and only if \(ϵ̂_{Ŝ}(s) = ϵ̂_{T̂}(t)\).
+        \item condition~\labelcref{itm:transition-bisim} holds if and only if for all \((a, s', p) ∈ δ̂_{Ŝ}(s)\) and \((b, t', q) ∈ δ̂_{T̂}(t)\):
+        \[a ∧ b ≠ 0 \text{ and } p = q ⟹ \text{exists a bisimulation \(∼\) between \(S\) and \(T\), } s.t. s' ∼ t'.\]
+        \item condition~\labelcref{itm:transition-dead}, holds if and only if for all \((a, s', p) ∈ δ̂_{Ŝ}(s)\) and \((b, t', q) ∈ δ̂_{T̂}(t)\):
+        \[a ∧ b ≠ 0 \text{ and } p ≠ q ⟹ \text{both \(s\) and \(t\) are dead}.\]
+        \item condition~\labelcref{itm:rej-or-dead} holds if and only if the following holds:
+    \end{itemize}
+\end{lemma}
+
+\begin{lemma}
+    Given two states \(\)
+\end{lemma}
+
+
+\subsection{Symbolic Derivatives and Correctness}
+
+Given a symbolic GKAT coalgebra \(⟨S, δ̂, ϵ̂⟩\) and a state \(s ∈ S\), we use the notation \(s ⇒ b\) to denote that \(ϵ̂(s) ≥ b\), and we use the notation \(s \transvia{b ∣ p} s'\) to denote that \(δ̂(s, s', p) ≥ b\), where the ordering is the typical ordering in boolean algebra.
+
+The symbolic derivatives for GKAT forms a DKCT where the states are represented by GKAT expression \(\GKAT_{K, B}\), and the boolean algebra is the free boolean algebra \(\Bool_B\) over the test alphabet \(B\):
+\begin{mathpar}
+    ϵ: \GKAT_{K, B} → \Bool_B; \and  
+    δ: \GKAT_{K, B} → \GKAT_{K, B} → K → \Bool_B.
+\end{mathpar} 
+the accepting map \(ϵ\) and transition map \(δ\) can be defined by the smallest maps that satisfy the following rules:
+\begin{mathpar}
+    \inferrule{\\}{b ⇒ b} \and 
+    \inferrule{\\}{p \transvia{1 ∣ p} 1} \and 
+    \inferrule{e ⇒ a}{e +_b f ⇒ b a} \and 
+    \inferrule{f ⇒ a}{e +_b f ⇒ b̄ a} \and 
+    \inferrule{e \transvia{a ∣ p} e'}{e +_b f \transvia{b ∧ a ∣ p} e'} \and 
+    \inferrule{f \transvia{a ∣ p} f'}{e +_b f \transvia{b̄ ∧ a ∣ p} f'} \and 
+    \inferrule{e ⇒ a \\ f ⇒ b}{e ⋅ f ⇒ a ∧ b} \and 
+    \inferrule{e ⇒ a \\ f \transvia{b ∣ p} f'}{e ⋅ f \transvia{a ∧ b ∣ p} f'} \and 
+    \inferrule{e \transvia{b ∣ p} e'}{e ⋅ f \transvia{b ∣ p} e' ⋅ f} \and 
+    \inferrule{\\}{e^{(b)} ⇒ b̄} \and 
+    \inferrule{e \transvia{a ∣ p} e'}{e^{(b)} \transvia{b ∧ a ∣ p} e' ⋅ {e}^{(b)}}
+\end{mathpar}
+Notice the rules above are very similar to the derivative rules for GKAT~\cite{schmid_GuardedKleeneAlgebra_2021}, this is no coincidence, as we can establish a correspondence of these two to prove correctness of our symbolic algorithm.
+
+Since the rules listed above is monotonic, that is if we enlarge the boolean in the premise, we also enlarge the boolean in the result. 
+So we can simply pick the largest boolean on the premise, which is either \(ϵ(e)\) or \(δ(e, e', p)\).
+Since the disjunction of two boolean \(a ∨ b\) is the smallest boolean that is greater than both \(a\) and \(b\), thus we can implement \(ϵ\) and \(δ\) by iteration through all the rules, and take the disjunction of all the possible booleans.
+
+\begin{align*}
+    ϵ(b) & ≜ b 
+        &  ϵ(e +_b f) & ≜ (b ∧ ϵ(e)) ∨ (b̄ ∧ ϵ(f))\\
+    ϵ(q) & ≜ 0
+        & ϵ(e ⋅ f) & ≜ ϵ(e) ∧ ϵ(f)\\  
+    ϵ(e^{(b)}) & ≜ b̄ 
+\end{align*}
+
+However, the derivative function \[δ: \GKAT_{K, B} → \GKAT_{K, B} → K → \Bool_B,\] poses challenges in the implementation, since \(\GKAT_{K, B}\) is infinite, so it will be impractical to search through all the expressions.
+However, we can treat the function \(δ\) extensionally: \[\GKAT_{K, B} → K → \Bool_B ⊆ 2^{\GKAT_{K, B} × K × \Bool_B},\]
+and then because the boolean expression don't overlap for each input, hence the boolean expression are necessarily unequal; 
+we can model the set by a partial map, thus all the \(δ\) can be represented as a function to the following partial maps.
+\begin{align*}
+    δ & : \GKAT_{K, B} → (\Bool_B ↛ \GKAT_{K, B} × K) \\
+    δ(b) & ≜ \{\} \\
+    δ(q) & ≜ \{1 ↦ (1, p)\}\\  
+    δ(e +_b f) & ≜ \{b ∧ a ↦ (e', p) ∣ a ↦ (e', p) ∈ δ(e)\} 
+        ∪ \{b̄ ∧ a ↦ (f', p) ∣ a ↦ (f', p) ∈ δ(f)\}\\
+    δ(e ⋅ f) & ≜ \{b ↦ (e' ⋅ f, p) ∣ b ↦ (e, p) ∈ δ(e)\}
+        ∪ \{ϵ(e) ∧ b ↦ (f', p) ∣ b ↦ (f', p) ∈ δ(f)\}\\
+    δ(e^{(b)}) & ≜ \{b ∧ a ↦ (e' ⋅ e^{(b)}, p) ∣ a ↦ (e', p) ∈ δ(e)\}.
+\end{align*}
+FIXME: we still need to think about what representation do we want to go with, with this representation, you can also have duplicated K. We need a good example here of why don't we go with map. One good argument is that this representation is complex.
+
+
+
+
+
+\subsection{Algorithm and Complexity}
+
+
+\section{Implementation and Experiments}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% \subsection{the new norm}
+
+% The theoretical foundation of this algorithm is surprisingly simple, where we only need one minor tweak to the definition of normalization.
+% Instead of normalizing both the states \(S\) and the transition function \(δ_S\), we will only normalize the function \(δ_S\) to obtain \(δ_S\).
+
+% Intuitively, this only rejects transitions to dead states, but doesn't remove dead states completely. As we will see later, the bisimulation generated by this notion will be able to contain rejection state, this allows us to only check for liveness after ``discrepancy'' as described in the intro.
+
+% \begin{definition}[normalized homomorphism]
+%     A normalized homomorphism \(h: S → T\) is a homomorphism with normalized transition functions:
+%     \[
+%         \begin{tikzcd}
+%             S \ar{r}{h} \ar[swap]{d}{\norm(δ_S)} & T \ar{d}{\norm(δ_T)}\\  
+%             G(S) \ar[swap]{r}{G(h)} & G(T)
+%         \end{tikzcd}
+%     \]
+% \end{definition}
+
+% This normalized homomorphism is very close to the definition of homomorphism in normalized GKAT coalgebra, hence inherits many of the properties. 
+% Specifically, the language model \(𝒢\) is the final coalgebra in here.
+
+% \subsection{soundness and completeness}
+
+% The definition of normalized bisimulation naturally arise from a weakened form of homomorphism.
+
+% \begin{definition}[Normalizd homomorphism]
+%     A \emph{normalized homomorphism} \(h: S → T\) is coproduct (in set) of a \emph{homomorphism} between the normalized coalgebra \(h_{\norm}: \norm(S) → \norm(T)\) and a \emph{function} \(h_{\dead}: \dead{S} → \dead(T)\). Concretely,
+%     \[h(s) ≜ \begin{cases}
+%         h_{\norm}(s) & \text{if } s ∈ \norm(S) \\  
+%         h_{\dead}(s) & \text{if } s ∈ \dead(S)
+%     \end{cases}.\]
+%     We will sometimes use the coproduct notation \(h = h_{\norm} + h_{\dead}\).
+% \end{definition}
+
+% \begin{theorem}
+%     GKAT coalgebras under normalized homomorphisms form a category.
+% \end{theorem}
+
+% \begin{proof}
+%     Recall that the composition operation compose with coproduct:
+%     \[\begin{tikzcd}[row sep=3px]
+%         {A_1} & {B_1} & {C_1} \\
+%         & {+} \\
+%         {A_2} & {B_2} & {C_2}
+%         \arrow["{x_1}", from=1-1, to=1-2]
+%         \arrow["{y_1}", from=1-2, to=1-3]
+%         \arrow["{x_2}", from=3-1, to=3-2]
+%         \arrow["{y_2}", from=3-2, to=3-3]
+%     \end{tikzcd}
+%     = 
+%     A₁ + A₁ \xrightarrow{x₁ + x₂} B₁ + B₂ \xrightarrow{y₁ + y₂} C₁ + C₂.\]
+
+%     Therefore the composition of \(h₁: S → T\) and \(h₂: T → U\) can be simply defined as 
+%     the composition of its components: 
+%     \begin{align*}
+%         (h₁ ∘ h₂)_{\norm} & : S_{\norm} → U_{\norm} \\
+%         (h₁ ∘ h₂)_{\norm} & ≜ h_{1\norm} ∘ h_{2\norm} \\[5px]
+%         (h₁ ∘ h₂)_{\dead} & : S_{\dead} → U_{\dead}\\
+%         (h₁ ∘ h₂)_{\dead} & ≜ h_{1\dead} ∘ h_{2\dead} \\[5px]
+%         h₁ ∘ h₂ & : S → U\\
+%         h₁ ∘ h₂ & ≜ (h₁ ∘ h₂)_{\norm} + (h₁ ∘ h₂)_{\dead}
+%     \end{align*}
+%     concretely this can be written down as
+%     \[h₁ ∘ h₂(s) ≜ \begin{cases}
+%         h_{1\norm} ∘ h_{2\norm}(s) & \text{if } s ∈ \norm(S) \\  
+%         h_{1\dead} ∘ h_{2\dead}(s) & \text{if } s ∈ \dead(S)
+%     \end{cases}.\]
+
+%     The identity morphism is indeed the coproduct of the identity homomorphism on normalized coalgebra and the identity function on the dead states.
+    
+%     The associativity and identity axiom can be verified by decomposing the homomorphism to live and dead states.
+% \end{proof}
+
+% \begin{remark}
+%     Diagrammatically, normalized homomorphism is completely characterized by the following commutative square in the category of set:
+%     \[
+%         \begin{tikzcd}
+%             S \ar{rr}{h} \ar[swap]{dd}{δ_S} && T \ar{d}{δ_T} \\  
+%             && G(T) \ar{d}{[-]_{\norm}}\\
+%             G(S) \ar[swap]{r}{ G(h)}
+%                 & G(T) \ar[swap]{r}{[-]_{\norm}}
+%                 & G(T)/{∼_{\norm}}
+%         \end{tikzcd}
+%     \]
+%     where \({∼_{\norm}} ⊆ (2 + S × K) × (2 + S × K)\) is the minimal equivalence generated by the following relation \[\{(\reject, (s, p)) ∣ p ∈ K, \text{\(s\) is dead in \(S\)}\};\] 
+%     and \(G(T)/{∼_{\norm}}\) is the point-wise quotient of \(G(T)\) by the smallest equivalence relation containing the relation \(∼_{\norm}\), and \([-]_{\norm}\) is the function that maps a function in \(G(T)\) to its corresponding equivalence class in \(G(T)/{∼_{\norm}}\).
+
+%     The proof of this equivalence is interesting, however irrelevant to this paper, we will defer the proof to appendix, in~\cref{sec:diagram-of-norm-sim}.
+% \end{remark}
+
+% With the category of GKAT coalgebra and normalized homomorphism defined, we obtain the conventional definition of bisimulation, which is a span of projections in that category~\cite{jacobs_IntroductionCoalgebraMathematics_2016,rutten_UniversalCoalgebraTheory_2000}:
+% \[
+%     \begin{tikzcd}[column sep=1cm]
+%         S & ∼ \ar[swap]{l}{π₁} \ar{r}{π₂} & T
+%     \end{tikzcd}
+% \]
+% We call such bisimulation \emph{normalized bisimulation} to distinguish it from the bisimulation generated in the category of GKAT coalgebra and GKAT coalgebra homomorphism.
+
+% Like proving the soundness and completeness of bisimulations, we can first identify that the language semantics is indeed the unique normalized homomorphism to the final GKAT coalgebra in out category:
+% \begin{theorem}
+%     The language GKAT \(𝒢\) is the final GKAT coalgebra in the category of GKAT coalgebra and normalized homomorphisms, with the language semantics \(⟦-⟧_S: S → 𝒢\) as the unique normalized homomorphism.
+% \end{theorem}
+
+% \begin{proof}
+%     Recall that \(\norm(𝒢)\) is the final object in the category of GKAT coalgebra with homomorphisms, then there exists a unique homomorphism \(⟦-⟧_{\norm(S)}: S → 𝒢\). 
+
+%     Also recall that \(\dead(𝒢)\) is a singleton set that only contains the empty language \(∅\). Recall the singleton set is the final algebra in the category of set \(!_S: S → \{∅\}\).
+
+%     And by observing the definition of \(⟦-⟧_S\), we can verify that
+%     \[⟦-⟧_S = ⟦-⟧_{\norm(S)} + !_S\]. 
+%     The above equation shows that the language semantics \(⟦-⟧_S\) is the unique normalized homomorphism from any GKAT coalgebra \(S\) to \(𝒢\), proving that \(𝒢\) is the final GKAT coalgebra in the category of GKAT coalgebra with normalized homomorphism.
+% \end{proof}
+
+% \begin{corollary}[soundness]
+%     Given two states \(s ∈ S\) and \(t ∈ T\), 
+%     \[s ∼ t ⟹ ⟦s⟧_S = ⟦t⟧_T\]
+% \end{corollary}
+
+% \begin{proof}
+%     This proof mirrors the classical soundness proof for bisimulation with regard to behavioral equivalence~\cite{rutten_UniversalCoalgebraTheory_2000}.
+
+%     Then by finality of \(𝒢\):
+%     \[
+%         \begin{tikzcd}[column sep=2cm, row sep=1cm]
+%             & 𝒢 & \\
+%             S \ar{ur}{⟦-⟧_S} 
+%                 & ∼ \ar[u, near start, dashed, "⟦-⟧_S ∘ π₁ = ⟦-⟧_T ∘ π₂"description]\ar{l}{π₁} \ar[swap]{r}{π₂} 
+%                 & T \ar[swap]{ul}{⟦-⟧_T}
+%         \end{tikzcd}
+%     \]
+%     And take any two states \(s ∈ S\) and \(t ∈ T\):
+%     \[s ∼ t ⟹ (s, t) ∈ {∼} ⟹ ⟦-⟧_S ∘ π₁(s,t) = ⟦-⟧_T ∘ π₂(s,t) ⟹ ⟦s⟧_S = ⟦t⟧_T.\]
+% \end{proof}
+
+% The completeness proof is slightly more complicated: because we use a modified notion of homomorphism, thus the classical completeness argument~\cite{rutten_UniversalCoalgebraTheory_2000} no longer applies.
+% However, we can still devise a simple proof based on the completeness of bisimulation between normalized GKAT coalgebras~\cite{smolka_GuardedKleeneAlgebra_2020}.
+
+% Given two states \(s ∈ S\) and \(t ∈ T\), we use the notation \(s ≡ t\) to denote that there exists a normalized bisimulation \({∼} ⊆ S × T\) s.t. \(s ∼ t\). 
+% \begin{remark}
+%     An alternative interpretation of \(≡\) is the maximal normalized bisimulation between \(S\) and \(T\). However, by using the current definition of \(≡\), we can omit the proof that all normalized bisimulations form a complete lattice.
+% \end{remark}
+
+% \begin{lemma}[normalized bisimulation between dead states]\label{thm:norm-bisim-between-dead}
+%     Given two GKAT coalgebra \(S\) and \(T\), any relation \({∼} ⊆ \dead(S) × \dead(T)\) is a normalized bisimulation between \(S\) and \(T\).
+% \end{lemma}
+
+% \begin{proof}
+%     From the definition, \(∼\) only contains one dead state \((s,t)\) and no live states, thus the projection from \(\norm(∼) = ∅\) is the unique map from the empty set \(π₁: ∅ → \norm(S)\) and \(π₂: ∅ → \norm(T)\), which are indeed a GKAT homomorphism.
+
+%     The projection from the only dead state \((s, t)\) will also reach \(s\) and \(t\), which are dead states in their respective GKAT coalgebra.
+
+%     Thus the projection from live states from a homomorphism in normalized coalgebra, and projections from dead states from a function to dead states. Therefore both projections are normalized homomorphism, and \(∼\) is a bisimulation.
+% \end{proof}
+
+% \begin{lemma}\label{thm:norm-bisim-from-bisim-on-norm}
+%     Given a bisimulation between normalized GKAT coalgebras \({∼} ⊆ \norm(S) × \norm(T)\), \(∼\) is also a normalized bisimulation between \(S\) and \(T\).
+% \end{lemma}
+
+% \begin{proof}
+%     TODO
+% \end{proof}
+
+% \begin{theorem}[completeness]
+%     Given two states \(s ∈ S\) and \(t ∈ T\), 
+%     \[⟦s⟧ = ⟦t⟧ ⟹ s ≡ t.\]
+% \end{theorem}
+
+% \begin{proof}
+%     We do this by case analysis on the whether \(⟦s⟧\) and \(⟦t⟧\) is empty.
+    
+%     Recall that the empty language is a dead state in the language model \(𝒢\), and because \(⟦-⟧\) is a normalized homomorphism, which preserves liveness by definition. Hence, when \(⟦s⟧ = ⟦t⟧ = ∅\), both \(s\) and \(t\) has to be dead. Therefore by \cref{thm:norm-bisim-between-dead}, we can simply construct a bisimulation \(∼ ≜ \{(s, t)\}\).
+
+%     If both \(⟦s⟧\) and \(⟦t⟧\) are non-empty, then by the same reasoning, both \(s\) and \(t\) are live, then by the completeness of bisimulation on normalized GKAT coalgebra~\cite{smolka_GuardedKleeneAlgebra_2020}, there exists a bisimulation \({∼} ⊆ \norm(S) × \norm(T)\), s.t. \(s ∼ t\).
+% \end{proof}
+
+
+
+
+
+% \begin{lemma}\label{thm:norm-bisim-preserve-liveness}
+%     Given a normalized bisimulation \({∼} ⊆ S × T\), then by definition \(∼\) form a GKAT coalgebra, and the following statements hold:
+%     \begin{itemize}
+%         \item if \(s ∼ t\) then either \(s\) and \(t\) are both live or \(s\) and \(t\) are both dead.
+%         \item the live states in \(∼\) are exactly the states where both components are live: \[\norm(∼) ≜ \{(s, t) ∣ s ∼ t, s ∈ \norm(S), t ∈ \norm(T)\}.\]
+%     \end{itemize}
+% \end{lemma}
+
+% \begin{proof}
+%     Because \(π₁: {∼} → S\) and \(π₂: {∼} → T\) are normalized homomorphisms, then by definition, they will map live states to live states and dead states to dead states.
+%     Thus if we consider \((s, t) ∈ {∼}\): \[π₁(s, t) = s \text{ is live in } S ⟺ (s, t) \text{ is live in } {∼} ⟺ π₂(s, t) = t \text{ is live in } T.\]
+%     Thus \(∼\) only relates states with the same liveness.
+
+%     By the above equivalence chain, \((s, t) ∈ {∼}\) is live if and only if both \(s, t\) are live, thus 
+%     \[\norm(∼) ≜ \{(s, t) ∣ s ∼ t, s ∈ \norm(S), t ∈ \norm(T)\}.\]
+% \end{proof}
+
+% This observation allows us to express a strong connection between normalized bisimulation and bisimulation on normalized coalgebra.
+
+% \begin{theorem}\label{thm:bisim-on-norm<=norm-bisim}
+%     Given two GKAT coalgebra, if \({∼} ⊆ S × T\) then \(\norm(∼) ⊆ \norm(S) × \norm(T)\) is a bisimulation. 
+% \end{theorem}
+
+% \begin{proof}
+%     because \(π₁\) and \(π₂\) are normalized homomorphisms, then they can be decomposed into a homomorphism on normalized coalgebra and a function on dead states: 
+%     \[π₁ = π_{1\norm} + π_{1\dead} \text{ and } π₂ = π_{2\norm} + π_{2\dead},\] 
+%     where \(π_{1\norm}\) and \(π_{2\norm}\) are projection homomorphism to the normalized GKAT coalgebra \(\norm(S)\) and \(\norm(T)\).
+%     Therefore, \(\norm(∼)\) form a span of \(\norm(S)\) and \(\norm(T)\) with these projection homomorphisms. 
+%     Diagrammatically, this span depicts the following commutative diagram in set:
+%     \[
+%         \begin{tikzcd}[column sep=2cm]
+%             \norm(S) \ar[swap]{d}{\norm(δ_S)}& 
+%             \norm(∼) \ar[swap]{l}{π_{1\norm}} \ar{r}{π_{2\norm}} \ar{d}{\norm(δ_∼)}
+%             & \norm(T) \ar{d}{\norm(δ_T)}\\  
+%             G(\norm(S)) & G(\norm(∼)) \ar[swap]{l}{G(π_{1\norm})} \ar{r}{G(π_{2\norm})} & G(\norm(T))
+%         \end{tikzcd}
+%     \]
+%     hence \(\norm(∼)\) is indeed a bisimulation between \(\norm(S)\) and \(\norm(T)\).
+% \end{proof}
+
+% \begin{theorem}\label{thm:bisim-on-norm=>live}
+%     Given a bisimulation \({∼} ⊆ \norm(S) × \norm(T)\), then by definition \({∼}\) is also a normalized bisimulation between \(S\) and \(T\).
+% \end{theorem}
+
+% \begin{proof}
+%     because \(∼\) is a bisimulation, then the projection \(π₁: {∼} → \norm(S)\) and \(π₂: {∼} → \norm(T)\) are indeed  GKAT homomorphisms. 
+%     By~\cref{thm:hom-preserve-liveness}, \(\dead(∼)\) is the empty set, thus have unique function 
+% \end{proof}
+
+
+% With the connection between normalization and normalized bisimulation, we can utilize the soundness and completeness of bisimulation between normal GKAT coalgebra to derive the soundness and completeness of normalized bisimulation. 
+% Given two states \(s ∈ S\) and \(t ∈ T\), we use the notation \(s ≡ t\) to denote that there exists a normalized bisimulation \({∼} ⊆ S × T\) s.t. \(s ∼ t\). 
+% \begin{remark}
+%     An alternative interpretation of \(≡\) is the maximal normalized bisimulation between \(S\) and \(T\). However, by using the current definition of \(≡\), we can omit the proof that all normalized bisimulation form a complete lattice, which is a corollary that bisimulation forms a complete lattice.
+% \end{remark}
+
+% \begin{theorem}[soundness and completeness]
+%     Given two states \(s ∈ S\) and \(t ∈ T\):
+%     \[s ≡ t ⟺ ⟦s⟧ = ⟦t⟧.\]
+% \end{theorem}
+
+% \begin{proof}
+%     We first show the \(⟹\) direction, because \(s ≡ t\), then there exists \(∼\) s.t. \(s ∼ t\). And by~\cref{thm:bisim-on-norm<=norm-bisim}, \(\norm(∼)\) is a bisimulation between 
+% \end{proof}
+
+
+% \subsection{Construction}
+
+% \begin{lemma}
+%     Given a sub-GKAT coalgebra \(S' ⊑ S\), the inclusion homomorphism \(i: S' → S\) is also a normalized homomorphism.
+% \end{lemma}
+% \begin{proof}
+%     TODO.
+% \end{proof}
+
+% \begin{theorem}[sub-coalgebra perserves normalized bisimulation]\label{thm:sub-coalg-preserve-norm-bisim}
+%     Given two sub-GKAT colagebra \(S' ⊑ S\) and \(T' ⊑ T\), then 
+%     \begin{itemize}
+%         \item a normalized bisimulation \(∼_{S', T'}\) between \(S'\) and \(T'\) is also a normalized bisimulation between \(S\) and \(T\)
+%         \item a normalized bisimulation \(∼\) between \(S\) and \(T\), can also be restricted to \(S'\) and \(T'\) in the following manner, by restricting both the carrier and the transition:
+%         \begin{align*}
+%             {∼_{S', T'}} & ≜ \{(s,t) ∣ s ∼ t, s ∈ S', t ∈ T'\} \\
+%             δ_{∼_{S', T'}} & ≜ δ_{∼} |_{∼_{S', T'}}
+%         \end{align*}
+%     \end{itemize}
+% \end{theorem}
+
+% \begin{proof}
+%     TODO.
+% \end{proof}
+
+% \begin{lemma}[normalized bisimulation closed under arbitrary union]\label{thm:norm-bisim-close-under-union}
+%     Given a collection of normalized bisimulation \(∼ᵢ ⊆ S × T\) indexed by an arbitrary set \(i ∈ I\), then there exists a normalized bisimulation \(∼\) that includes all the pairs in \(∼ᵢ\) for all \(i\).
+% \end{lemma}
+
+% \begin{theorem}[inductive construction]\label{thm:inductive-construction}
+%     Given two GKAT coalgebra \(S\) and \(T\), and two of their elements \(s ∈ S\) and \(t ∈ T\),
+%     there exists a normalized bisimulation \({∼} ⊆ ⟨s⟩ × ⟨t⟩\) s.t. \(s ∼ t\), if and only if all of the following holds:
+%     \begin{enumerate}
+%         \item\label{itm:acc-condition} \(δ_{S}(s, α) = \accept ⟺ δ_{T}(t, α) = \accept\);
+%         \item\label{itm:transition-bisim} If \(δ_{S}(s, α) = (s', p)\) and \(δ_{T}(t, α) = (t', p)\), then there exists a normalized bisimulation \({∼_{s',t'}}\) on \(⟨s'⟩\) and \(⟨t'⟩\), s.t. \(s' ∼_{s',t'} t'\);
+%         \item\label{itm:transition-dead} If \(δ_{S}(s, α) = (s', p)\) and \(δ_{T}(t, α) = (t', q)\), s.t. \(p ≠ q\), then both \(s'\) and \(t'\) are dead;
+%         \item\label{itm:rej-or-dead} \(s\) reject \(α\) or transition to a dead state via \(α\) if and only if \(t\) rejects \(α\) or transition to a dead state via \(α\).
+%     \end{enumerate}
+% \end{theorem}
+
+% \begin{proof}
+%     We first prove \(⟹\) direction, recall that \(∼\) is a GKAT coalgebra,
+%     where the projection from the normalized version \(π₁ : \norm(∼) → \norm(S)\) and \(π₂: \norm(∼) → \norm(T)\), are GKAT homomorphisms:
+%     \[
+%         \begin{tikzcd}
+%             \norm(S) \ar[swap]{d}{\norm(δ_S)} 
+%             & \norm(∼) \ar{d}{\norm(δ_∼)} \ar[swap]{l}{π₁} \ar{r}{π₂}
+%             & \norm(T) \ar{d}{\norm(δ_T)}\\  
+%             G(\norm(S)) 
+%             & G(\norm(∼)) \ar{l}{G(π₁)} \ar[swap]{r}{G(π₂)} 
+%             & G(\norm(T)) 
+%         \end{tikzcd}
+%     \]
+
+%     First realize that in order for either \(s\) or \(t\) to have an accepting transition, it has to be a live state. Because \(s ∼ t\) and normalized bisimulation preserves liveness (\Cref{thm:norm-bisim-preserve-liveness}), both \(s\) and \(t\) has to be live. Therefore, condition \labelcref{itm:acc-condition} holds:
+%     \begin{align*}
+%         δ_S(s, α) = \accept 
+%         & ⟺ \norm(δ_S)(s, α) = \accept 
+%         ⟺ \norm(δ_∼)((s,t), α) = \accept \\ 
+%         & ⟺ \norm(δ_T)(t, α) = \accept 
+%         ⟺ δ_T(t, α) = \accept
+%     \end{align*}
+
+%     Notice that if \(s ∼ t\), \(s\) transition to \(s'\), and \(t\) transition to \(t'\), then \(s'\) and \(t'\) are either both dead or both live: 
+%     \begin{itemize}
+%         \item if \(s, t\) are dead, then \(s'\) and \(t'\) has to both be dead, because reachable state of \(s\) and \(t\) has to be dead (\cref{thm:dead-iff-all-reachable-dead}).
+%         \item if \(s, t\) are live, then \((s, t) ∈ \norm(∼)\). Because \(\norm(∼)\) is a bisimulation and by its equation, \(s'\) and \(t\) has to be both live or dead.
+%     \end{itemize}
+%     Condition~\labelcref{itm:transition-bisim} can be proven by case analysis on the liveness of \(s'\) and \(t'\):
+%     \begin{itemize}
+%         \item if both \(s'\) and \(t'\) are live, then both \(s\) and \(t\) are live:
+%         \[(s, t) ∈ \norm(∼) ⟹ (s', t') ∈ \norm(∼)\]
+%         Then, \(∼_{s',t'}\) can be constructed by restricting \(∼\) to \(⟨s'⟩\) and \(⟨t'⟩\), like stated in~\cref{thm:sub-coalg-preserve-norm-bisim}.
+%         \item if both \(s'\) and \(t'\) are dead, then we can construct \(∼_{s',t'}\) as described in~\cref{thm:norm-bisim-between-dead}.
+%     \end{itemize}
+%     Thus, concluding our proof of condition~\labelcref{itm:transition-bisim}.
+
+%     Then for condition~\labelcref{itm:transition-dead}, if both \(s\) and \(t\) are live, then this transition does not satisfy the condition of bisimulation, therefore \(s'\) and \(t'\) has to be live. If both \(s\) and \(t\) are dead, then all the reachable state from \(s\) and \(t\) has to be dead (\cref{thm:dead-iff-all-reachable-dead}), therefore \(s'\) and \(t'\) will also need to be dead.
+
+%     Finally the proof of condition~\labelcref{itm:rej-or-dead} is similar to the proof of condition~\labelcref{itm:transition-dead}, which is proven by case analysis on the liveness of \(s\) and \(t\): 
+%     \begin{itemize}
+%         \item if both \(s\) and \(t\) are dead, by \cref{thm:dead-iff-all-reachable-dead} and definition, they can only transition to dead states or reject.
+%         \item if both \(s\) and \(t\) are live, then \((s, t) ∈ \norm(∼)\), and
+%         \begin{align*}
+%             & δ_S(s, α) = \reject \text{or transition to dead states} \\
+%             & ⟺ \norm(δ_S)(s, α) = \reject  
+%             ⟺ \norm(δ_∼)((s,t), α) = \reject 
+%             ⟺ \norm(δ_T)(t, α) = \reject \\
+%             & ⟺ δ_T(t, α) = \reject \text{or transition to dead states}
+%         \end{align*}
+%     \end{itemize}
+    
+
+%     Then we show the \(⟸\) direction. We use \(∼_{s',t'}\) to denote the maximal bisimulation between \(⟨s'⟩\) and \(⟨t'⟩\):
+%     \[∼' ≜ ⋃ \{{∼_{s', t'}} ∣ ∃ α ∈ \At, p ∈ K, δ_S(s, α) = (s', p), δ_T = (t', p)\}\]
+%     Consider all the \(s'\) and \(t'\) mentioned in the above definition, because they are reachable from \(s\) and \(t\) respectively, then \(⟨s'⟩ ⊑ ⟨s⟩\) and \(⟨t'⟩ ⊑ ⟨t⟩\). And by~\cref{thm:sub-coalg-preserve-norm-bisim}, \(∼_{s',t'}\) in above definitions are all bisimulation between \(⟨s⟩\) and \(⟨t⟩\). Finally, because union of normalized bisimulation is still a normalized bisimulation (\cref{thm:norm-bisim-close-under-union}), \(∼'\) is a normalized bisimulation between \(S\) and \(T\).
+
+%     Finally we will need to show that the addition of \((s, t)\) also gives a normalized bisimulation.
+% \end{proof}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% \section{Normalized Bisimulation .bak}
+
+% The normalization procedure for GKAT requires the entire automaton to be known prior to the execution of the bisimulation algorithm; specifically, in order to compute the liveness of a state \(s\), it is necessary iterate through all its reachable states \(⟨s⟩\) to see if there are any accepting states within.
+% This limitation poses challenges to design an efficient on-the-fly algorithm for GKAT.
+% In order to make the decision procedure scalable, we will need to merge the normalization and bisimulation procedure, so that our algorithm can normalized the automaton only when we need to.
+
+% \subsection{the new norm}
+
+% normalization is a important procedure, as it identifies the trace model \(𝒢\) as the final coalgebra in normalized GKAT coalgebra, enabling its computation via bisimulation~\cite{smolka_GuardedKleeneAlgebra_2020}.
+% Specifically, given a GKAT coalgebra \(S\), we can normalized it by taking out all of its live state, denoted as \(\norm(S)\), and reroute all the transitions to dead state into reject:
+% \begin{align*}
+%     \norm(δ_S) & : \norm(S) → G(\norm(S))\\\
+%     \norm(δ_S)(s) & = \begin{cases}
+%         \reject & \text{if } δ_S(s) = (s', p) \text{ and \(s'\) is dead}\\
+%         δ_S(s) & \text{otherwise}
+%     \end{cases}
+% \end{align*}
+% Similarly, we will denote the dead states of \(S\) as \(\dead(S)\), and recall that \(S\) can be partitioned into its dead and live states \(S = \norm(S) + \dead(S)\), where the \(+\) is the coproduct operation in set.
+
+% Unfortunately, this style of normalization~\cite{smolka_GuardedKleeneAlgebra_2020} does not naturally induce a on-the-fly decision algorithm, as removing the dead state necessitates detecting dead states prior to execution of bisimulation. In here, we introduce a new notion of normalization, which is implemented by relaxing the equation of coalgebra homomorphism.
+
+% We first define the relation \(∼_{\norm}\) on results of transitions, specifically for any GKAT coalgebra \(S\):
+% \[{∼_{\norm}} ⊆ (2 + S × K) × (2 + S × K)\]
+% is the minimal equivalence generated by the following relation
+% \[\{(\reject, (s, p)) ∣ p ∈ K, \text{\(s\) is dead in \(S\)}\}.\]
+% Intuitively, \({∼_{\norm}}\) will relate all the transition to dead state with rejection, while other results, like acceptance or transitions to the live states, are only related to themselves.
+
+% A function \(h: S → T\) is a \emph{normalized homomorphism} if the following diagram commute:
+% \[
+%     \begin{tikzcd}
+%         S \ar{rr}{h} \ar[swap]{dd}{δ_S} && T \ar{d}{δ_T} \\  
+%         && G(T) \ar{d}{[-]_{\norm}}\\
+%         G(S) \ar[swap]{r}{ G(h)}
+%             & G(T) \ar[swap]{r}{[-]_{\norm}}
+%             & G(T)/{∼_{\norm}}
+%     \end{tikzcd}
+% \]
+% where \(G(T)/{∼_{\norm}}\) is the point-wise quotient of \(G(T)\) by the smallest equivalence relation containing the relation \(∼_{\norm}\), and \([-]_{\norm}\) is the function that maps a element in \(G(T)\) to its corresponding equivalence class in \(G(T)/{∼_{\norm}}\).
+% For brevity, we sometimes leave the function \([-]_{\norm}\) implicit and draw the commutative diagram as follows:
+% \[
+%     \begin{tikzcd}
+%         S \ar{r}{h} \ar[swap]{d}{δ_S} & T \ar{d}{δ_T} \\  
+%         G(S) \ar[swap]{r}{G(h)} & G(T)/{∼_{\norm}}
+%     \end{tikzcd}
+% \]
+
+% \begin{example}
+    
+% \end{example}
+
+% The notion of normalized homomorphism indeed have connection with existing noting of normalization 
+
+% %%%%% NOTE: this proof is incorrect, we cannot verify the function 
+% %%%%% h : \norm(S) -> \norm(T) is well defined
+% %
+% % \begin{theorem}
+% %     Normalized homomorphism induces a homomorphism on normalized coalgebra:
+% %     \[
+% %         \begin{tikzcd}
+% %             S \ar{r}{h} \ar[swap]{d}{δ_S} & T \ar{d}{δ_T} \\  
+% %             G(S) \ar[swap]{r}{G(h)} & G(T)/{∼_{\norm}}
+% %         \end{tikzcd}
+% %         ⟹ 
+% %         \begin{tikzcd}
+% %             \norm(S) \ar{r}{h} \ar[swap]{d}{\norm(δ_S)} 
+% %                 & \norm(T) \ar{d}{\norm(δ_T)} \\  
+% %             G(\norm(S)) \ar[swap]{r}{G(h)} & G(\norm(T))
+% %         \end{tikzcd}
+% %     \]
+% % \end{theorem}
+
+% % \begin{proof}
+% %     The commutative triangle in the premise can be written as the following equation:
+% %     \[G(h) ∘ δ_S ∼_{\norm} δ_T ∘ h.\] 
+% %     Take any live state \(s ∈ S\), we will show the above implication by case analysis on the value on the bottom right corner \((G(h) ∘ δ_S)(s, α)\) for an arbitrary \(α ∈ \At\):
+% %     \begin{itemize}
+% %         \item if \((G(h) ∘ δ_S)(s, α)\) transitions to dead state or reject, then \((δ_T ∘ h)(s, α)\) will also transition to dead state or reject. Therefore 
+% %         \[(\norm(δ_T) ∘ h)(s, α) = \reject.\]
+% %         We then case on the result of \(δ_S(s, α) ∈ G(S)\):
+% %         \begin{itemize}
+% %             \item If \(δ_S(s, α)\) transitions to dead state or reject, then 
+% %             \[\norm(δ_S)(s, a) = \reject;\] 
+% %             and 
+% %             \begin{align*}
+% %                  (G(h) ∘ \norm(δ_S))(s, α) = \reject = (\norm(δ_T) ∘ h)(s, α).
+% %             \end{align*}
+% %             \item \(δ_S(s, α)\) transition to live state or accept, then by the definition of norms:
+% %             \[\norm(δ_S)(s, a) = δ_S(s, α);\]
+% %             which implies 
+% %             \[(G(h) ∘ \norm(δ_S))(s, α) = (G(h) ∘ δ_S)(s, α)\]
+% %             Finally, because \((G(h) ∘ δ_S)(s, α)\) reject or transition to dead states, yet dead states are not in \(\norm(T)\).
+% %             \[(G(h) ∘ \norm(δ_S))(s, α) = \reject = (\norm(δ_T) ∘ h)(s, α).\]
+% %         \end{itemize}
+% %         \item if 
+% %     \end{itemize}
+% % \end{proof}
+
+% \begin{lemma}\label{thm:norm-hom-to-norm-is-hom}
+%     If given a normal GKAT coalgebra \(T\), then a normalized homomorphism \(S → T\) is a GKAT coalgebra homomorphism from \(S → T\).
+% \end{lemma}
+
+% \begin{proof}
+%     Since there is no dead state in \(T\), then \(∼_{\norm}\) is just the identity relation, thus \(G(T)/∼_{\norm} = G(T)\).
+%     Hence the following diagram commute for \(h\):
+%     \[
+%         \begin{tikzcd}
+%             S \ar{r}{h} \ar[swap]{d}{δ_S} & T \ar{d}{δ_T} \\  
+%             G(S) \ar[swap]{r}{G(h)} & G(T)
+%         \end{tikzcd}
+%     \]
+%     Therefore \(h\) is a GKAT coalgebra homomorphism.
+% \end{proof}
+
+% \begin{lemma}
+%     Given a normal GKAT coalgebra \(T\) and a normalized bisimulation \(h: S → T\), then for all \(s ∈ S\), the principle sub-domain \(⟨h(s)⟩_T\) is in the range of \(h\).
+% \end{lemma}
+
+% \begin{proof}
+%     Because \(T\) is normal and by~\cref{thm:norm-hom-to-norm-is-hom}, \(h\) is a normalized homomorphism, thus we can construct a epi-mono factorization~\cite[Theorem 7.1]{rutten_UniversalCoalgebraTheory_2000}:
+%     \[
+%         \begin{tikzcd}
+%             S \ar{r}{h} \ar[swap]{d}{δ_S} 
+%                 & h(S) \ar[hook]{r}{i} \ar{d}{δ_T}
+%                 & T \ar{d}{δ_T} \\  
+%             G(S) \ar[swap]{r}{G(h)} 
+%                 & G(h(S)) \ar[hook]{r}{i}
+%                 & G(T)
+%         \end{tikzcd}
+%     \]
+%     Thus \(h(S)\) is a sub-GKAT coalgebra of \(T\). Because \(h(s) ∈ h(S)\) and \(⟨h(s)⟩_T\) is the smallest sub-GKAT coalgebra that contains \(h(S)\), \[⟨h(s)⟩_T ⊑ h(S) ⟹ ⟨h(s)⟩_T ⊆ h(S).\]
+% \end{proof}
+
+% \begin{theorem}[normalized homomorphism preserves liveness]
+%     Given a normalized homomorphism \(h: S → T\), then 
+%     \begin{align*}
+%         s \text{ is accepting} & ⟺ h(s) \text{ is accepting} \\
+%         s \text{ is live} & ⟺ h(s) \text{ is live} \\
+%         s \text{ is dead} & ⟺ h(s) \text{ is dead}
+%     \end{align*}
+% \end{theorem}
+
+
+% \begin{theorem}[decomposition]\label{thm:norm-hom-decomp}
+%     Let \(S\) and \(T\) be GKAT coalgebras, a function \(h: S → T\) is a normalized homomorphism if and only if \(h = h_{\norm} + h_{\dead}\) where \(h_{\norm} : \norm(S) → \norm(T)\) is a \emph{homomorphism}, and \(h_{\dead}: \dead(S) → \dead(T)\) is a function.
+% \end{theorem}
+% \begin{proof}
+%     The \(⟹\) direction can be shown by constructing \(h_{\norm}\) and \(h_{\dead}\) as restrictions of \(h\):
+%     \begin{mathpar}
+%         h_{\norm} ≜ h|_{\norm(S)}
+%         \and 
+%         h_{\dead} ≜ h|_{\dead(S)}
+%     \end{mathpar}
+%     and because 
+% \end{proof}
+
+
+% \begin{lemma}[homomorphic pre-image preserves normalized bisimulation]
+%     Given two GKAT coalgebra homomorphism \(h₁: S₁ → T₁\) and \(h₂: S₁ → T₁\), with a normalized bisimulation \(∼\), then the homomorphic pre-image of \(∼\) with respect to \(h₁ × h₂\):
+%     \[(h₁ × h₂)^{-1}(∼) ⊆ S₁ × S₂,\]
+%     is a normalized bisimulation between \(S₁\) and \(S₂\).
+% \end{lemma}
+% \begin{proof}
+%     Recall that pre-image in the category of set forms a (weak) pullback, and because \(G\) is a elementary polynomial functor~\cite[Definition 2.2.1]{jacobs_IntroductionCoalgebraMathematics_2016} hence preserves weak pullback~\cite[Lemma 3.3.6]{jacobs_IntroductionCoalgebraMathematics_2016}. Therefore we obtain the following pullback squares: we denote \((h₁ × h₂)^{-1}(∼)\) as \(∼_S\),
+%     \begin{mathpar}
+%         \begin{tikzcd}
+%             ∼_S \ar[hook]{r}{i} \ar[swap]{d}{h₁ × h₂} & S₁ × S₂ \ar{d}{h₁ × h₂} \\  
+%             ∼ \ar[hook]{r}{i} & T₁ × T₂ \\
+%         \end{tikzcd}
+%         \and 
+%         \begin{tikzcd}
+%             G(∼_S) \ar[hook]{r}{G(i)} \ar[swap]{d}{G(h₁ × h₂)} & G(S₁ × S₂) \ar{d}{G(h₁ × h₂)}\\  
+%             G(∼) \ar[hook]{r}{G(i)} & G(T₁ × T₂) \\
+%         \end{tikzcd}
+%     \end{mathpar}
+    
+% \end{proof}
+
+
+% \begin{theorem}[completeness]
+%     Given two GKAT coalgebra \(S, T\) and two states \(s ∈ S\) and \(t ∈ T\), 
+%     \[⟦s⟧ = ⟦t⟧ ⟺ \text{there exists a bisimulation \({∼} ⊆ S × T\) s.t. } s ∼ t.\]
+% \end{theorem}
+% \begin{proof}
+    
+% \end{proof}
+
+
+% \subsection{definitions and construction}
+
+% Notice that the finite trace semantics \(⟦-⟧: S → 𝒢\) is not a GKAT coalgebra homomorphism; we will present a counter example:
+% \begin{example}
+%     We consider a empty set of primitive boolean \(B = ∅\), then the only atom is the constant true formula. And the example consists of the following transition function \(δ₂: 2 → \{\true\}→ G(2)\), where the states \(2 ≜ \{0, 1\}\):
+%     \begin{mathpar}
+%         δ₂(1, \true) = (0, p) \and δ₂(0, \true) = \reject
+%     \end{mathpar}
+%     Because both state \(0\) and \(1\) are dead, then \(⟦0⟧ = ⟦1⟧ = ∅\).
+%     In order for \(⟦-⟧\) to be homomorphism, \(δ_𝒢 ∘ ⟦-⟧ = G(⟦-⟧) ∘ δ₂\) needs to be satisfied, however
+%     \begin{align*}
+%         (δ_𝒢 ∘ ⟦-⟧)(1) & = δ_𝒢(∅) = \{\true ↦ \reject\}.\\[10px]
+%         (G(⟦-⟧) ∘ δ₂)(1) & = G(⟦-⟧)\{\true ↦ (0, p)\} \\
+%             & = \{\true ↦ (⟦0⟧, p)\} = \{\true ↦ (∅, p)\}.
+%     \end{align*}
+%     Thus proving that \(⟦-⟧\) is not a GKAT coalgebra homomorphism.
+% \end{example}
+
+% Normalized homomorphism inherits many important properties of homomorphism; for example when composing two normalized homomorphism, we will obtain a normalized homomorphism. And the identity homomorphism is the identity of normalized homomorphism under composition.
+% This notion gives rise to a 
+
+
+
+
+
+
+
+
+% \begin{definition}[normalized closure]\label{def:norm-closure}
+%     Given two GKAT coalgebra \(S, T\), and a relation on these two expression \({∼} ⊆ S × T\), we can define \({\clos{∼}} ⊆ (2 + S × K) × (2 + T × K)\) as the smallest relation generated by the following rules: for all \(p, q ∈ K\) and states \(s' ∈ S\), \(t' ∈ T\):
+%     \begin{mathpar}
+%         \inferrule[Bisim-Acc]{\\}{\accept \clos{∼} \accept}\label{rule:bisim-acc}
+%         \and 
+%         \inferrule[Bisim-Rej]{\\}{\reject \clos{∼} \reject}\label{rule:bisim-rej}
+%         \and 
+%         \inferrule[Bisim-Trans]{s' ∼ t'}{(s', p) \clos{∼} (t', p)}\label{rule:bisim-trans}
+%         \and
+%         \inferrule[Norm-Left]{s' \text{ is dead}}{(s', p) \clos{∼} \reject}\label{rule:norm-left}
+%         \and 
+%         \inferrule[Norm-Right]{t' \text{ is dead}}{\reject \clos{∼} (t', p)}\label{rule:norm-right}
+%         \and
+%         \inferrule[Norm-Both]{s', t' \text{ are both dead}}{(s', p) \clos{∼} (t', q)}\label{rule:norm-both}
+%     \end{mathpar}
+% \end{definition}
+% Intuitively, \({\clos{∼}}\) enlarges the relation \(∼\) for \emph{results} of a transition. For example, it allows transition to dead states to equivalent to rejection, and so on.
+
+% This extension enables ``on-the-fly normalization'', where to determine whether \(s \clos{∼} t\), we can simply first check for bisimulation using the bisimulation rules; and if all failed, we can check the normalization rules.
+
+% \begin{definition}
+%     Given two GKAT coalgebra \(S\) and \(T\), a relation \({∼} ⊆ S × T\) is a normalized bisimulation when there exists a function \({∼} → {\clos{∼}}^\At\), such that the following diagram commutes:
+%     \[
+%         \begin{tikzcd}[column sep=1.5cm, row sep=1cm]
+%             S \ar[swap]{d}{δ_S}
+%                 & ∼  \ar[dashed, swap]{d}{∃} \ar[swap]{l}{π₁} \ar{r}{π₂}
+%                 & T \ar{d}{δ_T} \\  
+%             (2 + S × K)^\At 
+%                 & ({\clos{∼}}^\At) 
+%                     \ar[swap]{l}{{π₁}^\At} \ar{r}{{π₂}^\At}
+%                 & (2 + T × K)^\At
+%         \end{tikzcd}
+%     \]
+% \end{definition}
+% Notice, unlike \(G\), \(\clos{(-)}^\At\) is not a functor, since it is only defined on relations.
+
+% \begin{example}
+%     Let's consider a example with a single primitive test \(B ≜ \{b\}\),
+%     thus atoms are defined as \(\At_B = \{\{b\}, ∅\}\).
+%     We focus on two states in the bisimulation \(s\) and \(t\).
+%     with their respective transition defined as follows 
+%     \begin{align*}
+%             δ_S(s, \{b\}) & ≜ 0   
+%                 & δ_S(t, \{b\}) & ≜ (t', p) \\  
+%             δ_S(s, ∅) & ≜ (s', p) 
+%                 & δ_S(t, ∅) & ≜ (t', p) 
+%     \end{align*}
+%     It is quite clear \(s\) and \(t\) will not be bisimular, however, there can be a normalized bisimulation relation between them, provided that \(s' ∼ t'\) and \(t'\) is dead: 
+%     \[
+%     \begin{tikzcd}[column sep=1.5cm, row sep=1cm]
+%         s \ar[swap, mapsto]{d}{δ_S}
+%             & (s, t)  \ar[dashed, swap, mapsto]{d}{∃} \ar[swap, mapsto]{l}{π₁} \ar[mapsto]{r}{π₂}
+%             & t \ar[mapsto]{d}{δ_T} \\  
+%         \begin{gathered}
+%             \{b\}↦ 0 \\  
+%             ∅ ↦ (s', p)
+%         \end{gathered} 
+%             & \begin{gathered}
+%                 \{b\}↦ 0, (t', p) \\  
+%                 ∅ ↦ (s', p), (t', p)
+%             \end{gathered} 
+%                 \ar[swap, mapsto]{l}{{π₁}^\At} \ar[mapsto]{r}{{π₂}^\At}
+%             & \begin{gathered}
+%                 \{b\} ↦ (t', p) \\  
+%                 ∅ ↦(t', p)
+%             \end{gathered}
+%     \end{tikzcd}
+%     \]
+%     Notice that \(0 \clos{∼} (t', p)\) because \(t'\) is dead, 
+%     and \((s', p) \clos{∼} (t', p)\) because we assume that \(s' ∼ t'\). 
+%     Furthermore, if both \(s'\) and \(t'\) are dead, we can establish \(s' \clos{∼} t'\) using either the \textnormal{\textsc{Bisim-Trans}} rule or \textnormal{\textsc{Norm-Both}} rule, and we are free to pick the more efficient check in our implementation.
+% \end{example}
+
+
+% \begin{theorem}[Universiality]
+%     Given a normalized bisimulation relation \({∼} ⊆ S × T\)
+%     \[
+%         \begin{tikzcd}[column sep=1.5cm, row sep=1cm]
+%             S \ar[swap]{d}{δ_S}
+%                 & ∼  \ar[dashed, swap]{d}{h} \ar[swap]{l}{π₁} \ar{r}{π₂}
+%                 & T \ar{d}{δ_T} \\  
+%             (2 + S × K)^\At 
+%                 & (\clos{∼})^\At 
+%                     \ar[swap]{l}{{π₁}^\At} \ar{r}{{π₂}^\At}
+%                 & (2 + T × K)^\At
+%         \end{tikzcd}
+%     \] 
+%     Then \(h\) is unique, and defined as \(δ_{S}(s) × δ_{T}(t)\).
+% \end{theorem}
+
+% \begin{proof}
+%     The commutativity can be verified by computation; and the uniqueness can be observed using the property of pairs. We will show an alternative diagrammatical proof for reference.
+
+%     The above commutative diagram implies the commutativity of the following diagram:
+%     \[
+%         \begin{tikzcd}
+%             & {∼} \ar{d}{h} \ar[swap]{ddl}{δ_S ∘ π₁} \ar{ddr}{δ_T ∘ π₂}& \\
+%             & (\clos{∼})^\At \ar[hook]{d}{i} & \\  
+%             (2 + S × K)^\At & 
+%                 (2 + S × K)^\At × (2 + T × K)^\At
+%                     \ar{l}{π₁^\At} \ar[swap]{r}{π₂^\At}
+%                 & (2 + T × K)^\At
+%         \end{tikzcd}
+%     \] 
+%     Since \((-)^{\At}\) is a right adjoint and right adjoints preserve limits, \((2 + S × K)^\At × (2 + T × K)^\At\) is the product of \((2 + T × K)^\At\) and \((2 + T × K)^\At\). 
+%     Hence, \(h ∘ i\) is the unique function to make the above diagram commute. 
+%     Assume we can replace \(h\) with \(g\) while preserving the commutativity of the diagram: 
+%     \begin{align*}
+%         & i ∘ h  = i ∘ g & \text{\((2 + S × K)^\At × (2 + T × K)^\At\) is a product.} \\  
+%         ⟹ {}& h = g & \text{\(i\) is a embedding, hence left cancelable.}
+%     \end{align*}
+% \end{proof}
+
+% The above theorem is particularly important, as in order to check whether a relation \(∼\) is a bisimulation, we only need to check whether 
+% \[s ∼ t ⟹ ∀ α ∈ \At, δ_S(s, α) \clos{∼} δ_T(t, α).\]
+
+% A easy normalized bisimulation we can construct is between two dead states
+% \begin{lemma}[normalized bisimulation between dead states]\label{thm:norm-bisim-dead-states}
+%     Given two dead states \(s ∈ S\) and \(t ∈ T\), then the singleton \({∼} ≜ \{(s, t)\}\) is a normalized bisimulation between \(s\) and \(t\).
+% \end{lemma}
+% \begin{proof}
+%     By~\cref{thm:dead-iff-all-reachable-dead,def:liveness-of-states}, dead states can only transition to either dead states or rejection. 
+%     Thus, for all \(α ∈ \At\), \(δ_S(s, α) \clos{∼} δ_T(t, α)\) by \nameref{rule:norm-left}, \nameref{rule:norm-right}, or \nameref{rule:norm-both}.
+% \end{proof}
+
+% \begin{lemma}\label{thm:sub-coalg-preserve-norm-bisim}
+%     Normalized bisimulation is preserved under sub-GKAT coalgebra. Given two sub-GKAT coalgebra \(S' ⊑ S\) and \(T' ⊑ T\) and a normalized bisimulation \(∼\) between \(S\) and \(T\), then the restriction 
+%     \[∼_{S', T'} ≜ \{(s, t) ∣ s ∈ S', t ∈ T', s ∼ t\}\]
+%     is a normalized bisimulation on between \(S'\) and \(T'\).
+%     Similarly, every normalized bisimulation \(∼_{S', T'}\) between \(S'\) and \(T'\) is also a normalized bisimulation between \(S\) and \(T\).
+% \end{lemma}
+
+% Thus, this gives us a way to algorithmically construct a normalized bisimulation on principle sub-GKAT coalgebra.
+% This normalized bisimulation can also be extended to a normalized bisimulation on the entire coalgebras.
+
+% \begin{theorem}[inductive construction]\label{thm:inductive-construction}
+%     Given two GKAT coalgebra \(S\) and \(T\), and two of their elements \(s ∈ S\) and \(t ∈ T\),
+%     there exists a normalized bisimulation \({∼} ⊆ ⟨s⟩ × ⟨t⟩\) s.t. \(s ∼ t\), if and only if either both \(s\) and \(t\) are dead or for all \(α ∈ \At\), all of the following holds:
+%     \begin{enumerate}
+%         \item \(δ_{S}(s, α) = \accept ⟺ δ_{T}(t, α) = \accept\);
+%         \item\label{itm:transition-condition} If \(δ_{S}(s, α) = (s', p)\) and \(δ_{T}(t, α) = (t', p)\), then there exists a normalized bisimulation \({∼_{s',t'}}\) on \(⟨s'⟩\) and \(⟨t'⟩\), s.t. \(s' ∼_{s',t'} t'\);
+%         \item If \(δ_{S}(s, α) = (s', p)\) and \(δ_{T}(t, α) = (t', q)\), s.t. \(p ≠ q\), then both \(s'\) and \(t'\) are dead;
+%         \item \(s\) reject \(α\) or transition to a dead state via \(α\) if and only if \(t\) rejects \(α\) or transition to a dead state via \(α\).
+%     \end{enumerate}
+% \end{theorem}
+
+% \begin{proof}
+%     We first prove the \(⟹\) direction: if there exists a normalized bisimulation \(∼\), then for all \(α ∈ \At\), \(δ_{S}(s, α) \clos{∼} δ_{T}(t, α)\). And by unfolding the definition of \(\clos{∼}\), we can obtain all the conditions we desired. 
+%     We will show condition \labelcref{itm:transition-condition} as an example:
+    
+%     Because \(∼\) is a normalized bisimulation: \[(s', p) \clos{∼} (t', p).\]
+%     This relation can be obtained by two rules: \nameref{rule:bisim-trans} and \nameref{rule:norm-both}:
+%     \begin{itemize}
+%         \item if \((s', p) \clos{∼} (t', p)\) is obtained from \nameref{rule:bisim-trans}, then \(s' ∼ t'\); hence the bisimulation \(∼_{s',t'}\) can be obtained from restricting \(∼\) to \(⟨s'⟩\) and \(⟨t'⟩\)
+%         \item if \((s', p) \clos{∼} (t', p)\) is obtained from \nameref{rule:norm-both}, then by \cref{thm:norm-bisim-dead-states}, there is indeed a noramlized bisimulation where \(⟨s'⟩ ∼_{s',t'} ⟨t'⟩\).
+%     \end{itemize}
+
+%     For the \(⟸\) direction, we can explicitly construct \(∼\) as the union of all the normalized bisimulations \(∼_{s', t'} ⊆ ⟨s'⟩ × ⟨t'⟩\), for all reachable states pair \(s', t'\) from state \(s\) and \(t\): 
+%     \[{∼} = \{(s, t)\} ∪ \{{∼_{s', t'}} ∣ ∃ α ∈ \At, p ∈ K, δ_S(s, α) = (s', p) \text{ and } δ_T(t, α) = (t', p)\}.\]
+%     Then, we will need to show \(∼\) is indeed a normalized bisimulation on \(⟨s⟩\) and \(⟨t⟩\), that is for all \(s' ∈ ⟨s⟩\) and \(t' ∈ ⟨t⟩\):
+%     \[s' ∼ t' ⟹ δ_S(s', α) \clos{∼} δ_T(t', α).\]
+%     We only need to show the above implication for \(s ∼ t\), as other element is already in some normalized bisimulation between sub-GKAT coalgebras of \(S\) and \(T\).
+%     And the implication \(s ∼ t ⟹ δ_S(s', α) \clos{∼} δ_T(t', α)\) can be proven by unfolding the definition of \(\clos{∼}\).
+% \end{proof}
+
+% \Cref{thm:inductive-construction} provides a way to inductively construct a normalized bisimulation. At this point, we can already write down a algorithm for normalized bisimulation; however, with more properties developed in the next section, we will be able to devise a more efficient algorithm.
+
+% \subsection{soundness and completeness}
+
+% In this section we will further investigate the properties of normalized bisimulation. Not only will we prove the soundness and completeness of normalized bisimulation between and we will also identify several special cases where the normalized bisimulation algorithm can be further optimized.
+
+% We can constraint both \(s\) and \(t\) to live states, and obtain a bisimulation on normalized coalgebra \(\norm(S)\) and \(\norm(T)\).
+% With a slight abuse of notation, we can define the bisimulation \(\norm(∼) ⊆ \norm(S) × \norm(T)\) as follows:
+% \begin{align*}
+%     \norm(∼) & ⊆ \norm(S) × \norm(T) \\
+%     \norm(∼) & ≜ \{(s, t) ∣ s ∼ t, s ∈ \norm(S), t ∈ \norm(T)\}
+% \end{align*}
+% and because \(∼\) is a normalized bisimulation, we have
+% \[s ∼ t ⟹ ∀ α ∈ \At, δ(s, α) \clos{∼} δ(t, α).\]
+% We proceed to define the transition \(\norm(δ_∼): \norm(∼) → G(\norm(∼))\) by case analysis on the elements of \(\clos{∼}\) (\Cref{def:norm-closure}):
+% \begin{itemize}
+%     \item If both \(δ(s, α)\) and \(δ(t, α)\) accepts, then \[\norm(δ_∼)((s,t), α) = \accept.\]
+%     \item If both \(δ(s, α)\) and \(δ(t, α)\) either reject or transition to dead states, then \[\norm(δ_∼)((s,t), α) = \reject.\]
+%     \item If both \(δ(s, α)\) and \(δ(t, α)\) transition to live states \(s, t\) respectively executing the same action \(p\), then \[\norm(δ_∼)((s,t), α) = ((s', t'), p).\]
+% \end{itemize}
+% Then the following theorem can be proven by computation.
+
+% \begin{theorem}\label{thm:norm-bisim-to-bisim-on-norm-coalg}
+%     For all normalized bisimulation \({∼} ⊆ S × T\), \(\norm(∼)\) is a bisimulation between \(\norm(S)\) and \(\norm(T)\). 
+%     This means that for all live states \(s ∈ S\) and \(t ∈ T\),
+%     \[s ∼ t ⟹ ⟦s⟧_S = ⟦t⟧_T\]
+% \end{theorem}
+
+% \Cref{thm:norm-bisim-to-bisim-on-norm-coalg} establishes the soundness for live state, and the soundness of normalized bisimulation on dead states are trivial, as all dead states have empty traces, hence are finite trace equivalent by definition. 
+
+% The final case for soundness is that \(s ∼ t\), where one of \(s\) and \(t\) is dead, and the other is live. We will show that this case is impossible.
+
+% \begin{lemma}\label{thm:surj-on-norm-princ-coalg}
+%     Let \(T\) be a normal GKAT coalgebra, and \(S\) be any GKAT coalgebra,
+%     then a normalized bisimulation \({∼} ⊆ S × T\) will cover all the elements of \(⟨t⟩\) if it covers \(t\), for any \(t ∈ T\).
+%     Formally, 
+%     \[t ∈ π₂(∼) ⟹ ⟨t⟩ ⊆ π₂(∼)\]
+% \end{lemma}
+
+% \begin{proof}
+%     Because normalized bisimulation, we can obtain the following diagram:
+%     \[
+%         \begin{tikzcd}[column sep=1cm, row sep=1cm]
+%             S \ar[swap]{d}{δ_S}
+%                 & ∼ \ar{d}{(δ_S, δ_T)} \ar[swap]{l}{π₁} \ar{r}{π₂}
+%                 & T \ar{d}{δ_T} \\  
+%             G(S) 
+%                 & {\clos{∼}}^\At 
+%                     \ar[swap]{l}{{π₁}^\At} \ar{r}{{π₂}^\At}
+%                 & G(T)
+%         \end{tikzcd}
+%     \]
+%     We then perform the following epi-mono factorization on the right square:
+%     \[
+%         \begin{tikzcd}[column sep=1cm, row sep=1cm]
+%             ∼ \ar[swap]{d}{(δ_S, δ_T)} \ar[twoheadrightarrow]{r}{π₂}
+%                 & π₂(∼) \ar[hook]{r}{i} \ar{d}{δ_T}
+%                 & T \ar{d}{δ_T} \\  
+%             {\clos{∼}}^\At \ar[twoheadrightarrow]{r}{π₂^{\At}}
+%                 & G(π₂(∼)) \ar[hook]{r}{G(i)}
+%                 & G(T) 
+%         \end{tikzcd}
+%     \]
+%     The above diagram is indeed well-defined, specifically it suffice to show that \[∀ (r₁, r₂) ∈ {\clos{∼}}, π₂(r₁, r₂) = r₂ ∈ 2 + π₂(∼) × K.\] 
+%     The above inclusion can be proven by case analysis on the input in \(\clos{∼}\). Specifically, given that \(T\) is a normal GKAT coalgebra, thus elements in \(\clos{∼}\) can only be obtained by \nameref{rule:bisim-acc}, \nameref{rule:bisim-rej}, \nameref{rule:bisim-trans}, and \nameref{rule:norm-left} rule.
+%     \begin{itemize}
+%         \item If the input \((r₁, r₂)\) of \(π₂\) is obtained by \nameref{rule:bisim-acc}, then \[r₂ = \accept ∈ 2 + π₂(∼) × K.\]
+%         \item If the input \((r₁, r₂)\) of \(π₂\) is obtained by \nameref{rule:bisim-rej} or \nameref{rule:norm-left}, then \[r₂ = \reject ∈ 2 + π₂(∼) × K.\]
+%         \item If the input \((r₁, r₂)\) of \(π₂\) is obtained by \nameref{rule:bisim-trans}, then \(r₁\) and \(r₂\) can be expressed as \((s, p)\) and \((t, p)\) respectively, and \(s ∼ t\). Thus we have \(t ∈ π₂(∼)\) and \[r₂ = (t, p) ∈ 2 + π₂(∼) × K.\]
+%     \end{itemize}
+
+%     Then we can lift \(π₂: {\clos{∼}} → 2 + π₂(∼) × K\) over functor \((-)^{\At}\) to obtain the well-defined function \(π₂^{\At}: {\clos{∼}^{\At}} → G(π₂(∼))\), and \(δ_T: π₂(∼) → G(π₂(∼))\) is well-defined by the commutativity of the diagram.
+
+%     Finally, the above diagram tells us that \(π₂(∼)\) forms a sub-GKAT coalgebra of \(T\). Since \(⟨t⟩_T\) is the smallest sub-GKAT coalgebra tha contains \(t\), 
+%     \[t ∈ π₂(∼) ⟹ t ⊑ π₂(∼) ⟹ t ⊆ π₂(∼).\]
+% \end{proof}
+
+% \begin{lemma}\label{thm:norm-preserve-norm-bisim}
+%     Given a normalized bisimulation \({∼} ⊆ S × T\), the following restricted relation \(\norm ₗ(∼) ⊆ S × \norm(T)\) is also a normalized bisimulation:
+%     \[\norm ₗ(∼) = \{s, t ∣ s ∼ t, s ∈ S, t ∈ \norm(T)\}.\]
+% \end{lemma}
+
+% \begin{proof}
+%     Because \(∼\) is a normalized bisimulation, and \(\norm ₗ(∼) ⊆ {∼}\),
+%     \[(s, t) ∈ \norm ₗ(∼) ⟹ s ∼ t ⟹ ∀ α ∈ \At, δ_S(s, α) ∼ δ_T(t, α).\]
+%     And we can prove that 
+%     \[δ_S(s, α) ∼ δ_T(t, α) ⟹ (δ_S(s, α), \norm(δ_T)(t, α)) ∈ \norm ₗ(∼):\]
+%     \begin{itemize}
+%         \item If \(δ_T(t, α)\) transition to a dead state, then \(δ_S(s, α)\) will either reject or transition to a dead state, and \(\norm(δ_T)(t, α)\) will reject, thus: 
+%         \[(δ_S(s, α), \norm(δ_T)(t, α)) = (δ_S(s, α), \reject) ∈ \norm ₗ(∼).\]
+%         \item If \(δ_T(t', α)\) doesn't transition to a dead state, then \( \norm(δ_T)(t', α) = δ_T(t', α)\), and 
+%         \[(δ_S(s, α), \norm(δ_T)(t, α)) = (δ_S(s, α), δ_T(t, α)) ∈ \norm ₗ(∼).\]
+%     \end{itemize}
+%     Combining the two implications above, we have 
+%     \[(s, t) ∈ \norm ₗ(∼) ⟹ ∀ α ∈ \At, (δ_S(s, α), \norm(δ_T)(t, α)) ∈ \norm ₗ(∼).\]
+% \end{proof}
+
+% \begin{theorem}\label{thm:dead-live-don't-norm-bisim}
+%     Given a dead state \(s\) and a live state \(t\), there doesn't exists a normalized bisimulation \(∼\) s.t. \(s ∼ t\) or \(t ∼ s\).
+% \end{theorem}
+
+% \begin{proof}
+%     Because \({∼} ⊆ S × T\) is a normalized bisimulation, then we can construct a restricted normalized bisimulation \(∼_{s, t} ⊆ ⟨s⟩ × ⟨t⟩\)by~\Cref{thm:sub-coalg-preserve-norm-bisim}; then we can normalize \(⟨t⟩\) to obtain the normalized bisimulation \(\norm ₗ(∼_{s, t}) ⊆ ⟨s⟩ × \norm(⟨t⟩)\) by~\Cref{thm:norm-preserve-norm-bisim}.
+
+%     Since \(t\) is a live state, hence there exists an accepting state \(t'\) in \(\norm(⟨t⟩)\); because; \(s\) is a dead state, thus all the states in \(⟨s⟩\) is dead.
+
+%     Because \(t\) is live, thus \[(s, t) ∈ \norm ₗ(∼_{s, t}),\]
+%     and by~\Cref*{thm:surj-on-norm-princ-coalg}, every state in \(⟨t⟩\) is covered by \(\norm ₗ(∼_{s, t})\).
+%     In other word, there exists a there exists a state \(s' ∈ ⟨s⟩\) that is normally bisimilar to the accepting state \(s' ∼ t'\).
+%     However, recall that all states in \(⟨s⟩\) is dead (\Cref{thm:dead-iff-all-reachable-dead}) and a dead state cannot be normally bisimilar to a accepting state, since none of the transition (reject or transition to a dead state) of a dead state can be related to acceptance in \(\clos{\norm ₗ(∼_{s, t})}\).
+% \end{proof}
+
+% Thus we are able to show our soundness theorem:
+
+% \begin{theorem}[soundness]
+%     For all GKAT coalgebra \(S\) and \(T\), if there exists a  normalized bisimulation \({∼} ⊆ S × T\) s.t. \(s ∼ t\), then \(⟦s⟧_S = ⟦t⟧_T\).
+% \end{theorem}
+
+% \begin{proof}
+%     We prove this theorem by case analysis on the liveness of \(s\) and \(t\), we have indeed covered all the cases by previous theorems:
+%     \begin{itemize}
+%         \item if both \(s\) and \(t\) are live then the implication holds by~\Cref{thm:norm-bisim-to-bisim-on-norm-coalg}; 
+%         \item if one of \(s\) and \(t\) is live and the other is dead, then \(s ∼ t\) is necessarily false by~\cref{thm:dead-live-don't-norm-bisim}, thus the implication trivially holds;
+%         \item if both \(s\) and \(t\) are dead, then they are finite trace equivalent, thus the implication holds.
+%     \end{itemize}
+% \end{proof}
+
+% We then prove the completeness, which is the converse of the soundness statement, stating that the trace equivalence is ``completely'' characterized by normalized bisimulation. 
+% Formally, when two states are finite trace equivalent, then there will be a normalized bisimulation between them. 
+
+% Our proof of completeness shares the core idea of as the corresponding completeness theorem~\cite{smolka_GuardedKleeneAlgebra_2020}, which is to construct a bisimulation from trace equivalence. 
+% However, we streamline our proof using the language of category theory, in the process, we were also able to prove a more general result, that is, homomorphism reflects normalized bisimulation:
+
+% \begin{theorem}[homomorphism reflects normalized bisimulation]\label{thm:hom-refl-norm-bisim}
+%     Given a pair of homomorphism \(h_S: S → S'\) and \(h_T: T → T'\), and a normalized bisimulation \({∼'} ⊆ S' × T'\), then there exists a normalized bisimulation \({∼} ⊆ S × T\), s.t.
+%     \[h_S(s) ∼' h_T(t) ⟺ s ∼ t.\]
+% \end{theorem}
+
+% \begin{proof}
+%     We can define \(∼\) as the pre-image of \(∼'\) under \(h_S × h_T\):
+%     \[{∼} ≜ \{(s, t) ∣ h_S(s) ∼' h_T(t)\}.\]
+%     Similar characterization also apply to their closure counterpart:
+%     \[{\clos{∼}} = \{(r₁, r₂) ∣ G(h_S)(r₁) \clos{∼'} G(h_S)(r₂)\}.\]
+%     The above equation can be verified by case analysis on the elements of \(\clos{∼'}\) and \(\clos{∼}\):
+%     \begin{itemize}
+%         \item by \nameref{rule:bisim-acc} and \nameref{rule:bisim-rej}, \((\accept, \accept)\) and \((\reject, \reject)\) are in both \(\clos{∼}\) and \(\clos{∼'}\).
+%         \item if the element is introduced by \nameref{rule:bisim-trans}, then 
+%         \[(h(s), p) \clos{∼'} (h(t), p) 
+%         ⟺ h(s) \clos{∼'} h(t) 
+%         ⟺ s \clos{∼} t 
+%         ⟺ (s, p) \clos{∼} (t, p).
+%         \]
+%         \item if the element is introduced by \nameref{rule:norm-left}, \nameref{rule:norm-right}, or \nameref{rule:norm-both}, we will recall that \(s\) is dead if and only if \(h(s)\) is dead (\Cref{thm:hom-preserve-liveness}). The reasoning is similar to previous case, we will show \nameref{rule:norm-left} case as an example:
+%         \[(h(s), p) \clos{∼'} \reject
+%         ⟺ h(s) \text{ is dead}
+%         ⟺ s \text{ is dead}
+%         ⟺ (s, p) \clos{∼} \reject.\]
+%     \end{itemize}
+%     by above equation about \(\clos{∼}\), 
+%     we will be able to verify that \(∼\) is indeed a normalized bisimulation, specifically, given any two states \(s ∼ t\):
+%     \begin{align*}
+%         & s ∼ t \\ 
+%         & ⟹ h_S(s) ∼' h_T(t) \\ 
+%         & ⟹ ∀ α, δ_{S'}(h_S(s), α) \clos{∼'} δ_{T'}(h_T(t), α) \\  
+%         & ⟹ ∀ α, (G(h_S) ∘ δ_S)(s, α) \clos{∼'} (G(h_T) ∘ δ_T)(t, α)
+%             & \text{\(h\) is homomorphism} \\
+%         & ⟹ ∀ α, δ_S(s, α) \clos{∼} δ_T(t, α) 
+%             & \text{above equation about \(\clos{∼}\)}
+%     \end{align*}
+% \end{proof}
+
+% \begin{lemma}
+%     Given any bisimulation \(S\), the identity relation \(=\) on \(S\) is a a normalized bisimulation.
+% \end{lemma}
+
+% \begin{proof}
+%     Because \(s = s' ⟹ ∀ α ∈ \At, δ(s, α) = δ(t, α)\), and the equality \(=\) on \(2 + S × K\) is a sub-relation of its normalized closure \(\clos{=}\), therefore \[s = s' ⟹ ∀ α ∈ \At, δ(s, α) \clos{=} δ(t, α)\]
+% \end{proof}
+
+% \begin{theorem}
+%     Finite trace equivalence \({∼} ≜ \{(s, t) ∣ ⟦s⟧ = ⟦t⟧\}\) is a normalized bisimulation.
+% \end{theorem}
+
+% \begin{proof}
+%     Take the identity relation \(=\) on the finite
+% \end{proof}
+
+
+\printbibliography
+
+\newpage
+\appendix
+
+\section{diagrammatical characterization of normalized homomorphism}\label{sec:diagram-of-norm-sim}
+
+\end{document}
