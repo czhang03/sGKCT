@@ -228,6 +228,7 @@
 %% extraction tools.
 \author{
     Cheng Zhang \and 
+    Qiancheng Fu \and
     Hang Ji \and 
     Ines Santacruz \and 
     Marco Gaboardi
@@ -243,6 +244,10 @@
 %% before \maketitle command
 \begin{abstract}
 \end{abstract}
+
+TODO: change all the \(e_b\) to \(b\).
+
+
 
 \section{Introduction}
 
@@ -745,153 +750,226 @@ except by~\cref{thm:bisim-one-dead}, in the special case where \(s\) or \(t\) is
     \end{algorithmic}
 \end{algorithm}
 
-The soundness and completeness of this algorithm can be observed by the fact that \emph{when the algorithm terminate}, the algorithm returns true. if and only if there exists a bisimulation between \(⟨s⟩\) and \(⟨t⟩\) s.t. \(s ∼ t\), which is then logically equivalent to trace equivalence.
+The soundness and completeness of~\cref{alg:bisim} can be observed by the fact that \emph{when the algorithm terminate}, the algorithm returns true if and only if there exists a bisimulation between \(⟨s⟩\) and \(⟨t⟩\) s.t. \(s ∼ t\), which is then logically equivalent to trace equivalence.
 Such equivalence is a direct consequence of~\cref{thm:bisim-one-dead,thm:inductive-construction}.
 
+\begin{remark}
+    The caching of dead state and the shortcut to check whether \(s\) is dead when \(t\) is dead and vise versa, is not essential to the soundness and completeness of algorithm, they are here to trade speed with memory. 
+    In a memory-constraint situation, the ``\textnormal{deadStates}'' variable can be cleared periodically to save memory.
+\end{remark}
 
-\section{Symbolic algorithm}
+\section{Symbolic Algorithm}
 
-\subsection{Symbolic GKAT Coalgebra}
-
-Given an alphabet \(K, B\), a \emph{symbolic GKAT coalgebra} \(Ŝ ≜ ⟨S, ϵ̂, δ̂⟩\) consists of a state set \(S\) consists of a accepting boolean \(ϵ̂\) and a transition function \(δ̂\):
+Given the alphabet \(K, B\), a \emph{symbolic GKAT coalgebra} \(Ŝ ≜ ⟨S, ϵ̂, δ̂⟩\) consists of a state set \(S\) and a accepting function \(ϵ̂\) and a transition function \(δ̂\):
 \begin{mathpar}
     ϵ̂: S → \Bool_B, \and
-    δ̂: S → S → K → \Bool_B,
+    δ̂: S → \Bool_B × S × K,
 \end{mathpar}
-where \(\Bool_B\) is the free boolean algebra over \(B\) (boolean expressions modulo boolean algebra axioms), and for all states \(s ∈ S\), all the booleans results are ``disjoint''; namely the conjunction of any two expression from the set \(ϵ̂(s) + \{δ̂(s, s', p) ∣ s' ∈ S, p ∈ K\}\) are false in \(\Bool_B\).
-The ordering on two symbolic coalgebra on the same carrier \(S\) is defined pointwise, namely 
-\[⟨ϵ̂₁, δ̂₁⟩ ≤ ⟨ϵ̂₂, δ₂⟩ \text{ if and only if } ∀ s, s' ∈ S, ∀ p ∈ K, \hat{ϵ₁}(s) ≤ \hat{ϵ₂}(s) \text{ and } \hat{δ₁}(s, s', p) ≤ \hat{δ₂}(s, s', p).\]
+where \(\Bool_B\) is the free boolean algebra over \(B\) (boolean expressions modulo boolean algebra axioms); for all states \(s ∈ S\), all the booleans are ``disjoint''; namely the conjunction of any two expression from the set \(\{ϵ̂(s)\} ∪ \{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) are false. 
+We will then use \(ρ̂(s): \Bool_B\) to denote the boolean expressions that contain all the atoms that the state \(s\) rejects, and \(ρ̂(s)\) can be computed as follows:
+\[ρ̂(s) ≜ ¬ ϵ̂(s) ∨ ¬ \left( ⋁_{(b, s', p) ∈ δ(s)} b \right)\]
 
-Intuitively, the expressions in \(\Bool_B\) is treated as the ``symbolic'' transitions, which can be think of as a set of atoms by the isomorphism \(\Bool_B ≅ 2^{\At_B}\). 
-Then we can explain the intuition for the definition of symbolic GKAT coalgebra:
-\begin{itemize}
-    \item \(ϵ̂(s)\) can be thought of as all the atoms that is accepted by the state \(s\).
-    \item \(δ̂(s, s', p)\) denotes all the atoms that can transition from \(s\) to \(s'\) while executing \(p\).
-\end{itemize}
-Then the atoms excluded by both operations are implicitly rejecting. Formally, we can define a boolean expression that contains all the atoms that will be rejected 
-\[ρ̂(s) = ¬ (ϵ̂(s) ∨ ⋁ \{b ∣ ∃ s' ∈ S, p ∈ K, δ̂(s, s', p) = b\}).\]
+Instead of modeling each atom individually in the automata, we group them into boolean expressions, this leads to a much more space efficient automata, and enables efficient bisimulation algorithms using off-the-shelf SAT solvers.
 
-This intuition gives us a isomorphism between between GKAT coalgebra and symbolic GKAT coalgebra. Formally, given a GKAT coalgebra \(⟨S, δ⟩\), then its corresponding symbolic GKAT coalgebra will share the same states \(S\), with the transition defined as follows:
-\begin{align*}
-    ϵ̂(s) & ≜ ⋁ \{α ∈ \At ∣ δ(s, α) = \accept\} & 
-    δ̂(s, s', p) & ⋁ \{α ∈ \At ∣ δ(s, α) = (s', p)\}.
-\end{align*}
-We will denote the above map as \(\symb\), i.e. \(\symb(⟨S, δ⟩) ≜ ⟨S, ϵ̂, δ̂⟩\). Notice that we are implicitly using atoms as an element in the boolean algebra, indeed an atom can be thought about as a conjunction.
-
-The inverse of \(\symb\) is denoted as \(\unsymb\) where given a symbolic GKAT coalgebra \(⟨S, ϵ̂, δ̂⟩\), we construct a GKAT coalgebra over states \(S\) with the following transition:
-\[δ(s, α) ≜ \begin{cases}
-    \accept & α ∈ ϵ̂(s) \\  
-    (s', p) & α ∈ δ̂(s, s', p) \\  
+With the above intuition in mind, a symbolic GKAT coalgebra \(Ŝ ≜ ⟨S, ϵ̂, δ̂⟩\) can be lowered into a GKAT coalgebra \(⟨S, δ⟩\) in the following manner:
+\[
+δ(s, α) ≜ \begin{cases}
+    \accept & α ≤ ϵ̂(s) \\  
+    (s', p) & ∃ b ∈ \Bool_B, α ≤ b \text{ and } δ(s, b) = (s', p) \\  
     \reject & \text{otherwise}
-\end{cases}\]
-Notice the \(δ\) is well-defined, that is given any \(s ∈ S\) and \(α ∈ \At\), \(δ(s,α)\) can only take on one value; because symbolic GKAT coalgebra is deterministic.
+\end{cases}
+\]
+This is well-defined, i.e. no more than one clause can be satisfied precisely because the boolean expressions appear in \(ϵ̂\) and \(δ̂\) are disjoint.
+The trace semantics of a GKAT coalgebra \(⟨S, ϵ̂, δ̂⟩\) is then defined as the trace semantics of its lowering \(⟨S, δ⟩\).
 
-\subsection{Decision Procedure Of Symbolic GKAT coalgebra}
+\begin{remark}[Canonicity]
+    Notice that symbolic GKAT coalgebra is not canonical, i.e. there exists two different symbolic GKAT colagebra with the same lowering, consider the state set \(S ≜ \{*\}\):
+    \[{δ̂}₁(*) ≜ \{b ↦ (*, p), ¬ b ↦ (*, p)\} \qquad 
+    {δ̂}₂(*) ≜ \{⊤ ↦ (*, p)\},\] 
+    and both \(ϵ̂\) will return constant \(⊥\).
+    These two symbolic GKAT coalgebra obviously have the same lowering hence behavior, yet, they are different.
+    There are other symbolic representation that will satisfy canonicity, yet we opt to use our current representation for ease of construction and computational efficiency.
+\end{remark}
 
-The formulation of symbolic GKAT coalgebra is mathematically nice, yet inefficient. Between most states \(s, s' ∈ S\) and action \(p ∈ K\), \(δ(s, s', p)\) will always be false. Therefore, we can developed a set representation of the derivative, where we will typically denote using \(Δ̂\):
-\[Δ̂: S → 𝒫(\Bool_B × S × K).\]
-we always assume transition functions denoted this way are \emph{deterministic}; specifically, all the boolean expression in the following set are disjoint: \[\{b ∣ ∃ s' ∈ S, p ∈ K, (b, s', p) ∈ Δ̂(s)\}.\] 
+We can then migrate the normalized bisimulation algorithm to the symbolic setting, we will first prove an inductive construction theorem like~\cref{thm:inductive-construction}.
 
-Intuitively, if \((b, s', p) ∈ Δ̂(s)\), then \(s\) will transition to \(s'\) for all the atoms \(α ≤ b\) while executing \(p\). Notice that the above statement does not imply that \emph{all} \(α\) that makes \(s\) transition to \(s'\) while executing \(p\) will be covered by \(b\); that is, there can exists a \((b', s', p) ∈ Δ̂(s)\), where \(b ≠ b'\).
-
-This means that the set representation of a symbolic GKAT coalgebra no on longer uniquely correspond to a GKAT coalgebra.
-\begin{example}
-    
-\end{example}
-
-However, every set representation of a symbolic GKAT coalgebra, indeed correspond to a GKAT coalgebra, specifically given a set representation \(⟨S, ϵ̂, Δ̂⟩\), we can construct a symbolic GKAT \(⟨S, ϵ̂, δ̂⟩\), by defining the following \(δ̂\):
-\[δ̂(s, s', p) = ⋁ \{b ∣ (b, s', p) ∈ Δ̂(s)\}.\]
-More importantly, the map described above is surjective. This means that all the GKAT coalgebra can indeed be represented as at least one set-representation.
-Similarly, set representation can also be converted to GKAT coalgebra: given a set representation \(⟨S, ϵ̂, Δ̂⟩\), we can lower it into a GKAT coalgebra \(⟨S, δ⟩\), by constructing the following \(δ\):
-\[δ(s, α) ≜ \begin{cases}
-    \accept & α ∈ ϵ̂(s) \\  
-    (s', p) & ∃ b ≥ α, (b, s', p) ∈ Δ̂(s) \\  
-    \reject & \text{otherwise}
-\end{cases}\]
-Indeed, lowering the set representation directly to GKAT coalgebra give the same result as converting to symbolic GKAT coalgebra and then lowering. This fact is essential for us to relate these semantics. 
-
-Finally, we can lift the inductive construction theorem (\cref{thm:inductive-construction}) to set representation of GKAT coalgebras, giving a sound and complete symbolic decision procedure. 
-In the following lemmas, we will use \(S, T\) to denote some GKAT coalgebra, and \(Ŝ, T̂\) will be as some set-represented symbolic GKAT coalgebra that corresponds to \(S\). 
-Formally, if we lower \(Ŝ\) to GKAT coalgebra, we will obtain exactly \(S\); similarly for \(T̂\).
-
-\begin{lemma}
-    We let the \(s ∈ S\) and \(t ∈ T\) be two states, then the following equivalence between conditions in \cref{thm:inductive-construction} hold: 
+\begin{theorem}[Symbolic Inductive Construction]\label{thm:symb-inductive-construction}
+    Given two symbolic GKAT coalgebra \(Ŝ = ⟨S, ϵ̂_S, δ̂_S⟩\) and \(T̂ = ⟨T, ϵ̂_T, δ̂_T⟩\) and two states \(s ∈ S\) and \(t ∈ T\), there exists a normalized bisimulation on the lowered coalgebra \({∼} ⊆ S × T\) s.t. \(s ∼ t\) if and only if all the following holds:
     \begin{itemize}
-        \item condition~\labelcref{itm:acc-condition} in inductive construction holds if and only if \(ϵ̂_{Ŝ}(s) = ϵ̂_{T̂}(t)\).
-        \item condition~\labelcref{itm:transition-bisim} holds if and only if for all \((a, s', p) ∈ δ̂_{Ŝ}(s)\) and \((b, t', q) ∈ δ̂_{T̂}(t)\):
-        \[a ∧ b ≠ 0 \text{ and } p = q ⟹ \text{exists a bisimulation \(∼\) between \(S\) and \(T\), } s.t. s' ∼ t'.\]
-        \item condition~\labelcref{itm:transition-dead}, holds if and only if for all \((a, s', p) ∈ δ̂_{Ŝ}(s)\) and \((b, t', q) ∈ δ̂_{T̂}(t)\):
-        \[a ∧ b ≠ 0 \text{ and } p ≠ q ⟹ \text{both \(s\) and \(t\) are dead}.\]
-        \item condition~\labelcref{itm:rej-or-dead} holds if and only if the following holds:
+        \item \(ϵ̂_S(s) ≡ ϵ̂_T(t)\);
+        \item for all \((b, s', p) ∈ δ̂_S(s)\) and \((c, t', q) ∈ δ̂_T(t)\), if \(b ∧ c ≢ 0\) and \(p = q\) then here exists a normalized bisimulation \({∼_{s',t'}} ⊆ S × T\) s.t. \(s' ∼_{s',t'} t'\);
+        \item for all \((b, s', p) ∈ δ̂_S(s)\) and \((c, t', q) ∈ δ̂_T(t)\), if \(b ∧ c ≢ 0\) and \(p ≠ q\) then both \(s'\) and \(t'\) is dead;  
+        \item for all \((b, s', p) ∈ δ̂_S(s)\) and \(c ∈ ρ̂_T(t)\), if \(b ∧ c ≢ 0\), then \(s'\) is dead;
+        \item for all \(b ∈ ρ̂_S(s)\) and \((c, t', q) ∈ δ̂_T(t)\), if \(b ∧ c ≢ 0\), then \(t'\) is dead;
     \end{itemize}
-\end{lemma}
+\end{theorem}
 
-\begin{lemma}
-    Given two states \(\)
-\end{lemma}
-
-
-\subsection{Symbolic Derivatives and Correctness}
-
-Given a symbolic GKAT coalgebra \(⟨S, δ̂, ϵ̂⟩\) and a state \(s ∈ S\), we use the notation \(s ⇒ b\) to denote that \(ϵ̂(s) ≥ b\), and we use the notation \(s \transvia{b ∣ p} s'\) to denote that \(δ̂(s, s', p) ≥ b\), where the ordering is the typical ordering in boolean algebra.
-
-The symbolic derivatives for GKAT forms a DKCT where the states are represented by GKAT expression \(\GKAT_{K, B}\), and the boolean algebra is the free boolean algebra \(\Bool_B\) over the test alphabet \(B\):
-\begin{mathpar}
-    ϵ: \GKAT_{K, B} → \Bool_B; \and  
-    δ: \GKAT_{K, B} → \GKAT_{K, B} → K → \Bool_B.
-\end{mathpar} 
-the accepting map \(ϵ\) and transition map \(δ\) can be defined by the smallest maps that satisfy the following rules:
-\begin{mathpar}
-    \inferrule{\\}{b ⇒ b} \and 
-    \inferrule{\\}{p \transvia{1 ∣ p} 1} \and 
-    \inferrule{e ⇒ a}{e +_b f ⇒ b a} \and 
-    \inferrule{f ⇒ a}{e +_b f ⇒ b̄ a} \and 
-    \inferrule{e \transvia{a ∣ p} e'}{e +_b f \transvia{b ∧ a ∣ p} e'} \and 
-    \inferrule{f \transvia{a ∣ p} f'}{e +_b f \transvia{b̄ ∧ a ∣ p} f'} \and 
-    \inferrule{e ⇒ a \\ f ⇒ b}{e ⋅ f ⇒ a ∧ b} \and 
-    \inferrule{e ⇒ a \\ f \transvia{b ∣ p} f'}{e ⋅ f \transvia{a ∧ b ∣ p} f'} \and 
-    \inferrule{e \transvia{b ∣ p} e'}{e ⋅ f \transvia{b ∣ p} e' ⋅ f} \and 
-    \inferrule{\\}{e^{(b)} ⇒ b̄} \and 
-    \inferrule{e \transvia{a ∣ p} e'}{e^{(b)} \transvia{b ∧ a ∣ p} e' ⋅ {e}^{(b)}}
-\end{mathpar}
-Notice the rules above are very similar to the derivative rules for GKAT~\cite{schmid_GuardedKleeneAlgebra_2021}, this is no coincidence, as we can establish a correspondence of these two to prove correctness of our symbolic algorithm.
-
-Since the rules listed above is monotonic, that is if we enlarge the boolean in the premise, we also enlarge the boolean in the result. 
-So we can simply pick the largest boolean on the premise, which is either \(ϵ(e)\) or \(δ(e, e', p)\).
-Since the disjunction of two boolean \(a ∨ b\) is the smallest boolean that is greater than both \(a\) and \(b\), thus we can implement \(ϵ\) and \(δ\) by iteration through all the rules, and take the disjunction of all the possible booleans.
-
-\begin{align*}
-    ϵ(b) & ≜ b 
-        &  ϵ(e +_b f) & ≜ (b ∧ ϵ(e)) ∨ (b̄ ∧ ϵ(f))\\
-    ϵ(q) & ≜ 0
-        & ϵ(e ⋅ f) & ≜ ϵ(e) ∧ ϵ(f)\\  
-    ϵ(e^{(b)}) & ≜ b̄ 
-\end{align*}
-
-However, the derivative function \[δ: \GKAT_{K, B} → \GKAT_{K, B} → K → \Bool_B,\] poses challenges in the implementation, since \(\GKAT_{K, B}\) is infinite, so it will be impractical to search through all the expressions.
-However, we can treat the function \(δ\) extensionally: \[\GKAT_{K, B} → K → \Bool_B ⊆ 2^{\GKAT_{K, B} × K × \Bool_B},\]
-and then because the boolean expression don't overlap for each input, hence the boolean expression are necessarily unequal; 
-we can model the set by a partial map, thus all the \(δ\) can be represented as a function to the following partial maps.
-\begin{align*}
-    δ & : \GKAT_{K, B} → (\Bool_B ↛ \GKAT_{K, B} × K) \\
-    δ(b) & ≜ \{\} \\
-    δ(q) & ≜ \{1 ↦ (1, p)\}\\  
-    δ(e +_b f) & ≜ \{b ∧ a ↦ (e', p) ∣ a ↦ (e', p) ∈ δ(e)\} 
-        ∪ \{b̄ ∧ a ↦ (f', p) ∣ a ↦ (f', p) ∈ δ(f)\}\\
-    δ(e ⋅ f) & ≜ \{b ↦ (e' ⋅ f, p) ∣ b ↦ (e, p) ∈ δ(e)\}
-        ∪ \{ϵ(e) ∧ b ↦ (f', p) ∣ b ↦ (f', p) ∈ δ(f)\}\\
-    δ(e^{(b)}) & ≜ \{b ∧ a ↦ (e' ⋅ e^{(b)}, p) ∣ a ↦ (e', p) ∈ δ(e)\}.
-\end{align*}
-FIXME: we still need to think about what representation do we want to go with, with this representation, you can also have duplicated K. We need a good example here of why don't we go with map. One good argument is that this representation is complex.
+\begin{proof}
+    Reduces to~\cref{thm:inductive-construction} i.e. all the above condition holds if and only if all the condition in~\cref{thm:inductive-construction} holds in the lowered coalgebra.
+\end{proof}
 
 
 
 
 
-\subsection{Algorithm and Complexity}
 
 
-\section{Implementation and Experiments}
+
+
+
+
+
+
+
+
+
+
+
+
+
+% \section{Symbolic algorithm BAK}
+
+% \subsection{Symbolic GKAT Coalgebra}
+
+% Given an alphabet \(K, B\), a \emph{symbolic GKAT coalgebra} \(Ŝ ≜ ⟨S, ϵ̂, δ̂⟩\) consists of a state set \(S\) consists of a accepting boolean \(ϵ̂\) and a transition function \(δ̂\):
+% \begin{mathpar}
+%     ϵ̂: S → \Bool_B, \and
+%     δ̂: S → S → K → \Bool_B,
+% \end{mathpar}
+% where \(\Bool_B\) is the free boolean algebra over \(B\) (boolean expressions modulo boolean algebra axioms), and for all states \(s ∈ S\), all the booleans results are ``disjoint''; namely the conjunction of any two expression from the set \(ϵ̂(s) + \{δ̂(s, s', p) ∣ s' ∈ S, p ∈ K\}\) are false in \(\Bool_B\).
+% The ordering on two symbolic coalgebra on the same carrier \(S\) is defined pointwise, namely 
+% \[⟨ϵ̂₁, δ̂₁⟩ ≤ ⟨ϵ̂₂, δ₂⟩ \text{ if and only if } ∀ s, s' ∈ S, ∀ p ∈ K, \hat{ϵ₁}(s) ≤ \hat{ϵ₂}(s) \text{ and } \hat{δ₁}(s, s', p) ≤ \hat{δ₂}(s, s', p).\]
+
+% Intuitively, the expressions in \(\Bool_B\) is treated as the ``symbolic'' transitions, which can be think of as a set of atoms by the isomorphism \(\Bool_B ≅ 2^{\At_B}\). 
+% Then we can explain the intuition for the definition of symbolic GKAT coalgebra:
+% \begin{itemize}
+%     \item \(ϵ̂(s)\) can be thought of as all the atoms that is accepted by the state \(s\).
+%     \item \(δ̂(s, s', p)\) denotes all the atoms that can transition from \(s\) to \(s'\) while executing \(p\).
+% \end{itemize}
+% Then the atoms excluded by both operations are implicitly rejecting. Formally, we can define a boolean expression that contains all the atoms that will be rejected 
+% \[ρ̂(s) = ¬ (ϵ̂(s) ∨ ⋁ \{b ∣ ∃ s' ∈ S, p ∈ K, δ̂(s, s', p) = b\}).\]
+
+% This intuition gives us a isomorphism between between GKAT coalgebra and symbolic GKAT coalgebra. Formally, given a GKAT coalgebra \(⟨S, δ⟩\), then its corresponding symbolic GKAT coalgebra will share the same states \(S\), with the transition defined as follows:
+% \begin{align*}
+%     ϵ̂(s) & ≜ ⋁ \{α ∈ \At ∣ δ(s, α) = \accept\} & 
+%     δ̂(s, s', p) & ⋁ \{α ∈ \At ∣ δ(s, α) = (s', p)\}.
+% \end{align*}
+% We will denote the above map as \(\symb\), i.e. \(\symb(⟨S, δ⟩) ≜ ⟨S, ϵ̂, δ̂⟩\). Notice that we are implicitly using atoms as an element in the boolean algebra, indeed an atom can be thought about as a conjunction.
+
+% The inverse of \(\symb\) is denoted as \(\unsymb\) where given a symbolic GKAT coalgebra \(⟨S, ϵ̂, δ̂⟩\), we construct a GKAT coalgebra over states \(S\) with the following transition:
+% \[δ(s, α) ≜ \begin{cases}
+%     \accept & α ∈ ϵ̂(s) \\  
+%     (s', p) & α ∈ δ̂(s, s', p) \\  
+%     \reject & \text{otherwise}
+% \end{cases}\]
+% Notice the \(δ\) is well-defined, that is given any \(s ∈ S\) and \(α ∈ \At\), \(δ(s,α)\) can only take on one value; because symbolic GKAT coalgebra is deterministic.
+
+% \subsection{Decision Procedure Of Symbolic GKAT coalgebra}
+
+% The formulation of symbolic GKAT coalgebra is mathematically nice, yet inefficient. Between most states \(s, s' ∈ S\) and action \(p ∈ K\), \(δ(s, s', p)\) will always be false. Therefore, we can developed a set representation of the derivative, where we will typically denote using \(Δ̂\):
+% \[Δ̂: S → 𝒫(\Bool_B × S × K).\]
+% we always assume transition functions denoted this way are \emph{deterministic}; specifically, all the boolean expression in the following set are disjoint: \[\{b ∣ ∃ s' ∈ S, p ∈ K, (b, s', p) ∈ Δ̂(s)\}.\] 
+
+% Intuitively, if \((b, s', p) ∈ Δ̂(s)\), then \(s\) will transition to \(s'\) for all the atoms \(α ≤ b\) while executing \(p\). Notice that the above statement does not imply that \emph{all} \(α\) that makes \(s\) transition to \(s'\) while executing \(p\) will be covered by \(b\); that is, there can exists a \((b', s', p) ∈ Δ̂(s)\), where \(b ≠ b'\).
+
+% This means that the set representation of a symbolic GKAT coalgebra no on longer uniquely correspond to a GKAT coalgebra.
+% \begin{example}
+    
+% \end{example}
+
+% However, every set representation of a symbolic GKAT coalgebra, indeed correspond to a GKAT coalgebra, specifically given a set representation \(⟨S, ϵ̂, Δ̂⟩\), we can construct a symbolic GKAT \(⟨S, ϵ̂, δ̂⟩\), by defining the following \(δ̂\):
+% \[δ̂(s, s', p) = ⋁ \{b ∣ (b, s', p) ∈ Δ̂(s)\}.\]
+% More importantly, the map described above is surjective. This means that all the GKAT coalgebra can indeed be represented as at least one set-representation.
+% Similarly, set representation can also be converted to GKAT coalgebra: given a set representation \(⟨S, ϵ̂, Δ̂⟩\), we can lower it into a GKAT coalgebra \(⟨S, δ⟩\), by constructing the following \(δ\):
+% \[δ(s, α) ≜ \begin{cases}
+%     \accept & α ∈ ϵ̂(s) \\  
+%     (s', p) & ∃ b ≥ α, (b, s', p) ∈ Δ̂(s) \\  
+%     \reject & \text{otherwise}
+% \end{cases}\]
+% Indeed, lowering the set representation directly to GKAT coalgebra give the same result as converting to symbolic GKAT coalgebra and then lowering. This fact is essential for us to relate these semantics. 
+
+% Finally, we can lift the inductive construction theorem (\cref{thm:inductive-construction}) to set representation of GKAT coalgebras, giving a sound and complete symbolic decision procedure. 
+% In the following lemmas, we will use \(S, T\) to denote some GKAT coalgebra, and \(Ŝ, T̂\) will be as some set-represented symbolic GKAT coalgebra that corresponds to \(S\). 
+% Formally, if we lower \(Ŝ\) to GKAT coalgebra, we will obtain exactly \(S\); similarly for \(T̂\).
+
+% \begin{lemma}
+%     We let the \(s ∈ S\) and \(t ∈ T\) be two states, then the following equivalence between conditions in \cref{thm:inductive-construction} hold: 
+%     \begin{itemize}
+%         \item condition~\labelcref{itm:acc-condition} in inductive construction holds if and only if \(ϵ̂_{Ŝ}(s) = ϵ̂_{T̂}(t)\).
+%         \item condition~\labelcref{itm:transition-bisim} holds if and only if for all \((a, s', p) ∈ δ̂_{Ŝ}(s)\) and \((b, t', q) ∈ δ̂_{T̂}(t)\):
+%         \[a ∧ b ≠ 0 \text{ and } p = q ⟹ \text{exists a bisimulation \(∼\) between \(S\) and \(T\), } s.t. s' ∼ t'.\]
+%         \item condition~\labelcref{itm:transition-dead}, holds if and only if for all \((a, s', p) ∈ δ̂_{Ŝ}(s)\) and \((b, t', q) ∈ δ̂_{T̂}(t)\):
+%         \[a ∧ b ≠ 0 \text{ and } p ≠ q ⟹ \text{both \(s\) and \(t\) are dead}.\]
+%         \item condition~\labelcref{itm:rej-or-dead} holds if and only if the following holds:
+%     \end{itemize}
+% \end{lemma}
+
+% \begin{lemma}
+%     Given two states \(\)
+% \end{lemma}
+
+
+% \subsection{Symbolic Derivatives and Correctness}
+
+% Given a symbolic GKAT coalgebra \(⟨S, δ̂, ϵ̂⟩\) and a state \(s ∈ S\), we use the notation \(s ⇒ b\) to denote that \(ϵ̂(s) ≥ b\), and we use the notation \(s \transvia{b ∣ p} s'\) to denote that \(δ̂(s, s', p) ≥ b\), where the ordering is the typical ordering in boolean algebra.
+
+% The symbolic derivatives for GKAT forms a DKCT where the states are represented by GKAT expression \(\GKAT_{K, B}\), and the boolean algebra is the free boolean algebra \(\Bool_B\) over the test alphabet \(B\):
+% \begin{mathpar}
+%     ϵ: \GKAT_{K, B} → \Bool_B; \and  
+%     δ: \GKAT_{K, B} → \GKAT_{K, B} → K → \Bool_B.
+% \end{mathpar} 
+% the accepting map \(ϵ\) and transition map \(δ\) can be defined by the smallest maps that satisfy the following rules:
+% \begin{mathpar}
+%     \inferrule{\\}{b ⇒ b} \and 
+%     \inferrule{\\}{p \transvia{1 ∣ p} 1} \and 
+%     \inferrule{e ⇒ a}{e +_b f ⇒ b a} \and 
+%     \inferrule{f ⇒ a}{e +_b f ⇒ b̄ a} \and 
+%     \inferrule{e \transvia{a ∣ p} e'}{e +_b f \transvia{b ∧ a ∣ p} e'} \and 
+%     \inferrule{f \transvia{a ∣ p} f'}{e +_b f \transvia{b̄ ∧ a ∣ p} f'} \and 
+%     \inferrule{e ⇒ a \\ f ⇒ b}{e ⋅ f ⇒ a ∧ b} \and 
+%     \inferrule{e ⇒ a \\ f \transvia{b ∣ p} f'}{e ⋅ f \transvia{a ∧ b ∣ p} f'} \and 
+%     \inferrule{e \transvia{b ∣ p} e'}{e ⋅ f \transvia{b ∣ p} e' ⋅ f} \and 
+%     \inferrule{\\}{e^{(b)} ⇒ b̄} \and 
+%     \inferrule{e \transvia{a ∣ p} e'}{e^{(b)} \transvia{b ∧ a ∣ p} e' ⋅ {e}^{(b)}}
+% \end{mathpar}
+% Notice the rules above are very similar to the derivative rules for GKAT~\cite{schmid_GuardedKleeneAlgebra_2021}, this is no coincidence, as we can establish a correspondence of these two to prove correctness of our symbolic algorithm.
+
+% Since the rules listed above is monotonic, that is if we enlarge the boolean in the premise, we also enlarge the boolean in the result. 
+% So we can simply pick the largest boolean on the premise, which is either \(ϵ(e)\) or \(δ(e, e', p)\).
+% Since the disjunction of two boolean \(a ∨ b\) is the smallest boolean that is greater than both \(a\) and \(b\), thus we can implement \(ϵ\) and \(δ\) by iteration through all the rules, and take the disjunction of all the possible booleans.
+
+% \begin{align*}
+%     ϵ(b) & ≜ b 
+%         &  ϵ(e +_b f) & ≜ (b ∧ ϵ(e)) ∨ (b̄ ∧ ϵ(f))\\
+%     ϵ(q) & ≜ 0
+%         & ϵ(e ⋅ f) & ≜ ϵ(e) ∧ ϵ(f)\\  
+%     ϵ(e^{(b)}) & ≜ b̄ 
+% \end{align*}
+
+% However, the derivative function \[δ: \GKAT_{K, B} → \GKAT_{K, B} → K → \Bool_B,\] poses challenges in the implementation, since \(\GKAT_{K, B}\) is infinite, so it will be impractical to search through all the expressions.
+% However, we can treat the function \(δ\) extensionally: \[\GKAT_{K, B} → K → \Bool_B ⊆ 2^{\GKAT_{K, B} × K × \Bool_B},\]
+% and then because the boolean expression don't overlap for each input, hence the boolean expression are necessarily unequal; 
+% we can model the set by a partial map, thus all the \(δ\) can be represented as a function to the following partial maps.
+% \begin{align*}
+%     δ & : \GKAT_{K, B} → (\Bool_B ↛ \GKAT_{K, B} × K) \\
+%     δ(b) & ≜ \{\} \\
+%     δ(q) & ≜ \{1 ↦ (1, p)\}\\  
+%     δ(e +_b f) & ≜ \{b ∧ a ↦ (e', p) ∣ a ↦ (e', p) ∈ δ(e)\} 
+%         ∪ \{b̄ ∧ a ↦ (f', p) ∣ a ↦ (f', p) ∈ δ(f)\}\\
+%     δ(e ⋅ f) & ≜ \{b ↦ (e' ⋅ f, p) ∣ b ↦ (e, p) ∈ δ(e)\}
+%         ∪ \{ϵ(e) ∧ b ↦ (f', p) ∣ b ↦ (f', p) ∈ δ(f)\}\\
+%     δ(e^{(b)}) & ≜ \{b ∧ a ↦ (e' ⋅ e^{(b)}, p) ∣ a ↦ (e', p) ∈ δ(e)\}.
+% \end{align*}
+% FIXME: we still need to think about what representation do we want to go with, with this representation, you can also have duplicated K. We need a good example here of why don't we go with map. One good argument is that this representation is complex.
+
+
+
+
+
+% \subsection{Algorithm and Complexity}
+
+
+% \section{Implementation and Experiments}
 
 
 
