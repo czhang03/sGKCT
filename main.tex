@@ -664,6 +664,7 @@ However because homomorphism preserves liveness, if we already know one of the \
 In this section we will present the pseudo-code for our on-the-fly algorithm. 
 In order to implement the the inductive construction theorem (\cref{thm:inductive-construction}), we will need to determine the liveness of the state. This can be simply computed via a DFS from the state being checked. 
 
+TODO: we should merge the two so that it is easier to 
 \begin{algorithm}
     \caption{Check whether a state \(s\) is dead}\label{alg:check-dead-main}
     \begin{algorithmic}
@@ -672,9 +673,13 @@ In order to implement the the inductive construction theorem (\cref{thm:inductiv
         \Else { 
             \For{\(α ∈ \At\)}{}{
                 \Match{\(δ_{S}(s, α)\)}
-                \Case{\(\accept\)} {\Return none} \Comment{\(s\) transition to accept}\EndCase
+                \Case{\(\accept\)} {\Return none} \Comment{\(s\) transition to accept}
+                \EndCase
+                \Case{\(\reject\)} {\texttt{continue}}
+                \Comment{skip if \(s\) transition to reject}
+                \EndCase
                 \Case{($s', p$)}{ 
-                    \If{\Call{IsDead}{s'} = none} {\Return none} \Comment{\(s\) transitions to a live state \(s'\)}
+                    \If{\Call{IsDeadLoop}{$s'$} = none} {\Return none} \Comment{\(s\) transitions to a live state \(s'\)}
                     \Else { explored \(←\) (explored \(∪\) \Call{isDeadLoop}{$s'$, explored}) } \EndIf
                 } \EndCase
                 \EndMatch
@@ -725,8 +730,8 @@ except by~\cref{thm:bisim-one-dead}, in the special case where \(s\) or \(t\) is
     \begin{algorithmic}
         \Function{equiv}{$s ∈ S, t ∈ T$}
         \If {\Call{eq}{$s, t$}} {\Return true}
-        \ElsIf {\(s ∈\) deadStates} {\Return \Call{isDead}{$t$}} 
-        \ElsIf {\(t ∈\) deadStates} {\Return \Call{isDead}{$s$}} 
+        \ElsIf {\(s ∈\) deadStates\(_S\)} {\Return \Call{isDead\(_T\)}{$t$}} 
+        \ElsIf {\(t ∈\) deadStates\(_T\)} {\Return \Call{isDead\(_S\)}{$s$}} 
         \Else 
         \For{\(α ∈ \At\)}{}{
             \Comment{Inductive construction,~\cref{thm:inductive-construction}}
@@ -750,6 +755,7 @@ except by~\cref{thm:bisim-one-dead}, in the special case where \(s\) or \(t\) is
     \end{algorithmic}
 \end{algorithm}
 
+Because the dead state detection algorithm is coalgebra-specific, we use a subscript on ``deadStates'' and ``\textsc{IsDead}'' to indicate the coalgebra. 
 The soundness and completeness of~\cref{alg:bisim} can be observed by the fact that \emph{when the algorithm terminate}, the algorithm returns true if and only if there exists a bisimulation between \(⟨s⟩\) and \(⟨t⟩\) s.t. \(s ∼ t\), which is then logically equivalent to trace equivalence.
 Such equivalence is a direct consequence of~\cref{thm:bisim-one-dead,thm:inductive-construction}.
 
@@ -808,8 +814,57 @@ We can then migrate the normalized bisimulation algorithm to the symbolic settin
     Reduces to~\cref{thm:inductive-construction} i.e. all the above condition holds if and only if all the condition in~\cref{thm:inductive-construction} holds in the lowered coalgebra.
 \end{proof}
 
+Then for the algorithm, we can just recursively check all the conditions in~\cref{thm:symb-inductive-construction}.
+
+\begin{algorithm}
+    \caption{On-the-fly bisimulation algorithm}\label{alg:bisim}
+    \begin{algorithmic}
+        \Function{equiv}{$s ∈ S, t ∈ T$}
+        \If {\Call{eq}{$s, t$}} {\Return true}
+        \ElsIf {\(s ∈\) deadStates\(_S\)} {\Return \Call{isDead\(_T\)}{$t$}} 
+        \ElsIf {\(t ∈\) deadStates\(_T\)} {\Return \Call{isDead\(_S\)}{$s$}} 
+        \Else {}
+        \Return {
+            \Comment{conditions of ~\cref{thm:symb-inductive-construction}}
+            \\\vspace{5px}
+            \(\qquad
+            \begin{aligned}
+                & ϵ̂_S(s) ≡ ϵ̂_T(t) \mathrel{\&\!\&} \\  
+                & \forall (b, s', p) ∈ δ̂_S(s), (c, t', q) ∈ δ̂_T(t), (b ∧ c) ≢ ⊥ ⟹ 
+                \begin{cases}
+                    \text{\Call{IsDead$_S$}{$s$}} ∧ \text{\Call{IsDead$_T$}{$t$}} & \text{if \(p ≠ q\)} \\
+                    \text{\Call{Union}{$s$, $t$}}; \text{\Call{Equiv}{$s', t'$}} & \text{if \(p = q\)}
+                \end{cases} \mathrel{\&\!\&}\\
+                & \forall (b, s', p) ∈ δ̂_S(s), c ∈ ρ̂_T(t), (b ∧ c) ≢ ⊥ ⟹ \text{\Call{IsDead$_S$}{$s'$}} \mathrel{\&\!\&}\\
+                & \forall b ∈ ρ̂_S(s), (c, t', q) ∈ ρ̂_T(t), (b ∧ c) ≢ ⊥ ⟹ \text{\Call{IsDead$_T$}{$t'$}}
+            \end{aligned}\)
+        }
+        \EndIf
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+
+Inspired by the syntax of Ocaml, the \(\mathrel{\&\!\&}\) is the logical-and operator on the language level, specifying that all four conditions in the return statements must be satisfied to return true. 
+Notice just like the non-symbolic case, this algorithm can be modified to perform symbolic bisimulation of (non-normalized) GKAT automaton, which coincides with infinite trace equivalence~\cite{schmid_GuardedKleeneAlgebra_2021}, by letting \textsc{IsDead} always return false and keep deadStates empty.
 
 
+\section{Construction of Symbolic GKAT Automata}
+
+We will go through two ways of constructing symbolic GKAT automata, one is Thompson's construction, the other is derivative.
+However, in order to exhibit the relation between these two construction, specifically, the derivative construction always produces a smaller automaton than the Thompson's construction, we opt to use to produce "weak" symbolic GKAT automata: symbolic GKAT automata where the transition no longer need to perform an action.
+
+\subsection{Weak Symbolic GKAT Automata And Tightening}
+
+Weak Symbolic GKAT automata is a symbolic GKAT automata that allow internal transitions via a boolean expression:
+\[⟨S, 
+ϵ̂: S → \Bool, 
+δ̂: S → (\Bool × S) + (\Bool × S × K)⟩.\]
+We also require the deterministic criteria, all the boolean transitions of \(s\), i.e. all the boolean expressions in the following set:
+\[\{ϵ̂(s)\} ∪ 
+\{b ∣ ∃ s' ∈ S, (b, s') ∈ δ̂(s)\} ∪ 
+\{b ∣ ∃ s' ∈ S, p ∈ K, (b, s', p) ∈ δ̂(s)\},\]
+are disjoint.
+Notice that our notion of 
 
 
 
