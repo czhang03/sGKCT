@@ -196,6 +196,7 @@
 \newcommand{\transvia}[1]{
     \mathrel{\raisebox{-2px}{\(\altxrightarrow[-2px]{#1}\)}}
 }
+\newcommand{\transAcc}[2]{⇒_{#1} #2}
 
  
 
@@ -332,6 +333,10 @@ And its projection functions \(π₁: S × T → S\) and \(π₂: S × T → T\)
 \]
 As we will see later, bisimulation or variation of bisimulation indeed correspond to important semantical equivalences.
 
+\begin{theorem}
+    Given a functionr \(F\) on set, two \(F\)-colagebra \(S\) and \(T\), if there exists a surjective homomorphism \(h: S → T\), then \(S\) and \(T\) are bisimular.
+\end{theorem}
+
 \subsection{Guarded Kleene Algebra With Tests}
 
 \subsection{GKAT Coalgebra}
@@ -372,7 +377,7 @@ This alternative liveness definition can help us formally prove important theore
 \end{theorem}
 
 \begin{proof}
-    Because homomorphic image preserves principle sub-GKAT coalgebra~\cref{thm:homo-img-preserve-principle-sub-coalg}
+    Because homomorphic image preserves principle sub-GKAT coalgebra (\cref{thm:homo-img-preserve-principle-sub-coalg})
     \[h(⟨s⟩_S) = ⟨h(s)⟩_T;\]
     therefore for any state \(s' ∈ S\):
     \[s' ∈ ⟨s⟩_S ⟺ h(s') ∈ h(⟨s⟩_S) ⟺ h(s') ∈ ⟨h(s)⟩_T.\]
@@ -604,7 +609,7 @@ In some special case, the on-the-fly algorithm can even out perform the original
     First note that \(s'\) and \(t'\) has to be both live or both dead: because \(δ_S(s, α) = (s', p)\), then \(\norm(δ_S)(s', α)\) can either be rejection or \((s',p)\), and so is \(\norm(δ_T)(t', α)\). Finally because \(s ∼ t\), then
     \[s' \text{ is live} ⟺ \norm(δ_S)(s, α) = (s', p) ⟺ \norm(δ_T)(t, α) = (t', p) ⟺ t' \text{ is live}.\]
     \begin{itemize}
-        \item If both \(s'\) and \(t'\) are live, then \(s' ∼ t'\), the bisimulation \(∼_{s', t'}\) is just \(∼\) restricted to \(⟨s'⟩\) and \(⟨t'⟩\).
+        \item If both \(s'\) and \(t'\) are live, then \(s' ∼ t'\). By~\cref{thm:sub-coalg-preserve-bisim}, the bisimulation \(∼_{s', t'}\) is just \(∼\) restricted to \(⟨s'⟩\) and \(⟨t'⟩\).
         \item If both \(s'\) and \(t'\) are dead, then \(∼_{s', t'}\) can just be the singleton relation, according to~\cref{thm:bisim-between-dead}.
     \end{itemize}
 
@@ -768,8 +773,8 @@ Such equivalence is a direct consequence of~\cref{thm:bisim-one-dead,thm:inducti
 
 Given the alphabet \(K, B\), a \emph{symbolic GKAT coalgebra} \(Ŝ ≜ ⟨S, ϵ̂, δ̂⟩\) consists of a state set \(S\) and a accepting function \(ϵ̂\) and a transition function \(δ̂\):
 \begin{mathpar}
-    ϵ̂: S → \Bool_B, \and
-    δ̂: S → \Bool_B × S × K,
+    ϵ̂: S → 𝒫(\Bool_B), \and
+    δ̂: S → 𝒫(\Bool_B × S × K),
 \end{mathpar}
 where \(\Bool_B\) is the free boolean algebra over \(B\) (boolean expressions modulo boolean algebra axioms); for all states \(s ∈ S\), all the booleans are ``disjoint''; namely the conjunction of any two expression from the set \(\{ϵ̂(s)\} ∪ \{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) are false. 
 We will then use \(ρ̂(s): \Bool_B\) to denote the boolean expressions that contain all the atoms that the state \(s\) rejects, and \(ρ̂(s)\) can be computed as follows:
@@ -780,7 +785,7 @@ Instead of modeling each atom individually in the automata, we group them into b
 With the above intuition in mind, a symbolic GKAT coalgebra \(Ŝ ≜ ⟨S, ϵ̂, δ̂⟩\) can be lowered into a GKAT coalgebra \(⟨S, δ⟩\) in the following manner:
 \[
 δ(s, α) ≜ \begin{cases}
-    \accept & α ≤ ϵ̂(s) \\  
+    \accept & ∃ b ∈ ϵ̂(s), α ≤ b \\  
     (s', p) & ∃ b ∈ \Bool_B, α ≤ b \text{ and } δ(s, b) = (s', p) \\  
     \reject & \text{otherwise}
 \end{cases}
@@ -802,7 +807,7 @@ We can then migrate the normalized bisimulation algorithm to the symbolic settin
 \begin{theorem}[Symbolic Inductive Construction]\label{thm:symb-inductive-construction}
     Given two symbolic GKAT coalgebra \(Ŝ = ⟨S, ϵ̂_S, δ̂_S⟩\) and \(T̂ = ⟨T, ϵ̂_T, δ̂_T⟩\) and two states \(s ∈ S\) and \(t ∈ T\), there exists a normalized bisimulation on the lowered coalgebra \({∼} ⊆ S × T\) s.t. \(s ∼ t\) if and only if all the following holds:
     \begin{itemize}
-        \item \(ϵ̂_S(s) ≡ ϵ̂_T(t)\);
+        \item \(⋁ ϵ̂_S(s) ≡ ⋁ ϵ̂_T(t)\);
         \item for all \((b, s', p) ∈ δ̂_S(s)\) and \((c, t', q) ∈ δ̂_T(t)\), if \(b ∧ c ≢ 0\) and \(p = q\) then here exists a normalized bisimulation \({∼_{s',t'}} ⊆ S × T\) s.t. \(s' ∼_{s',t'} t'\);
         \item for all \((b, s', p) ∈ δ̂_S(s)\) and \((c, t', q) ∈ δ̂_T(t)\), if \(b ∧ c ≢ 0\) and \(p ≠ q\) then both \(s'\) and \(t'\) is dead;  
         \item for all \((b, s', p) ∈ δ̂_S(s)\) and \(c ∈ ρ̂_T(t)\), if \(b ∧ c ≢ 0\), then \(s'\) is dead;
@@ -829,14 +834,14 @@ Then for the algorithm, we can just recursively check all the conditions in~\cre
             \\\vspace{5px}
             \(\qquad
             \begin{aligned}
-                & ϵ̂_S(s) ≡ ϵ̂_T(t) \mathrel{\&\!\&} \\  
+                & ⋁ ϵ̂_S(s) ≡ ⋁ ϵ̂_T(t) \mathrel{\&\!\&} \\  
                 & \forall (b, s', p) ∈ δ̂_S(s), (c, t', q) ∈ δ̂_T(t), (b ∧ c) ≢ ⊥ ⟹ 
                 \begin{cases}
                     \text{\Call{IsDead$_S$}{$s$}} ∧ \text{\Call{IsDead$_T$}{$t$}} & \text{if \(p ≠ q\)} \\
                     \text{\Call{Union}{$s$, $t$}}; \text{\Call{Equiv}{$s', t'$}} & \text{if \(p = q\)}
                 \end{cases} \mathrel{\&\!\&}\\
                 & \forall (b, s', p) ∈ δ̂_S(s), c ∈ ρ̂_T(t), (b ∧ c) ≢ ⊥ ⟹ \text{\Call{IsDead$_S$}{$s'$}} \mathrel{\&\!\&}\\
-                & \forall b ∈ ρ̂_S(s), (c, t', q) ∈ ρ̂_T(t), (b ∧ c) ≢ ⊥ ⟹ \text{\Call{IsDead$_T$}{$t'$}}
+                & \forall b ∈ ρ̂_S(s), (c, t', q) ∈ δ̂_T(t), (b ∧ c) ≢ ⊥ ⟹ \text{\Call{IsDead$_T$}{$t'$}}
             \end{aligned}\)
         }
         \EndIf
@@ -853,26 +858,544 @@ Notice just like the non-symbolic case, this algorithm can be modified to perfor
 We will go through two ways of constructing symbolic GKAT automata, one is Thompson's construction, the other is derivative.
 However, in order to exhibit the relation between these two construction, specifically, the derivative construction always produces a smaller automaton than the Thompson's construction, we opt to use to produce "weak" symbolic GKAT automata: symbolic GKAT automata where the transition no longer need to perform an action.
 
-\subsection{Weak Symbolic GKAT Automata And Tightening}
+\subsection{Weak Symbolic GKAT Automata, Star System, and Tightening}
 
 Weak Symbolic GKAT automata is a symbolic GKAT automata that allow internal transitions via a boolean expression:
 \[⟨S, 
-ϵ̂: S → \Bool, 
-δ̂: S → (\Bool × S) + (\Bool × S × K)⟩.\]
+ϵ̂: S → 𝒫(\Bool), 
+δ̂: S → 𝒫(\Bool × S + \Bool × S × K)⟩.\]
 We also require the deterministic criteria, all the boolean transitions of \(s\), i.e. all the boolean expressions in the following set:
-\[\{ϵ̂(s)\} ∪ 
+\[ϵ̂(s) ∪ 
 \{b ∣ ∃ s' ∈ S, (b, s') ∈ δ̂(s)\} ∪ 
 \{b ∣ ∃ s' ∈ S, p ∈ K, (b, s', p) ∈ δ̂(s)\},\]
 are disjoint.
-Notice that our notion of 
+To ease the notation, in a symbolic coalgebra \(Ŝ\) we will write 
+\begin{itemize}[nosep]
+    \item \(s \transAcc{S}{b}\) to mean that \(b ∈ ϵ̂(s)\).
+    \item \(s \transvia{b}_{Ŝ} s'\) to mean that \((b, s') ∈ δ̂(s)\);  
+    \item and \(s \transvia{b ∣ p}_{Ŝ} s'\) to mean that \((b, s', p) ∈ δ̂(s)\).
+\end{itemize}
+We will call transitions (to states) that do not emit actions \emph{unproductive}, and similarly, ones that emit actions will be named \emph{productive}.
+Specifically, transitions of the form \(s \transvia{b}_{Ŝ} s'\) are unproductive, and \(s \transvia{b ∣ p}_{Ŝ} s'\) represents productive transitions.
+Notice that our notion of empty transitions are different from previous work~\cite{silva_CoalgebraicViewETransitions_2013a,bonchi_KillingEpsilonsDagger_2015a,sokolova_WeakBisimulationActionType_2005}, the empty transitions, i.e. \(δ̂(s) ∈ \Bool × S\), although do not execute any action, but will require a boolean formula to transition.
+Furthermore, the boolean formula has a natural meet semi-lattice structure given by the logical and operator.
+In this section, we will design a specific ``unproductive transition removal'' procedure.
+
+% \begin{definition}[Star Systems]
+%     Given a weak symbolic GKAT coalgebra \(Ŝ ≜ ⟨S, ϵ̂, δ̂⟩\) a star system \(Ŝ^* ≜ ⟨S, ϵ̂^*, δ̂^*⟩\) is a system that contains exactly the transitions generated by the following rules:
+%     \begin{mathpar}
+%         \inferrule[Acc]
+%         {s \transAcc{Ŝ}{b}}
+%         {s \transAcc{Ŝ^*}{b}}
+%         \and
+%         \inferrule[StarAcc]
+%         {s₁ \transvia{b}_{Ŝ} s₂ \\ s₂ \transAcc{Ŝ^*}{c}}
+%         {s₁ \transAcc{Ŝ^*}{b ∧ c}}
+%         \and
+%         \inferrule[Unprod]
+%         {s₁ \transvia{b}_{Ŝ} s₂}
+%         {s₁ \transvia{b}_{Ŝ^*} s₂}
+%         \and 
+%         \inferrule[StarUnprod]
+%         {s₁ \transvia{b}_{Ŝ} s₂ \\ s₂ \transvia{d}_{Ŝ^*} s₃}
+%         {s₁ \transvia{b ∧ d}_{Ŝ^*} s₂}
+%         \and 
+%         \inferrule[Prod]
+%         {s₁ \transvia{b ∣ p}_{Ŝ} s₂}
+%         {s₁ \transvia{b ∣ p}_{Ŝ^*} s₂}
+%         \and 
+%         \inferrule[StarProd]
+%         {s₁ \transvia{b}_{Ŝ} s₂ \\ s₂ \transvia{c ∣ p}_{Ŝ^*} s₃}
+%         {s₁ \transvia{b ∧ c ∣ p}_{Ŝ^*} s₂}
+%     \end{mathpar}
+
+%     The objects in \emph{the category of star system} are weak symbolic GKAT coalgebra and the morphisms are homomorphisms between star systems.
+% \end{definition}
+
+% Intuitively, star systems contain \emph{all} the possible transitions both productive and unproductive from a state, until an action is reached.
+% Notice that a star system will not necessarily be a weak symbolic GKAT coalgebra, because it will no longer be deterministic.
+% One exception is symbolic GKAT coalgebra, i.e.also weak symbolic systems that doesn't have unproductive transitions, where their star system will just be themselves, because only the \textsc{Acc} and \textsc{Prod} rules can be applied.
+% Hence the homomorphisms between symbolic GKAT coalgebra in the category of star systems are exactly the standard coalgebra homomorphism of symbolic GKAT coalgebra.
+
+% \begin{theorem}[Universal Property]
+%     Take two  GKAT coalgebra \(Ŝ\) and \(Û\), then 
+% \end{theorem}
+
+% \begin{proof}
+%     Assume \(s \transAcc{Ŝ^*}{b}\), then 
+% \end{proof}
+
+% \begin{definition}[Tightening]
+%     For a weak symbolic GKAT coalgebra \(Ŝ\), its tightening \(Ŝ\!↓\) is \(Ŝ^*\) with all the unproductive transitions removed. Formally let \(Ŝ^* ≜ ⟨S, ϵ̂^*, δ̂^*⟩\), then \(Ŝ\!↓ ≜ ⟨S, ϵ̂\!↓, δ̂\!↓⟩\) is defined as follows:
+%     \begin{mathpar}
+%         ϵ̂\!↓(s) ≜ ϵ̂^*(s) \and
+%         δ̂\!↓(s) ≜ \{(b, s', p) ∣ (b, s', p) ∈ δ̂^*(s)\} 
+%     \end{mathpar}
+% \end{definition}
+
+% \begin{example}
+    
+% \end{example}
+
+% \begin{lemma}
+%     The tightening \(Ŝ\!↓\) of \(Ŝ\) contains exactly the transitions formed by appling \textsc{Acc}, \textsc{StarAcc}, \textsc{Prod}, and \textsc{StarProd} rules to transitions of \(Ŝ\).
+% \end{lemma}
+
+% \begin{proof}
+%     First all the transitions formed by the four rules will not contain non-productive transition, thus will be contained in the tightening. 
+
+%     Second, consider the derivation tree for a productive transition in \(Ŝ^*\) like \(s₁ \transvia{b ∣ p}_{Ŝ^*} s₂\), the \textsc{Unprod} and \textsc{StarUnprod} cannot be the last derivation, since they do not produce a productive transition; and their result cannot be used by any other rules. Thus, \textsc{Unprod} and \textsc{StarUnprod} rule cannot be applied to derive a productive transition.
+
+%     Hence, all the transitions of \(Ŝ^*\), i.e. all the productive transitions of \(Ŝ^*\), are generated exactly by \textsc{Acc}, \textsc{StarAcc}, \textsc{Prod}, and \textsc{StarProd} rules.
+% \end{proof}
+
+% \begin{theorem}
+%     For any weak symbolic GKAT coalgebra \(Ŝ\), its tightening \(Ŝ\!↓\) is a symbolic GKAT coalgebra.
+% \end{theorem}
+
+% \begin{proof}
+%     By definition, the tightened system \(Ŝ\!↓\) only contains productive transition. Thus, we only need to verify the disjointness condition. 
+
+
+% \end{proof}
+
+% We define the \emph{category of star systems} where the objects are weak symbolic GKAT coalgebras, and the homomorphisms between them are standard coalgebra homomorphism between their star systems.
+
+% \begin{theorem}[Universal Property]\label{thm:tight-universal-prop}
+%     For all weak symbolic GKAT coalgebra \(Ŝ\), and symbolic GKAT coalgebra \(Û\!↓\), following universal property holds in the category of star system:
+%     \[
+%     \begin{tikzcd}[sep=1.25cm]
+%         Û\!↓ \ar[dashed,swap]{d}{f} \ar{dr}{f}& \\  
+%         Ŝ\!↓ \ar[swap]{r}{γ_{Ŝ}} & Ŝ
+%     \end{tikzcd}
+%     \]
+%     where \(γ_{Ŝ}\) maps each state in \(Ŝ\) to itself.
+% \end{theorem}
+
+% \begin{proof}
+%     We will need to prove three items: first \(γ_{Ŝ}\) is a star system homomorphism, then \(h\) exists and is unique.
+
+%     By definition, tightening contains all the productive and accepting transitions of the star system,
+%     therefore if \(s \transAcc{Ŝ\!↓}{b}\) then \(s \transAcc{Ŝ^*}{b}\);
+%     similarly, \(s₁ \transvia{b ∣ p}_{Ŝ\!↓} s₂\) implies \(s₁ \transvia{b ∣ p}_{Ŝ^*} s₂\).
+%     Thus, \(γ_{Ŝ}\), which maps each state to itself, is a coalgebra homomorphism the star systems.
+
+%     Because \(γ_{Ŝ}\) maps every state to itself, thus \(f\) is the unique function that can make the diagram commute. 
+%     We just need to verify that \(f: Û\!↓ → Ŝ\!↓\) satisfy the rules of a star-system homomorphism.
+%     \begin{align*}
+%         & u₁ \transAcc{Û\!↓}{b} 
+%         ⟹ u₁ \transAcc{Û^*}{b} 
+%         ⟹ f(u₁) \transAcc{Ŝ^*}{b}
+%         ⟹ f(u₁) \transAcc{Ŝ\!↓}{b} \\   
+%         & u₁ \transvia{b ∣ p}_{Û\!↓} u₂
+%         ⟹ u₁ \transvia{b ∣ p}_{Û^*} u₂
+%         ⟹ f(u₁) \transvia{b ∣ p}_{Ŝ^*} u₂
+%         ⟹ f(u₁) \transvia{b ∣ p}_{Ŝ\!↓} u₂
+%     \end{align*}
+% \end{proof}
+
+% Finally, because the star system of a symbolic GKAT coalgebra is just itself, then the coalgebra homomorphisms between them are all symbolic GKAT coalgebra homomorphisms, therefore we obtain the following adjunction theorem.
+
+% \begin{corollary}
+%     The tightening \((-)\!↓\) is a functor and is right adjoint to the embedding from symbolic GKAT coalgebra to star systems.
+% \end{corollary}
+
+% \begin{proof}
+%     This is mostly a standard result of category theory, but for the sake of completeness, we will recreate the result.
+%     Given a weak symbolic GKAT coalgebra homomorphism \(f: Û → Ŝ\), it is also a homomorphism of their star systems by definition, then \(f\!↓: Û\!↓ → Ŝ\!↓\) is the unique arrow that satisfy the following diagram:
+%     \[
+%     \begin{tikzcd}[sep=1cm]
+%         Û\!↓ \ar{r}{γ_U} \ar[dashed,swap]{d}{f\!↓} & Û \ar{d}{f}\\  
+%         Ŝ\!↓ \ar{r}{γ_S} & Ŝ 
+%     \end{tikzcd}
+%     \]
+%     Because both \(γ_U\) and \(γ_S\) maps states to itself, therefore \(f\!↓\) is necessarily point-wise equal to \(f\); and the preservation of identity and composition can be verified by the universal property.
+%     Finally, the adjunction is a concequence of~\Cref{thm:tight-universal-prop}.
+% \end{proof}
+
+% The functoriality of tightening is particularly important as it not only means all the homomorphism between the weak coalgebra is also a homomorphism between their tightened version, but also means that it will preserve injectivity and surjectivity as these maps are functions between set. 
+% In the next section, we will prove the derivatives are more ``efficient'' than Thomposon's construction by proving there exists a surjective homomorphism from the automata created by derivarives to the automata created by Thompson's construction.
+% Such a homomorphism will also be a witness of the bisimularity of the derivatives and Thompson's construction, aiding us in the proof of correctness.
+
+\begin{figure*}
+    \begin{mathpar}
+        \inferrule[Acc]
+        {s₁ \transAcc{Ŝ}{b}}
+        {s₁ \transAcc{Ŝ↓}{b}}
+        \and
+        \inferrule[TightenAcc]
+        {s₁ \transvia{b}_{Ŝ} s₂ \\ s₂ \transAcc{Ŝ↓}{c}}
+        {s₁ s₂ \transAcc{Ŝ↓}{b ∧ c}}
+        \and
+        \inferrule[Trans]
+        {s₁ \transvia{b ∣ p}_{Ŝ} s₂}
+        {s₁ \transvia{b ∣ p}_{Ŝ↓} s₂}
+        \and
+        \inferrule[TightenTrans]
+        {s₁ \transvia{b}_{Ŝ} s₂ \\ s₂ \transvia{c ∣ p}_{Ŝ↓} s₃}
+        {s₁ \transvia{b ∧ c ∣ p}_{Ŝ↓} s₃}
+    \end{mathpar}
+    \caption{Tightening Rules}\label{fig:tightening-rules}
+\end{figure*}
+
+\begin{definition}
+    Given a weak symbolic GKAT coalgebra \(Ŝ ≜ ⟨S, ϵ̂, δ̂⟩\), its tightening \(Ŝ\!↓ ≜ ⟨S, ϵ̂\!↓, δ̂\!↓⟩\) is a symbolic GKAT coalgebra s.t. \(ϵ̂\!↓\) and \(δ̂\!↓\) are the point-wise least (ordered by set inclusion) function that satisfy the rules in~\cref{fig:tightening-rules} for all \(s₁, s₂, s₃ ∈ S\),
+\end{definition}
+
+In particular, infinite loop of unproductive transition will be resolved to rejection, by the definition above.
+\begin{example}
+    
+\end{example}
+
+One of the helpful observation is that tightening is a functor from the category of weak symbolic GKAT coalgebra into the category of symbolic GKAT colagebra.
+The functoriality us to establish isomorphism on the weak case and automatically transfer it to symbolic GKAT coalgebra.
+
+\begin{theorem}[Functoriality]\label{thm:tight-functor-induction}
+    Given two weak symbolic GKAT coalgebra \(Ŝ, T̂\) and a homomorphism between them \(h: Ŝ → T̂\), then \(h\) is also a homomorphism on the tightening \(h: Ŝ\!↓ → T̂\!↓\).
+\end{theorem}
+
+\begin{proof}
+    We will need to show that \(h\) preserves both \(ϵ̂\) and \(δ̂\!↓\). 
+    Since the tightening do not change \(ϵ̂\), thus the perseverance of \(ϵ̂\) is trivial.
+    Then \(h\) preserves \(δ̂\!↓\) can be shown in two case: consider a transition \(s \transvia{b ∣ p}_{Ŝ\!↓} s'\),
+    then there exists a path from \(s\) to \(s'\) in \(Ŝ\) which produced this transition.
+    Thus, we can prove the perseverance by induction on the length of the path.
+\end{proof}
+
+
+% \subsection{An Aside, The Categorical Structure of Tightening}
+
+% In this section we will explore the categorical structure of tightening, where we will show the categorical structure of tightening. 
+% In particular, we will not only show that \((-)\!↓\) is a functor, but a right adjoint in the appropriate category, without using induction on path as in~\cref{thm:tight-functor-induction}.
+% To exhibit the connection between tightened coalgebra and the weak coalgebra, we will need a weaker version of homomorphism. 
+% However, before that, we will need to define an alternative way to manipulate weak symbolic colagebra
+
+% \begin{definition}[Star Systems]
+%     Given a weak symbolic GKAT coalgebra \(Ŝ ≜ ⟨S, ϵ̂, δ̂⟩\) a star system \(Ŝ^* ≜ ⟨S, ϵ̂^*, δ̂^*⟩\) is a system that contains exactly the transitions generated by the following rules:
+%     \begin{mathpar}
+%         \inferrule[Acc]
+%         {s \transAcc{Ŝ}{b}}
+%         {s \transAcc{Ŝ^*}{b}}
+%         \and
+%         \inferrule[StarAcc]
+%         {s₁ \transvia{b}_{Ŝ} s₂ \\ s₂ \transAcc{Ŝ^*}{b}}
+%         {s₁ \transAcc{Ŝ^*}{b}}
+%         \and
+%         \inferrule[Unprod]
+%         {s₁ \transvia{b}_{Ŝ} s₂}
+%         {s₁ \transvia{b}_{Ŝ^*} s₂}
+%         \and 
+%         \inferrule[StarUnprod]
+%         {s₁ \transvia{b}_{Ŝ} s₂ \\ s₂ \transvia{d}_{Ŝ^*} s₃}
+%         {s₁ \transvia{b ∧ d}_{Ŝ^*} s₂}
+%         \and 
+%         \inferrule[Prod]
+%         {s₁ \transvia{b ∣ p}_{Ŝ} s₂}
+%         {s₁ \transvia{b ∣ p}_{Ŝ^*} s₂}
+%         \and 
+%         \inferrule[StarProd]
+%         {s₁ \transvia{b}_{Ŝ} s₂ \\ s₂ \transvia{c ∣ p}_{Ŝ^*} s₃}
+%         {s₁ \transvia{b ∧ c ∣ p}_{Ŝ^*} s₂}
+%     \end{mathpar}
+% \end{definition}
+
+% Intuitively, star systems contain \emph{all} the possible transitions both productive and unproductive from a state, until an action is reached.
+% Notice that a star system will not necessarily be a weak symbolic GKAT coalgebra, because it will no longer be deterministic.
+% One exception to these are symbolic GKAT coalgebra, i.e. weak symbolic systems that doesn't have unproductive transitions, where their star system will just be themselves, because only the \textsc{Acc} and \textsc{Prod} rules can be applied.
+% Hence the homomorphisms between symbolic GKAT coalgebra in the category of star systems are exactly the standard coalgebra homomorphism of symbolic GKAT coalgebra
+
+% We define the \emph{category of star systems} where the objects are weak symbolic GKAT coalgebras, and the homomorphisms between them are standard coalgebra homomorphism between their star systems.
+
+% \begin{example}
+%     some example about \(γ_{Ŝ}\)
+% \end{example}
+
+% \begin{theorem}[Universal Property]
+%     For all weak symbolic GKAT coalgebra \(Ŝ\), and symbolic GKAT coalgebra \(T̂\!↓\), following universal property holds in the category of star system:
+%     \[
+%     \begin{tikzcd}[sep=1.25cm]
+%         T̂\!↓ \ar[dashed,swap]{d}{f} \ar{dr}{f}& \\  
+%         Ŝ\!↓ \ar[swap]{r}{γ_{Ŝ}} & Ŝ
+%     \end{tikzcd}
+%     \]
+%     where \(γ_{Ŝ}\) maps each state in \(Ŝ\) to itself.
+% \end{theorem}
+
+% \begin{proof}
+%     We will need to prove three items: first \(γ_{Ŝ}\) is a star system homomorphism, then \(h\) exists and is unique.
+
+%     Notice that every the proof rules of tightening is also a proof rule for star system. 
+%     Therefore, if \(s \transAcc{Ŝ\!↓}{b}\) can be derived using the rules of tightening, the same trasition can also be derived using the proof rules of the star system.
+%     In other word, \(s \transAcc{Ŝ\!↓}{b}\) implies \(s \transAcc{Ŝ^*}{b}\).
+%     Similarly \(s₁ \transvia{b ∣ p}_{Ŝ\!↓} s₂\) implies \(s₁ \transvia{b ∣ p}_{Ŝ^*} s₂\).
+%     Thus, \(γ_{Ŝ}\), which maps each state to itself, is a morphism in the category of star systems.
+
+%     Because \(γ_{Ŝ}\) maps every state to itself, thus \(f\) is the unique function that can make the diagram commute. 
+%     We just need to verify that \(f\) indeed is a star-system homomorphism.
+
+
+% \end{proof}
+
+% \begin{corollary}
+%     The tightening \((-)\!↓\) is a functor and is right adjoint to the embedding from symbolic GKAT coalgebra to star systems.
+% \end{corollary}
+
+\subsection{Derivative, Thomposon's Construction, and Their Relation}
+
+In this section, we will demonstrate the construction of Derivative and Thompson's construction in a symbolic setting.
+In addition to the construction itself, we will show there is a surjective homomorphism from Thompson's construction to derivative.
+The existence of such surjective homomorphism, especially its lowering by functoriality of lowering, serves several purposes: first, it proves that the semantics of Thompson's construction and derivatives coincides, allowing us to only prove correctness for one of the semantics, instead of both;  
+second, it shows that derivative construction produces a smaller automaton than Thompson's construction; finally, it allow us to establish the finiteness of derivatives with the finiteness of Thompson's construction.
+
+However, instead of the usual Derivative and Thomposon's construction, we will construct their weak version, i.e. with unproductive transitions.
+This approach offers a unique advantage, that is the state of the derivatives from an expression \(e\) will all be structurally related to \(e\). 
+Specifically, they will be sub-expressions of \(e\) except the while loop case.
+This structural rigidity allows us to establish a connection between Derivative and Thompson's construction, then propagate this connection down to symbolic GKAT coalgebra and GKAT coalgebra using the functoriality of tightening and lowering.
+
+The coalgebra generated by derivatives is denoted as \(D\), and its states are expressions, with the transitions in \cref{fig:weak-derivarives}.
+\begin{figure*}
+    \begin{mathpar}
+        p \transvia{1 ∣ p}_D 1
+        \and  
+        b \transAcc{D}{b}
+        \and  
+        e +_b f \transvia{b}_D e
+        \and
+        e +_b f \transvia{\overline{b}}_D f
+        \and
+        \inferrule[]
+        {e \transvia{b}_D e'}
+        {e; f \transvia{b}_D e'; f}
+        \and
+        \inferrule[]
+        {e \transvia{b ∣ p}_D e'}
+        {e; f \transvia{b ∣ p}_D e'; f}
+        \and
+        \inferrule[]
+        {e \transAcc{D}{b}}
+        {e; f \transvia{b}_D f}
+        \and
+        e^{(b)} \transvia{b}_D e; e^{(b)} 
+        \and 
+        e^{(b)} \transAcc{D}{\overline{b}}
+    \end{mathpar}
+    \caption{derivative rules}\label{fig:weak-derivarives}
+\end{figure*}
+We call the principle GKAT sub-coalgebra generated by an expression \(e\), the \emph{derivative automaton of \(e\)}, and denote it \(⟨e⟩_D\).
+
+We use \((S_e, ŝ_e)\) to denote the \emph{Thompson's automaton of \(e\)}, which is a weak symbolic GKAT coalgebra \(S_e\) with a \emph{start state} \(ŝ_e ∈ S_e\).
+The Thompson's construction can be inductively defined on expressions as in~\cref{tab:weak-thompson}
+\begin{table}
+    \begin{tabular}{r||c|c|l|l}
+        Expression & State & Start & Accepts & Transitions \\
+        \hline  
+        \(p\) 
+        & \(\{ŝ, s_{acc}\}\) 
+        & \(ŝ\)
+        & \(ϵ(s) ≜ \begin{cases}
+            ∅ & s = ŝ \\  
+            \{1\} & s = s_{acc}
+        \end{cases}\) 
+        & \(δ(s) ≜ \begin{cases}
+            \{(1, s_{acc}, p)\} & s = ŝ \\  
+            ∅ & s = s_{acc}
+        \end{cases}\) \\
+        \(b\)
+        & \(\{ŝ\}\)
+        & \(ŝ\)
+        & \(ϵ(ŝ) ≜ \{b\}\)
+        & \(δ(ŝ) ≜ ∅\) \\
+        \(e +_b f\) 
+        & \(\{ŝ\} + S_e + S_f\) 
+        & \(ŝ\) 
+        & \(ϵ(s) ≜ \begin{cases}
+            ∅ & s = ŝ \\  
+            ϵ_e(s) & s ∈ S_e \\  
+            ϵ_f(s) & s ∈ S_f
+        \end{cases}\)
+        & \(δ(s) ≜ \begin{cases}
+            \{(b, ŝ_e), (\overline{b}, ŝ_f)\} & s = ŝ \\  
+            δ_e(s) & s ∈ S_e \\  
+            δ_f(s) & s ∈ S_f
+        \end{cases}\) \\
+        \(e; f\) 
+        & \(S_e + S_f\) 
+        & \(ŝ_e\)
+        & \(ϵ(s) ≜ \begin{cases}
+            ∅ & s ∈ S_e \\
+            ϵ_f(s) & s ∈ S_f
+        \end{cases}\)
+        & \(δ(s) ≜ \begin{cases}
+            \{(b, ŝ_f) ∣ b ∈ ϵ_e(s)\} ∪
+            δ_e(s) & s ∈ S_e \\
+            δ_f(s) & s ∈ S_f \\  
+        \end{cases}\)\\
+        \(e^{(b)}\) 
+        & \(\{ŝ\} + S_e\) 
+        & \(ŝ\) 
+        & \(ϵ(s) ≜ \begin{cases}
+            \{\overline{b}\} & s = ŝ \\
+            ∅ & \text{otherwise}
+        \end{cases}\)
+        & \(δ(s) ≜ \begin{cases}
+            \{(b, ŝ_e)\} & s = ŝ \\
+            \{(c, ŝ) ∣ c ∈ ϵ_e(s)\} ∪ δ_e(s) & s ≠ ŝ 
+        \end{cases}\)
+    \end{tabular}
+    \caption{rules for thompson's construction}\label{tab:weak-thompson}
+\end{table}
+
+\begin{theorem}\label{thm:hom-thompson-to-deriv}
+    For each expression \(e\), there exists a homomorphism \(h_e: S_e → D\), s.t. \(h_e(ŝ_e) = e\).
+\end{theorem}
+
+\begin{proof}
+    By induction on the structure of \(e\).
+
+    The map \(h_p\) for a primitive action \(p\) can be defined as follows,
+    \begin{mathpar}
+        h_p(ŝ) ≜ p \and h_p(s_{acc}) ≜ 1
+    \end{mathpar}
+    the required conditions, i.e. homomorphism, surjectivity, and \(h_e(ŝ_e) = e\) by unfolding the definition. 
+    Similarly, for a boolean expression \(b\), the map \(h_b\) is defined as \(h_b(ŝ) ≜ b\).
+
+    The map \(h_{e +_b f}\) is defined as follows 
+    \begin{mathpar}
+        h_{e +_b f}(ŝ) ≜ e +_b f \and  
+        h_{e +_b f}(s) ≜ h_e(s) \text{ when } s ∈ S_e \and  
+        h_{e +_b f}(s) ≜ h_f(s) \text{ when } s ∈ S_f
+    \end{mathpar}
+    Then the fact that \(h_{e +_b f}\) is a homomorphism can be verified by case analysis:
+    \begin{align*}
+        \text{when \(s = ŝ\)} 
+        &&& ϵ_{e +_b f}(ŝ) 
+        = ∅ 
+        = ϵ_D(e +_b f) = ϵ_D(h_{e +_b f}(ŝ)) \\
+        &&& δ_D(h_{e +_b f}(ŝ))
+        =  δ_D(e +_b f)
+        = \{(b, e), (\overline{b}, f)\} 
+        = \{(b, h_{e +_b f}(ŝ_e)), (\overline{b}, h_{e +_b f}(ŝ_f))\} \\  
+        \text{when \(s ∈ S_e\)} 
+        &&& ϵ_{e +_b f}(s) 
+        = ϵ_{S_e}(s)
+        = ϵ_D(h_e(s)) = ϵ_D(h_{e +_b f}(s)) \\
+        &&& δ_D(h_{e +_b f}(s))
+        =  δ_D(h_{e}(s))\\
+        &&&
+        = \{(b, h_{e}(s)) ∣ (b, s) ∈ δ_S(s)\}\\ 
+        \text{when \(s ∈ S_f\)} 
+        &&& ϵ_{e +_b f}(s) 
+        = ϵ_{S_f}(s)
+        = ϵ_D(h_f(s)) = ϵ_D(h_{e +_b f}(s)) \\  
+    \end{align*}
+\end{proof}
+
+\begin{corollary}\label{thm:deriv-subcoalgebra-thomp}
+    The coalgebra generated by the derivarives of \(e\), i.e. \(⟨e⟩_D\) is a sub-coalgebra of the image of \(h_e: S_e → D\) in~\cref{thm:hom-thompson-to-deriv}.
+\end{corollary}
+
+\begin{proof}
+    Since \(h_e\) is a coalgebra homomorphism, its imagem \(h_e(S_e)\) is a sub-coalgebra of \(D\). 
+    Because \(⟨e⟩_D\) is the smallest sub-coalgebra that contains \(D\), then \(⟨e⟩_D ⊑ h_e(S_e)\).
+\end{proof}
+
+Intuitively, \Cref{thm:deriv-subcoalgebra-thomp} means generated from derivative \(⟨e⟩_D\) will always have ``less states'' than the coalgebra generated by Thomposon's construction \(S_e\). 
+Specifically, the number of state in \(S_e\) is linear to the size of \(e\), therefore the size of the derivative \(⟨e⟩_D\) is not only finite, but also linear to the size of \(e\).
+
+\begin{theorem}
+    Given any weak symbolic GKAT coalgebra \(S\) and a state \(s ∈ S\), the \(⟨s⟩_{S\!↓}\) is a subalgebra of \((⟨s⟩_{S})\!↓\).
+\end{theorem}
+
+In particular, \(⟨e⟩_{D\!↓}\) is a sub-coalgebra of \((⟨e⟩_{D})\!↓\), which has the same number of states as \(⟨e⟩_{D}\). 
+Recall that the number of state in \(⟨e⟩_{D}\) is at most linear to the size of \(e\). Thus, the automata generated by tightened derivative \(⟨e⟩_{D↓}\) is at most linear to \(e\).
+This gives us a much better complexity bound for derivative-based decision procedure than the traditional closure techniques.
+
+\begin{figure*}
+    \begin{mathpar}
+        \inferrule[]{\\}
+        {p \transvia{1 ∣ p}_{D\!↓} 1} \and  
+        \inferrule[]{\\}
+        {b \transAcc{D\!↓}{b}} \and  
+        \inferrule[]
+        {e \transvia{c ∣ p}_{D\!↓} e'}
+        {e +_b f \transvia{b ∧ c ∣ p}_{D\!↓} e'} 
+        \and
+        \inferrule[]
+        {e \transAcc{D\!↓}{c}}
+        {e +_b f \transAcc{D\!↓}{b ∧ c}}
+        \and
+        \inferrule[]
+        {f \transvia{c ∣ p}_{D\!↓} f'}
+        {e +_b f \transvia{\overline{b} ∧ c ∣ p}_{D\!↓} f'}
+        \and
+        \inferrule[]
+        {f \transAcc{D\!↓}{c}}
+        {e +_b f \transAcc{D\!↓}{\overline{b} ∧ c}}
+        \and
+        \inferrule[]
+        {e \transAcc{D\!↓}{b} \\ f \transAcc{D\!↓}{c}}
+        {e; f \transAcc{D\!↓}{b ∧ c}}
+        \and 
+        \inferrule[]
+        {e \transvia{b ∣ p} e'}
+        {e; f \transvia{b ∣ p} e'; f}
+        \and
+        \inferrule[]
+        {e \transAcc{D\!↓}{b} \\ f \transvia{d ∣ p}_{D\!↓} f'}
+        {e; f \transvia{b ∧ d ∣ p}_{D\!↓} f'}
+        \and  
+        \inferrule[]
+        {\\}
+        {e^{(b)} \transAcc{D\!↓}{\overline{b}}}  
+        \and  
+        \inferrule[]
+        {e \transvia{b ∣ p} e'}
+        {e^{(b)} \transvia{b ∣ p}_{D\!↓} e'; e^{(b)}}
+    \end{mathpar}
+    \caption{Tightened Derivarive rules}\label{fig:tight-derivatives}
+\end{figure*}
+
+\begin{theorem}[Tightened Derivative]
+    Every transition in the tightened derivatives coalgebra \(D\!↓\) can be derived from rules in~\Cref{fig:tight-derivatives}.
+\end{theorem}
+
+\begin{proof}
+    We need to show any transition can be derivable from tightened derivative rules (\Cref{fig:tight-derivatives}) if and only if the transition is derivable from the weak derivative rules (\Cref{fig:weak-derivarives}) and tightening rule (\Cref{fig:tightening-rules}).
+    We will show this by case analysis on the type of the transtion i.e. whether \(e \transvia{b ∣ p}_{D\!↓} e'\) or \(e \transAcc{D\!↓}{b}\), and the start of the transition, which is denoted \(e\) in previous example.
+
+    Taken as an example, if the transition is an accepting transition starting with a sequencing statement, i.e. \(e; f \transAcc{D\!↓}{b}\) for some boolean expression \(e\).
+    By observing the weak derivatives rules and the tightening rules, the only rules that can reach \(e; f \transAcc{D\!↓}{b}\) is one of the tightening rules for some expression \(g\):
+    \begin{mathpar}
+        \inferrule[]
+        {e; f \transvia{b}_{D} g \\ g \transAcc{D\!↓}{c}}
+        {e; f \transAcc{D\!↓}{b ∧ c}}
+    \end{mathpar}
+    Then observe the only proof rules that can lead to condition \(e; f \transvia{b}_{D} g\) for some \(g\) are the following derivatives rules
+    \begin{mathpar}
+        \inferrule[]
+        {e \transvia{b}_D e'}
+        {e; f \transvia{b}_D e'; f}
+        \and  
+        \inferrule[]
+        {e \transAcc{D}{b}}
+        {e; f \transvia{b} f}
+    \end{mathpar}
+\end{proof}
+
+\begin{corollary}[Correctness]
+    
+\end{corollary}
+
+\begin{theorem}[Tightened Thomposon's Construction]
+    
+\end{theorem}
 
 
 
 
+\section{Future Work}
 
-
-
-
+Can weak symbolic coalgebra leads to a simpler completeness proof.
 
 
 
@@ -1983,6 +2506,5 @@ Notice that our notion of
 \newpage
 \appendix
 
-\section{diagrammatical characterization of normalized homomorphism}\label{sec:diagram-of-norm-sim}
 
 \end{document}
