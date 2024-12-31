@@ -1,10 +1,19 @@
 % Please compile this document using LuaLaTeX.
-% XeLaTeX and PDFLaTeX will not work.
+% because of the use of unicode-math
+% XeLaTeX and PDFLaTeX will result in error.
 
 \newif\iffull\fulltrue
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+%Template version as of 6/27/2024
 
-\documentclass{extarticle}
-
+% \usepackage{cite}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 %%%%% PACKAGES
 \usepackage{amsmath}
@@ -202,49 +211,58 @@
 
 \begin{document}
 
-%% Title information
-\title{One-The-Fly Decision Procedures For GKAT}         
-% \title{Incorrectness Logic and Kleene Algebra With Top and Test}         
-                                        %% [Short Title] is optional;
-                                        %% when present, will be used in
-                                        %% header instead of Full Title.
-% \titlenote{}                            %% \titlenote is optional;
-                                        %% can be repeated if necessary;
-                                        %% contents suppressed with 'anonymous'
-%% \subtitle is optional                     
- 
-% \subtitlenote{with subtitle note}       %% \subtitlenote is optional;
-%                                         %% can be repeated if necessary;
-%                                         %% contents suppressed with 'anonymous'
-
-
-%% Author information
-%% Contents and number of authors suppressed with 'anonymous'.
-%% Each author should be introduced by \author, followed by
-%% \authornote (optional), \orcid (optional), \affiliation, and
-%% \email.
-%% An author may have multiple affiliations and/or emails; repeat the
-%% appropriate command.
-%% Many elements are not rendered, but should be provided for metadata
-%% extraction tools.
-\author{
-    Cheng Zhang \and 
-    Qiancheng Fu \and
-    Hang Ji \and 
-    Ines Santacruz \and 
-    Marco Gaboardi
+\title{Symbolic On-the-fly Algorithms for GKAT Equivalences
+\thanks{Identify applicable funding agency here. If none, delete this.}
 }
-\date{}
 
-% In non-ACM format \maketitle needs to happen before abstract
+\author{\IEEEauthorblockN{1\textsuperscript{st} Given Name Surname}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+\textit{name of organization (of Aff.)}\\
+City, Country \\
+email address or ORCID}
+\and
+\IEEEauthorblockN{2\textsuperscript{nd} Given Name Surname}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+\textit{name of organization (of Aff.)}\\
+City, Country \\
+email address or ORCID}
+\and
+\IEEEauthorblockN{3\textsuperscript{rd} Given Name Surname}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+\textit{name of organization (of Aff.)}\\
+City, Country \\
+email address or ORCID}
+\and
+\IEEEauthorblockN{4\textsuperscript{th} Given Name Surname}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+\textit{name of organization (of Aff.)}\\
+City, Country \\
+email address or ORCID}
+\and
+\IEEEauthorblockN{5\textsuperscript{th} Given Name Surname}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+\textit{name of organization (of Aff.)}\\
+City, Country \\
+email address or ORCID}
+\and
+\IEEEauthorblockN{6\textsuperscript{th} Given Name Surname}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+\textit{name of organization (of Aff.)}\\
+City, Country \\
+email address or ORCID}
+}
+
 \maketitle
 
-
-%% Abstract
-%% Note: \begin{abstract}...\end{abstract} environment must come
-%% before \maketitle command
 \begin{abstract}
+This document is a model and instructions for \LaTeX.
+This and the IEEEtran.cls file define the components of your paper [title, text, heads, etc.]. *CRITICAL: Do Not Use Symbols, Special Characters, Footnotes, 
+or Math in Paper Title or Abstract.
 \end{abstract}
+
+\begin{IEEEkeywords}
+component, formatting, style, styling, insert.
+\end{IEEEkeywords}
 
 TODO: change all the \(e_b\) to \(b\).
 
@@ -300,7 +318,7 @@ Principle sub-coalgebra always exists, because sub-coalgebra of any coalgebra fo
 And similar to sub-coalgebra, principle sub-coalgebra is also preserved under homomorphic image:
 \begin{theorem}\label{thm:homo-img-preserve-principle-sub-coalg}
     Homomorphic image preserves principle sub-GKAT coalgebra. Specifically, given a homomorphism \(h: S → T\):
-    \[h(⟨S⟩_S) = ⟨h(s)⟩_T\]
+    \[h(⟨s⟩_S) = ⟨h(s)⟩_T\]
 \end{theorem}
 
 \begin{proof}
@@ -829,8 +847,8 @@ We can then migrate the normalized bisimulation algorithm to the symbolic settin
 
 Then for the algorithm, we can just recursively check all the conditions in~\cref{thm:symb-inductive-construction}.
 
-\begin{algorithm}
-    \caption{On-the-fly bisimulation algorithm}\label{alg:bisim}
+\begin{algorithm*}
+    \caption{On-the-fly bisimulation algorithm}\label{alg:symb-bisim}
     \begin{algorithmic}
         \Function{equiv}{$s ∈ S, t ∈ T$}
         \If {\Call{eq}{$s, t$}} {\Return true}
@@ -855,7 +873,7 @@ Then for the algorithm, we can just recursively check all the conditions in~\cre
         \EndIf
         \EndFunction
     \end{algorithmic}
-\end{algorithm}
+\end{algorithm*}
 
 Inspired by the syntax of Ocaml, the \(\mathrel{\&\!\&}\) is the logical-and operator on the language level, specifying that all four conditions in the return statements must be satisfied to return true. 
 Notice just like the non-symbolic case, this algorithm can be modified to perform symbolic bisimulation of (non-normalized) GKAT automaton, which coincides with infinite trace equivalence~\cite{schmid_GuardedKleeneAlgebra_2021}, by letting \textsc{IsDead} always return false and keep deadStates empty.
@@ -1226,26 +1244,36 @@ Turns out all of these questions can be answered by a connection by a homomorphi
     \end{align*}
 \end{proof}
 
+\Cref{thm:hom-thompson-derivative} have several consequences, one of the more obvious one is that we can use the functoriality of the lowering operation to show the semantic equivalence of the start state in the thompson's construction and the expression in derivative. 
 
+\begin{corollary}[Correctness]
+    Given any expression \(e\) and its Thompson's coalgebra \(Ŝ_{e}\) with a start state \(s^* ∈ Ŝ_{e}\), then the semantics of the start state is equivalent to the semantics of \(e\): \(⟦s^*⟧_{Ŝ_{e}} = ⟦e⟧.\)
+\end{corollary}
 
-% However, when considering designing a practical algorithm, we not just cares about the correctness of the derivative construction, we are also interested in the size of the generated automata. 
-% Specifically, we are interested in all the reachable states (or expressions) from any expression \(e\), which is exactly the principle sub-coalgebra \(⟨e⟩_{D̂}\).
+A not so obvious consequence of the homomorphism in~\Cref{thm:hom-thompson-derivative}, is the complexity of the algorithm based on derivatives.
+Our bisimulation algorithm (\Cref{alg:symb-bisim}) only explores the principle sub-coalgebra of the start state, i.e. \(s^*\) in the Thompson's construction \(Ŝ_{e}\) or \(e\) in the derivative \(D̂\); thus, deducing an upper bound on the size of the principle sub-coalgebras \(⟨s^*⟩_{Ŝ_{e}}\) and \(⟨e⟩_{D̂}\) are crucial to our complexity analysis.
+An upper bound on \(⟨s^*⟩_{Ŝ_{e}}\) is easy to obtain, as the size of \(Ŝ_{e}\), which subsumes the states of \(⟨s^*⟩_{Ŝ_{e}}\), is linear to the size of expression \(e\); therefore \(⟨s^*⟩_{Ŝ_{e}}\) is at most linear to the size of the expression \(e\).
+On the other hand the size of \(⟨e⟩_{D̂}\) can, again, be derived from the homomorphism in~\cref{thm:hom-thompson-derivative}.
 
-% \begin{theorem}[Complexity]
-%     The number of state in the principle sub-coalgebra \(⟨e⟩_{D̂}\) is linear to the number of primitive actions in \(e\).
-% \end{theorem}
+\begin{corollary}\label{thm:suj-hom-thompson-derivative}
+    There exists a surjective homomorphism \(h': ⟨s^*⟩_{Ŝ_{e}} → ⟨e⟩_{D̂}\). 
+    Because the size of \(⟨s^*⟩_{Ŝ_{e}}\) is linear to \(e\), the size of \(⟨e⟩_{D̂}\) is at most linear to the size of expression \(e\).
+\end{corollary}
 
-% \begin{proof}
-%     To prove this, we prove the following two theorem:
+\begin{proof}
+    We define \(h'\) to be point-wise equal to \(h\), i.e. \(h'(s) ≜ h(s)\). 
+    Then we need to show that \(h'\) is well-defined ans surjective, which is a consequence of homomorphic image preserves principle sub-coalgebra (\Cref{thm:homo-img-preserve-principle-sub-coalg}): \(h(⟨s^*⟩_{Ŝ_{e}}) = ⟨h(s)⟩_{D̂} = ⟨e⟩_{D̂}.\)
+    In other words, the image of \(h\) on \(⟨s^*⟩_{Ŝ_{e}}\) is equal to \(⟨e⟩_{D̂}\); thus, because \(h'\) is point-wise equal to \(h\) and is defined on \(⟨s^*⟩_{Ŝ_{e}}\), the range of \(h'\) contains its codomain \(⟨e⟩_{D̂}\), showing that \(h'\) is surjective.
+\end{proof}
 
-% \end{proof}
-
+An important consequence of~\cref{thm:suj-hom-thompson-derivative} is that \(⟨s^*⟩_{Ŝ_{e}}\) will have no less state than \(⟨e⟩_{D̂}\).
+However, it is important to notice that this does not mean running bisimulation algorithm on 
 
 \section{Implementation}
 
 \subsection{Optimization}\label{sec:optimization-implementation}
 
-\subsection{Performance}
+\subsection{Performance}\label{sec:performance-implementation}
 
 
 \section{Future Work}
