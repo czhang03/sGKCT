@@ -215,44 +215,41 @@
 \thanks{Identify applicable funding agency here. If none, delete this.}
 }
 
-\author{\IEEEauthorblockN{1\textsuperscript{st} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
+\author{\IEEEauthorblockN{Cheng Zhang\textsuperscript{\textsection}}
+\IEEEauthorblockA{\textit{Department of Computer Science} \\
+\textit{University College London}\\
+London, United Kingdom \\
+0000-0002-8197-6181}
+\and
+\IEEEauthorblockN{Qiancheng Fu}
+\IEEEauthorblockA{\textit{Department of Computer Science} \\
+\textit{Boston University}\\
+Boston, USA \\
 email address or ORCID}
 \and
-\IEEEauthorblockN{2\textsuperscript{nd} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
+\IEEEauthorblockN{Hang Ji}
+\IEEEauthorblockA{\textit{Department of Computer Science} \\
+\textit{Boston University}\\
+Boston, USA \\
 email address or ORCID}
 \and
-\IEEEauthorblockN{3\textsuperscript{rd} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
+\IEEEauthorblockN{Ines Santacruz}
+\IEEEauthorblockA{\textit{Department of Computer Science} \\
+\textit{Boston University}\\
+Boston, USA \\
 email address or ORCID}
 \and
-\IEEEauthorblockN{4\textsuperscript{th} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{5\textsuperscript{th} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{6\textsuperscript{th} Given Name Surname}
-\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
-\textit{name of organization (of Aff.)}\\
-City, Country \\
+\IEEEauthorblockN{Marco Gaboardi}
+\IEEEauthorblockA{\textit{Department of Computer Science} \\
+\textit{Boston University}\\
+Boston, USA \\
 email address or ORCID}
 }
 
 \maketitle
+\begingroup\renewcommand\thefootnote{\textsection}
+\footnotetext{Work largely performed at Boston University}
+\endgroup
 
 \begin{abstract}
 This document is a model and instructions for \LaTeX.
@@ -263,8 +260,6 @@ or Math in Paper Title or Abstract.
 \begin{IEEEkeywords}
 component, formatting, style, styling, insert.
 \end{IEEEkeywords}
-
-TODO: change all the \(e_b\) to \(b\).
 
 
 
@@ -283,79 +278,85 @@ For bifunctors like \((-) × (-)\), we will write function lifting by applying t
 
 \subsection{Concepts in Universal Coalgebra}
 
-Our notion of normalized bisimulation is inherently coalgebraic, thus it is empirical for us to recall some notions and theorems in coalgebra.
-Given a functor \(F\) on the category of set and functions, a \emph{coalgebra over \(F\)} or \emph{\(F\)-coalgebra} consists of a set \(S\) and a function \(δ_S: S → F(S)\).
-We typically call \(F\) the \emph{signature} of the coalgebra, \(S\) the states of the coalgebra, and \(δ_S\) the transition function of the coalgebra.
+In this paper, we will make heavy use of coalgebraic theory, thus it is empirical for us to recall some notions and useful theorems in universal coalgebra.
+Given a functor \(F\) on the category of set and functions, a \emph{coalgebra over \(F\)} or \emph{\(F\)-coalgebra} consists of a set \(S\) and a function \(σ_S: S → F(S)\).
+We typically call elements in \(S\) the \emph{states} of the coalgebra, and \(σ_S(s)\) the \emph{dynamic} of state \(s\).
 We will sometimes use the states \(S\) to denote the coalgebra, when no ambiguity can arise. 
 
-A homomorphism between two \(F\)-coalgebra \(S\) and \(T\) is a map \(h: S → T\) that preserves the transition function; diagrammatical, the following diagram commutes:
+A homomorphism between two \(F\)-coalgebra \(S\) and \(U\) is a map \(h: S → U\) that preserves the function \(σ\); diagrammatically, the following diagram commutes:
 \[
     \begin{tikzcd}
-        S \ar{r}{h} \ar[swap]{d}{δ_S} & T \ar{d}{δ_T} \\  
-        F(S) \ar{r}{F(h)} & F(T)
+        S \ar{r}{h} \ar[swap]{d}{σ_S} & U \ar{d}{σ_U} \\  
+        F(S) \ar{r}{F(h)} & F(U)
     \end{tikzcd}    
 \]
 
 When we can restrict the homomorphism map into a inclusion map \(i: S' → S\) for \(S' ⊆ S\), then we say that \(S'\) is a \emph{sub-coalgebra} of \(S\), denoted as \(S' ⊑ S\). Specifically, the following diagram commutes when \(S' ⊑ S\):
 \[
     \begin{tikzcd}
-        S' \ar[hook]{r}{i} \ar[swap]{d}{δ_{S'}} & S \ar{d}{δ_S} \\  
+        S' \ar[hook]{r}{i} \ar[swap]{d}{σ_{S'}} & S \ar{d}{σ_S} \\  
         F(S') \ar[hook]{r}{F(i)} & F(S)
     \end{tikzcd}    
 \]
-In fact, the transition function \(δ_{S'}\) is uniquely determined by the states \(S'\)~\cite[Proposition 6.1]{rutten_UniversalCoalgebraTheory_2000}.
+In fact, the function \(σ_{S'}\) is uniquely determined by the states \(S'\)~\cite[Proposition 6.1]{rutten_UniversalCoalgebraTheory_2000}.
 
 The sub-coalgebras are preserved under homomorphic images and pre-images: 
 \begin{lemma}[Theorem 6.3~\cite{rutten_UniversalCoalgebraTheory_2000}]\label{thm:hom-(pre)img-preserve-sub-coalg}
-    given a homomorphism \(h: S → T\), and sub-coalgebras \(S' ⊑ S\) and \(T' ⊑ T\), then 
-    \[h(S') ⊑ T \text{ and } h^{-1}(T') ⊑ S.\]
+    given a homomorphism \(h: S → U\), and sub-coalgebras \(S' ⊑ S\) and \(U' ⊑ U\), then 
+    \[h(S') ⊑ U \text{ and } h^{-1}(U') ⊑ S.\]
 \end{lemma}
 
-One particularly important sub-coalgebra of and coalgebra \(S\) is the least coalgebra generated by a single element \(s\), we will typically denote it as \(⟨s⟩_{S}\), and call it \emph{principle sub-coalgebra} generated by \(s\). We will omit the subscript \(S\) when it can be inferred from context or irrelevant.
-As we will see later, principle sub-coalgebra \(⟨s⟩_S\) is important because it models all the reachable state of \(s\) in \(S\).
+One particularly important sub-coalgebra of and coalgebra \(S\) is the least coalgebra generated by a single element \(s\). 
+We will denote this sub-coalgebra as \(⟨s⟩_{S}\), and call it \emph{principle sub-coalgebra} generated by \(s\). 
+We sometimes omit the subscript \(S\) when it can be inferred from context or irrelevant.
+Intuitively, we usually think of principle sub-coalgebra \(⟨s⟩_S\) as the sub-coalgebra that is formed by all the ``reachable state'' form the state \(s\).
+This coalgebraic characterization of reachable state can allow us to avoid induction on the length of path from \(s\) to reach another state.
 
-Principle sub-coalgebra always exists, because sub-coalgebra of any coalgebra forms a complete lattice~\cite[theorem 6.4]{rutten_UniversalCoalgebraTheory_2000}.
-And similar to sub-coalgebra, principle sub-coalgebra is also preserved under homomorphic image:
+For all coalgebra \(S\) and a state \(s ∈ S\), principle sub-coalgebra \(⟨s⟩_S\) always exists and is unique, because sub-coalgebra of any coalgebra forms a complete lattice~\cite[theorem 6.4]{rutten_UniversalCoalgebraTheory_2000}; thus taking the meet of all the sub-coalgebra that contains \(s\) will yield \(⟨s⟩_S\).
+
+Similar to sub-coalgebra, principle sub-coalgebra is also preserved under homomorphic image:
 \begin{theorem}\label{thm:homo-img-preserve-principle-sub-coalg}
-    Homomorphic image preserves principle sub-GKAT coalgebra. Specifically, given a homomorphism \(h: S → T\):
-    \[h(⟨s⟩_S) = ⟨h(s)⟩_T\]
+    Homomorphic image preserves principle sub-GKAT coalgebra. Specifically, given a homomorphism \(h: S → U\):
+    \[h(⟨s⟩_S) = ⟨h(s)⟩_U\]
 \end{theorem}
 
 \begin{proof}
-    We will need to show that \(h(⟨s⟩_{S})\) is the smallest sub-GKAT coalgebra of \(S\) that contain \(h(s)\). First by definition of image, \(h(s) ∈ h(⟨s⟩_{S})\); second by \cref{thm:hom-(pre)img-preserve-sub-coalg}, \(h(⟨S⟩_S) ⊑ T\).
+    We will need to show that \(h(⟨s⟩_{S})\) is the smallest sub-GKAT coalgebra of \(S\) that contain \(h(s)\). First by definition of image, \(h(s) ∈ h(⟨s⟩_{S})\); second by \cref{thm:hom-(pre)img-preserve-sub-coalg}, \(h(⟨S⟩_S) ⊑ U\).
 
-    Finally, take any \(T' ⊑ T\) and \(h(s) ∈ T'\), recall that by \cref{thm:hom-(pre)img-preserve-sub-coalg}, \(h^{-1}(T') ⊑ S\). We can then derive that \(h(⟨s⟩_S) ⊑ T'\): 
+    Finally, take any \(U' ⊑ U\) and \(h(s) ∈ U'\), recall that by \cref{thm:hom-(pre)img-preserve-sub-coalg}, \(h^{-1}(U') ⊑ S\). We can then derive that \(h(⟨s⟩_S) ⊑ U'\): 
     \begin{align*}
-        h(s) ∈ T' 
-        & ⟹ s ∈ h^{-1}(T') \\  
-        & ⟹ ⟨s⟩_S ⊑ h^{-1}(T') & \text{definition of \(⟨s⟩_S\)}\\  
-        & ⟹ h(⟨s⟩_S) ⊑ T' & \text{take the image of \(h\) and \cref{thm:hom-(pre)img-preserve-sub-coalg}}
+        h(s) ∈ U' 
+        & ⟹ s ∈ h^{-1}(U') \\  
+        & ⟹ ⟨s⟩_S ⊑ h^{-1}(U') & \text{definition of \(⟨s⟩_S\)}\\  
+        & ⟹ h(⟨s⟩_S) ⊑ U' & \text{\cref{thm:hom-(pre)img-preserve-sub-coalg}}
     \end{align*}
-    Hence \(h(⟨s⟩_S)\) is the smallest sub-GKAT coalgebra of \(T\) that contains \(h(s)\).
+    Hence \(h(⟨s⟩_S)\) is the smallest sub-GKAT coalgebra of \(U\) that contains \(h(s)\).
 \end{proof}
 
 % bisimulation
 
 A \emph{final coalgebra} \(ℱ\) over a signature \(F\), sometimes called the \emph{behavior} of coalgebras over \(F\), is a \(F\)-coalgebra s.t. for all \(F\)-coalgebra \(S\), there exists a unique homomorphism \(⟦-⟧_S: S → ℱ\).
 
-Given two \(F\)-coalgebra \(S\) and \(T\), the \emph{behavioral equivalence} between states in \(S\) and \(T\) can be computed by a notion called \emph{bisimulation}.
-A relation \({∼} ⊆ S × T\) is called a \emph{bisimulation relation} if it forms a \(F\)-coalgebra: \[δ_{∼}: {∼} → F(∼),\] 
-And its projection functions \(π₁: S × T → S\) and \(π₂: S × T → T\) are both homomorphisms:
+Given two \(F\)-coalgebra \(S\) and \(U\), the \emph{behavioral equivalence} between states in \(S\) and \(U\) can be computed by a notion called \emph{bisimulation}.
+A relation \({∼} ⊆ S × U\) is called a \emph{bisimulation relation} if it forms an \(F\)-coalgebra: \[σ_{∼}: {∼} → F(∼),\] 
+And its projections \(π₁: S × U → S\) and \(π₂: S × U → U\) are both homomorphisms:
 \[
     \begin{tikzcd}
-        S \ar[swap]{d}{δ_S}
-            & ∼ \ar[swap]{l}{π₁} \ar{r}{π₂} \ar{d}{δ_{∼}} 
-            & T \ar{d}{δ_T}\\  
+        S \ar[swap]{d}{σ_S}
+            & ∼ \ar[swap]{l}{π₁} \ar{r}{π₂} \ar{d}{σ_{∼}} 
+            & U \ar{d}{σ_T}\\  
         F(S) & F(∼) \ar{l}{F(π₁)} \ar[swap]{r}{F(π₂)} & F(T)
     \end{tikzcd}
 \]
-As we will see later, bisimulation or variation of bisimulation indeed correspond to important semantical equivalences.
+In a special case, when there exists a homomorphism \(h: S → U\), then we can simply pick \({∼} ⊆ S × U\) to be \(\{(s, h(s)) ∣ s ∈ S\}\), which gives us a bisimulation with the lift \(σ_{∼} ≜ σ_S × σ_U\).
 
-\begin{theorem}
-    Given a functionr \(F\) on set, two \(F\)-colagebra \(S\) and \(T\), if there exists a surjective homomorphism \(h: S → T\), then \(S\) and \(T\) are bisimular.
-\end{theorem}
+\begin{corollary}
+    Given two \(F\)-coalgebra \(S, U\) and a homomorphism \(h: S → U\), then all for all \(s\), \(⟦s⟧_{S} = ⟦h(s)⟧_{U}.\)
+\end{corollary}
 
 \subsection{Guarded Kleene Algebra With Tests}
+
+
 
 \subsection{GKAT Coalgebra}
 
@@ -616,16 +617,21 @@ In some special case, the on-the-fly algorithm can even out perform the original
 
     The condition \labelcref{itm:acc-condition} holds:
     \begin{align*}
-        δ_S(s, α) = \accept 
-        & ⟺ \norm(δ_S)(s, α) = \accept 
-        ⟺ \norm(δ_∼)((s,t), α) = \accept \\ 
-        & ⟺ \norm(δ_T)(t, α) = \accept 
-        ⟺ δ_T(t, α) = \accept
+        & δ_S(s, α) = \accept \\
+        ⟺ & \norm(δ_S)(s, α) = \accept \\
+        ⟺ & \norm(δ_∼)((s,t), α) = \accept \\ 
+        ⟺ & \norm(δ_T)(t, α) = \accept \\
+        ⟺ & δ_T(t, α) = \accept
     \end{align*}
 
     The condition~\labelcref{itm:transition-bisim} holds, by case analysis on the liveness of \(s'\) and \(t'\).
     First note that \(s'\) and \(t'\) has to be both live or both dead: because \(δ_S(s, α) = (s', p)\), then \(\norm(δ_S)(s', α)\) can either be rejection or \((s',p)\), and so is \(\norm(δ_T)(t', α)\). Finally because \(s ∼ t\), then
-    \[s' \text{ is live} ⟺ \norm(δ_S)(s, α) = (s', p) ⟺ \norm(δ_T)(t, α) = (t', p) ⟺ t' \text{ is live}.\]
+    \begin{align*}
+        s' \text{ is live} 
+        & ⟺ \norm(δ_S)(s, α) = (s', p) \\
+        & ⟺ \norm(δ_T)(t, α) = (t', p) \\
+        & ⟺ t' \text{ is live}.
+    \end{align*}
     \begin{itemize}
         \item If both \(s'\) and \(t'\) are live, then \(s' ∼ t'\). By~\cref{thm:sub-coalg-preserve-bisim}, the bisimulation \(∼_{s', t'}\) is just \(∼\) restricted to \(⟨s'⟩\) and \(⟨t'⟩\).
         \item If both \(s'\) and \(t'\) are dead, then \(∼_{s', t'}\) can just be the singleton relation, according to~\cref{thm:bisim-between-dead}.
@@ -635,10 +641,10 @@ In some special case, the on-the-fly algorithm can even out perform the original
 
     The condition~\labelcref{itm:rej-or-dead} holds: 
     \begin{align*}
-        δ_S(s, α) \text{ rejects or transition to dead states} 
-    & ⟺ \norm(δ_S)(s, α) = \reject \\
-    & ⟺ \norm(δ_T)(t, α) = \reject \\
-    & ⟺ δ_T(t, α) \text{ rejects or transition to dead states}.
+        & δ_S(s, α) \text{ rejects or transition to dead states} \\
+        ⟺ & \norm(δ_S)(s, α) = \reject \\
+        ⟺ & \norm(δ_T)(t, α) = \reject \\
+        ⟺ & δ_T(t, α) \text{ rejects or transition to dead states}.
     \end{align*}
 
     We then show the \(⟸\) direction, we use \(≡_{s', t'}\) to denote the maximal bisimulation between \(⟨s'⟩\) and \(⟨t'⟩\).

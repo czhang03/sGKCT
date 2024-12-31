@@ -1,2 +1,8 @@
 functoriality
 bisimularity
+coalgebra
+bisimulation
+coalgebraic
+Coalgebra
+sub-coalgebra
+sub-GKAT
