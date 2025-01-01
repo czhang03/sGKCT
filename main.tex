@@ -8,6 +8,9 @@
 % The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
 %Template version as of 6/27/2024
 
+% page number
+\pagestyle{plain}
+
 % \usepackage{cite}
 \usepackage{graphicx}
 \usepackage{textcomp}
@@ -274,7 +277,7 @@ component, formatting, style, styling, insert.
 where the function \(h\) is implicitly restricted to \(A'\).
 For bifunctors like \((-) × (-)\), we will write function lifting by applying the bifunctors on these functions: for example, given \(h₁: A₁ → B₁\) and \(h₂: A₂ → B₂\), we will use \[h₁ × h₂: A₁ × A₂ → B₁ × B₂\] to denote the bifunctorial lift of \(h₁\) and \(h₂\) via product \((-) × (-)\).
 
-\section{Preliminary}
+\section{Background on Coalgebra and GKAT}
 
 \subsection{Concepts in Universal Coalgebra}
 
@@ -354,28 +357,45 @@ In a special case, when there exists a homomorphism \(h: S → U\), then we can 
     Given two \(F\)-coalgebra \(S, U\) and a homomorphism \(h: S → U\), then all for all \(s\), \(⟦s⟧_{S} = ⟦h(s)⟧_{U}.\)
 \end{corollary}
 
-\subsection{Guarded Kleene Algebra With Tests}
+\subsection{GKAT and Its Coalgebra}
 
+Guarded Kleene Algebra with Tests, or GKAT~\cite{smolka_GuardedKleeneAlgebra_2020}, is a deterministic fragment of Kleene Algebra with Tests. 
+The syntax of GKAT over a set of primitive actions \(K\) and a set of primitive tests \(T\) can be defined in two sorts, boolean expressions \(\Bool\) and expressions \(\Exp\):
+\begin{align*}
+    a, b, c ∈ \Bool 
+        & ≜ 1 ∣ 0 ∣ t ∈ T ∣ b ∧ c ∣ b ∨ c ∣ \overline{b} \\  
+    e, f ∈ \Exp 
+        & ≜ p ∈ K ∣ b ∈ \Bool ∣ e +_b f ∣ e ; f ∣ e^{(b)} 
+\end{align*}
+where \(e +_b f\) is the if statement with condition \(b\); \(e;f\) is the sequencing of expression \(e\) and \(f\); finally \(e^{(b)}\) is the while loop with body \(e\) and condition \(b\).
+A GKAT expression can be unfolded into a KAT expression in the usual manner~\cite{kozen_KleeneAlgebraTests_1997c}:
+\begin{align*}
+    e +_b f & ≜ b; e + \overline{b}; f &
+    e^{(b)} & ≜ (b; e)^*; \overline{b}.
+\end{align*}
+Then the semantics of each expression \(⟦e⟧\) can be computed by the semantics of Kleene Algebra with tests.
 
-
-\subsection{GKAT Coalgebra}
-
-% definition
-GKAT coalgebra~\cite{smolka_GuardedKleeneAlgebra_2020,schmid_GuardedKleeneAlgebra_2021}, is a coalgebraic systems for GKAT.
-Specifically GKAT coalgebras over a alphabet \(K, B\) are coalgebras over the following functor:
+However, the semantics of GKAT can also be obtained coalgebraically, specifically, with GKAT coalgebra~\cite{smolka_GuardedKleeneAlgebra_2020,schmid_GuardedKleeneAlgebra_2021}.
+Formally, GKAT coalgebras over primitive actions \(K\) and primitive tests \(T\) are coalgebras over the following functor:
 \[G(S) ≜ (2 + S × K)^{\At_B},\] 
 where \(2 ≜ \{\accept, \reject\}\). Intuitively given a state \(s ∈ S\) and an atom \(α ∈ \At\), \(δ(s, α)\) will deterministically execute one of the following: reject \(α\), denoted as \(δ(s, α) = \reject\); accept \(α\), denoted \(δ(s, α) = \accept\); or transition to a state \(s' ∈ S\) and execute action \(p ∈ K\), denoted as \(δ(s, α) = (s', p)\).
 
 This deterministic behavior contrast that of Kleene coalgebra with tests~\cite{kozen_CoalgebraicTheoryKleene_2017}, where for each atom, the state can accept or  reject the atom (but not both), yet the state can also non-deterministically transition to multiple different state via the same atom, while executing different actions.
 % TODO: I think this belongs in the intro
-As we will see later, the deterministic behavior of GKAT coalgebra not only enables a further optimized symbolic algorithm than KCT~\cite{pous_SymbolicAlgorithmsLanguage_2015}, but also present challenges. Specifically, GKAT coalgebra requires normalization to compute finite trace equivalences~\cite{smolka_GuardedKleeneAlgebra_2020}, where we will remove all the state that cannot lead to acceptance. 
-It seems like we need to traverse the entire automaton to identify these ``dead states'', however we have shown that these dead state detection can be invoked lazily, only when discrepancy between bisimulation are found.  
+As we will see later, the deterministic behavior of GKAT coalgebra not only enables a more versatile symbolic algorithm than KCT~\cite{pous_SymbolicAlgorithmsLanguage_2015}, but also present challenges. 
+Specifically, GKAT coalgebra requires normalization to compute finite trace equivalences~\cite{smolka_GuardedKleeneAlgebra_2020}, where we will remove all the state that cannot lead to acceptance, which are called ``dead states''. 
+
+In previous works, these dead states are detected after all the necessary state and transition is computed.
+This approach requires storing all the information of the coalgebra in memory, which do not allow on-the-fly computation, which can not only terminate whenever a counter-example is found, but can also erase past states from memory. 
+
+However, to truly understand the on-the-fly algorithm, we will first need to define ``dead states'', and its role in defining the coalgebraic semantic of GKAT. 
 
 \subsection{Liveness and Sub-GKAT coalgebras}
 
 % liveness
 
-Traditionally, live and dead states are defined by whether they can reach an accepting state~\cite{smolka_GuardedKleeneAlgebra_2020}. However, recall that principle sub-coalgebra \(⟨s⟩_S\) models reachable states of \(s\) in coalgebra \(S\). Thus the classical definition is equivalent to the following:
+Traditionally, live and dead states are defined by whether they can reach an accepting state~\cite{smolka_GuardedKleeneAlgebra_2020}. However, it is straightforward to show that principle sub-coalgebra \(⟨s⟩_S\) exactly correspondents to reachable states of \(s\) in coalgebra \(S\). 
+Thus, the classical definition is equivalent to the following:
 \begin{definition}[liveness of states]\label{def:liveness-of-states}
     A state \(s\) is \emph{accepting} if there exists a \(α ∈ \At\) s.t. \(δ(s, α) = \accept\). A state \(s'\) is \emph{live} if there exists an accepting state \(s' ∈ ⟨s⟩\). A state \(s'\) is \emph{dead} if there is no accepting state in \(⟨s⟩\).
 \end{definition}
@@ -391,99 +411,69 @@ This alternative liveness definition can help us formally prove important theore
 \end{proof}
 
 \begin{theorem}[homomorphism perserves liveness]\label{thm:hom-preserve-liveness}
-    Given a homomorphism \(h: S → T\) and a state \(s ∈ S\):
+    Given a homomorphism \(h: S → U\) and a state \(s ∈ S\):
     \[\text{\(s\) is live} ⟺ \text{\(h(s)\) is live}\]
 \end{theorem}
 
 \begin{proof}
-    Because homomorphic image preserves principle sub-GKAT coalgebra (\cref{thm:homo-img-preserve-principle-sub-coalg})
-    \[h(⟨s⟩_S) = ⟨h(s)⟩_T;\]
+    Because homomorphic image preserves principle sub-GKAT coalgebra (\Cref{thm:homo-img-preserve-principle-sub-coalg})
+    \[h(⟨s⟩_S) = ⟨h(s)⟩_U;\]
     therefore for any state \(s' ∈ S\):
-    \[s' ∈ ⟨s⟩_S ⟺ h(s') ∈ h(⟨s⟩_S) ⟺ h(s') ∈ ⟨h(s)⟩_T.\]
-    And because \(s'\) is accepting if and only if \(h(s')\) accepting by definition of homomorphism; then \(⟨s⟩_S\) contains an accepting state if and only if \(h(⟨s⟩_S) = ⟨h(s)⟩_T\) contains an accepting state. 
-    Therefore \(s\) is live in \(S\) if and only if \(h(s)\) is live in \(T\).
+    \[s' ∈ ⟨s⟩_S ⟺ h(s') ∈ h(⟨s⟩_S) ⟺ h(s') ∈ ⟨h(s)⟩_U.\]
+    And because \(s'\) is accepting if and only if \(h(s')\) accepting by definition of homomorphism; then \(⟨s⟩_S\) contains an accepting state if and only if \(h(⟨s⟩_S) = ⟨h(s)⟩_U\) contains an accepting state. 
+    Therefore, \(s\) is live in \(S\) if and only if \(h(s)\) is live in \(U\).
 \end{proof}
 
+The above theorem then leads to several interesting liveness preservation properties for important structures on coalgebras, like sub-coalgebra and bisimulation.
+
 \begin{corollary}[sub-coalgebra perserves liveness]\label{thm:sub-coalg-preserve-liveness}
-    Given a sub-coalgebra \(S' ⊑ S\), then for all states \(s ∈ S'\),
-    \[\text{\(s\) is live in \(S'\)} ⟺ \text{\(s\) is live in \(S\)}.\]
+    For a sub-coalgebra \(S' ⊑ S\) and a state \(s ∈ S'\), \(s\) is live in \(S'\) if and only if \(s\) is live in \(S\).
 \end{corollary}
 
 \begin{proof}
-    take the homomorphism \(h\) in \cref{thm:hom-preserve-liveness} to be the inclusion homomorphism \(i: S' → S\).
+    Let the homomorphism \(h\) in \cref{thm:hom-preserve-liveness} be the inclusion homomorphism \(i: S' → S\).
 \end{proof}
 
 \begin{corollary}[bisimulation preserves liveness]\label{thm:bisim-preserve-liveness}
-    If there exists a bisimulation \(∼\) between GKAT coalgebra \(S\) and \(T\) s.t. \(s ∼ t\) for some states \(s ∈ S\) and \(t ∈ T\), then \(s\) and \(t\) has to be either both accepting, both live or both dead.
+    If there exists a bisimulation \(∼\) between GKAT coalgebra \(S\) and \(U\) s.t. \(s ∼ u\) for some states \(s ∈ S\) and \(u ∈ U\), then \(s\) and \(u\) has to be either both accepting, both live or both dead.
 \end{corollary}
 
 \begin{proof}
-    Because for a \(∼\) is a bisimulation when both \(π₁: {∼} → S\) and \(π₂: {∼} → T\) are homomorphisms.
+    Because for a \(∼\) is a bisimulation when both \(π₁: {∼} → S\) and \(π₂: {∼} → U\) are homomorphisms.
     Therefore, 
     \begin{align*}
         s \text{ is live in } S 
-        & ⟺ π₁((s, t)) \text{ is live in } S 
-            & π₁((s, t)) = s\\  
-        & ⟺ (s, t) \text{ is live in } {∼} 
-            & \text{\(π₁\) is a homomorphism}\\  
-        & ⟺ π₂((s, t)) \text{ is live in } T 
-            & \text{\(π₂\) is a homomorphism} \\
-        & ⟺ t \text{ is live in } T 
-            & π₂((s, t)) = t
+        & ⟺ π₁((s, u)) \text{ is live in } S \\        
+        & ⟺ (s, u) \text{ is live in } {∼} \\  
+        & ⟺ π₂((s, u)) \text{ is live in } U  \\
+        & ⟺ u \text{ is live in } U. 
+        \qedhere
     \end{align*}
 \end{proof}
 
 
-% The signature of GKAT coalgebra \(G\) is a simple polynomial functor~\cite[Definition 2.2.1]{jacobs_IntroductionCoalgebraMathematics_2016}, implying that it preserves the inclusion function:
-% \begin{lemma}%used in the comments below
-%     Given a inclusion \(i: S' → S\) for \(S' ⊆ S\), then \(G(i): G(S') → G(S)\) is also a inclusion in the sense that:
-%     \[∀ m ∈ G(S'), G(i)(m) = m.\]
-% \end{lemma}
-% This implies that for a sub-GKAT coalgebra \(S' ⊑ S\), then the restriction of transition function will satisfy the the diagram for sub-coalgebra.
-% \[
-%     \begin{tikzcd}
-%         S' \ar{d}{δ_S} \ar[hook]{r}{i} & S \ar{d}{δ_S} \\  
-%         G(S') \ar[hook]{r}{G(i)} & G(S)
-%     \end{tikzcd}
-% \]
-% Then by the uniqueness of transition for sub-coalgebra~\cite[Proposition 6.1]{rutten_UniversalCoalgebraTheory_2000}, the transition of \(S'\) is necessarily the restriction of \(δ_S\). A nice consequence of this observation is that the ordering between sub-GKAT coalgebra is exactly the subset ordering.
-% \begin{lemma}[ordering in sub-GKAT coalgebra]\label{thm:sub-GKAT coalgebra-is-subset}
-%     Given two sub-GKAT coalgebra \(S₁ ⊑ S\) and \(S₂ ⊑ S\), then 
-%     \[S₁ ⊑ S₂ ⟺ S₁ ⊆ S₂.\]
-% \end{lemma}
-
-% \begin{proof}
-%     \(⟹\) direction is true by definition, and \(⟸\) direction is true because both \(S₁\) and \(S₂\) are sub-GKAT coalgebra, thus their transition functions are both restrictions of \(δ_S\). Hence the commutativity of the following diagram can be verified by computation:
-%     \[
-%     \begin{tikzcd}
-%         S₁ \ar[hook]{r}{i} \ar{d}{δ_S} & S₂ \ar[hook]{r}{i} \ar{d}{δ_S} & S \ar{d}{δ} \\  
-%         G(S₁) \ar[hook]{r}{G(i)} & G(S₂) \ar[hook]{r}{G(i)} & G(S)
-%     \end{tikzcd}
-% \]
-% \end{proof}
-
 % trace semantics
-\subsection{Normalization And Trace Semantics}
+\subsection{Normalization And Semantics}
 
-(Possibly infinite) trace model \(𝒢_ω\) is the natural semantics of states in a GKAT coalgebra, specifically it forms the final coalgebra of GKAT coalgebras~\cite{schmid_GuardedKleeneAlgebra_2021}.
-The finality of the model means that every state in any GKAT coalgebra \(S\) can be assigned a semantics under the unique homomorphism \(⟦-⟧^{ω}_{S}: S → 𝒢_ω\); and such semantical equivalences can indeed be identified by bisimulation~\cite{schmid_GuardedKleeneAlgebra_2021}:
-\[⟦s⟧^{ω}_{S} = ⟦t⟧^{ω}_{T} ⟺ \text{exists a bisimulation \({∼} ⊆ S × T\), s.t. \(s ∼ t\)}.\]
+(Possibly infinite) trace model \(𝒢_ω\) is the final coalgebra of GKAT coalgebras~\cite{schmid_GuardedKleeneAlgebra_2021}.
+The finality of the model implies that every state in any GKAT coalgebra \(S\) can be assigned a semantics under the unique homomorphism \(⟦-⟧^{ω}_{S}: S → 𝒢_ω\); and such semantic equivalences can indeed be identified by bisimulation~\cite{schmid_GuardedKleeneAlgebra_2021}:
+\(⟦s⟧^{ω}_{S} = ⟦t⟧^{ω}_{T}\) if and only if there exists a bisimulation \({∼} ⊆ S × T\), s.t. \(s ∼ t\).
 
-The infinite trace equivalences is relatively easy to compute efficiently, as bisimulation is, in general, compatible with derivative based computation on-the-fly algorithm~\cite{kozen_CoalgebraicTheoryKleene_2017,almeida_DecidingKATHoare_2012,pous_SymbolicAlgorithmsLanguage_2015}. 
-However, the \emph{finite} trace model \(𝒢\) is only the final coalgebra of GKAT coalgebras without dead states, which we call \emph{normal GKAT coalgebra}~\cite{smolka_GuardedKleeneAlgebra_2020}. Fortunately every GKAT coalgebra can be normalized by rerouting all the transition from dead states to rejection
-\begin{align*}
-    \norm(δ_S) & : S → G(S) \\
-    \norm(δ_S)(s, α) & ≜ \begin{cases}
-        \reject & \text{if } δ_S(s, α) = (s', p) \text{ and \(s'\) is dead}\\
-        δ_S(s, α) & \text{otherwise}
-    \end{cases}
-\end{align*}
+The infinite trace equivalences can be directly computed with bisimulation on derivative, which supports on-the-fly algorithm as demonstrated by similar systems~\cite{kozen_CoalgebraicTheoryKleene_2017,almeida_DecidingKATHoare_2012,pous_SymbolicAlgorithmsLanguage_2015}. 
+However, the \emph{finite} trace model \(𝒢\) is the final coalgebra of GKAT coalgebras without dead states, which we call \emph{normal GKAT coalgebra}~\cite{smolka_GuardedKleeneAlgebra_2020}. 
+Fortunately every GKAT coalgebra can be normalized by rerouting all the transition from dead states to rejection.
+Concretely, \(\norm(δ_S) : S → G(S)\) is defined as \(\norm(δ_S)(s, α) ≜ \reject\) when \(δ_S(s, α) = (s', p)\) and \(s'\) is dead in \(S\); and \(\norm(δ_S)(s, α) ≜ δ_S(s, α)\) otherwise.
 We denote the normalized coalgebra \((S, \norm(δ_S))\) as \(\norm(S)\).
-This means that the finite trace semantics \(⟦-⟧\) is the unique coalgebra homomorphism \(\norm(S) → \norm(𝒢)\). Hence the finite trace equivalence between \(s ∈ S\) and \(t ∈ T\) can be computed by first normalizing \(S\) and \(T\), then decide whether there is a bisimulation on \(\norm(S)\) and \(\norm(T)\) that includes \((s, t)\).
-For a more intuitive account for the trace semantics, we refer the reader to the work of \Citeauthor{smolka_GuardedKleeneAlgebra_2020}~\cite{smolka_GuardedKleeneAlgebra_2020}.
 
-Then by the finality of GKAT colagebra, the soundness and completeness of bisimulation is a simple corollary in universal coalgebra~\cite{smolka_GuardedKleeneAlgebra_2020,jacobs_IntroductionCoalgebraMathematics_2016,rutten_UniversalCoalgebraTheory_2000}. No matter through explicit construction~\cite{smolka_GuardedKleeneAlgebra_2020} or (weak) pullback~\cite{jacobs_IntroductionCoalgebraMathematics_2016,rutten_UniversalCoalgebraTheory_2000}, both completeness proof shows that the language equivalence: \[{≡} ≜ \{(s,t) ∣ ⟦s⟧_S = ⟦t⟧_T\}\] is indeed a bisimulation. 
-This result, together with soundness result \(s ∼ t ⟹ ⟦s⟧_S = ⟦t⟧_T\) means that the language equivalence \(≡\) is indeed the largest bisimulation, which allows us to work with bisimulation equivalence instead of bisimulation.
+The finality of \(𝒢\) means that the finite trace semantics \(⟦-⟧\) is the unique coalgebra homomorphism \(\norm(S) → 𝒢\). 
+Furthermore, the finite trace equivalence between \(s ∈ S\) and \(u ∈ U\) can be computed by first normalizing \(S\) and \(U\), then decide whether there is a bisimulation on \(\norm(S)\) and \(\norm(U)\) that includes \((s, t)\).
+For more details on the finite trace semantics, we refer the reader to the work of \Citeauthor{smolka_GuardedKleeneAlgebra_2020}~\cite{smolka_GuardedKleeneAlgebra_2020}.
+
+
+
+
+% Then by the finality of GKAT colagebra, the soundness and completeness of bisimulation is a simple corollary in universal coalgebra~\cite{smolka_GuardedKleeneAlgebra_2020,jacobs_IntroductionCoalgebraMathematics_2016,rutten_UniversalCoalgebraTheory_2000}. No matter through explicit construction~\cite{smolka_GuardedKleeneAlgebra_2020} or (weak) pullback~\cite{jacobs_IntroductionCoalgebraMathematics_2016,rutten_UniversalCoalgebraTheory_2000}, both completeness proof shows that the language equivalence: \[{≡} ≜ \{(s,t) ∣ ⟦s⟧_S = ⟦t⟧_T\}\] is indeed a bisimulation. 
+% This result, together with soundness result \(s ∼ t ⟹ ⟦s⟧_S = ⟦t⟧_T\) means that the language equivalence \(≡\) is indeed the largest bisimulation, which allows us to work with bisimulation equivalence instead of bisimulation.
 
 \begin{definition}
     A \emph{bisimulation equivalence} in \(S\) is a bisimulation between \(S\) and itself, and it is also an equivalence relation.

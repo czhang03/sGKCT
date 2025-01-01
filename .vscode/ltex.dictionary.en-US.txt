@@ -6,3 +6,8 @@ coalgebraic
 Coalgebra
 sub-coalgebra
 sub-GKAT
+coalgebras
+GKAT
+coalgebraically
+Kleene
+GKAT
