@@ -718,7 +718,7 @@ After we justify the above optimizations of the algorithm, we will show the core
         \item If \(δ_{\norm(S)}(s, α) = (s', p)\) and \(δ_{\norm(U)}(u, α) = (u', p)\), then \(δ_{∼}((s, u), α) = ((s', u'), p)\)
         \item Finally, for all \((s', u') ∈ {∼}'\) that is not equal to \((s, u)\), we let \(δ_∼\) inherits the transition of \(δ_{∼'}\), i.e. \(δ_{∼}((s', u'), α) = δ_{∼'}((s', u'), α)\)
     \end{itemize}
-    By checking all the requirement for bisimulation, we can verify that \emph{if \(δ_{∼}\) is well-defined}, then \(∼\) is indeed a bisimulation between \(\norm(⟨s⟩)\) and \(\norm(⟨u⟩)\).
+    By checking all the requirement for bisimulation, we can verify that \emph{if \(δ_{∼}\) is well-defined}, then \(∼\) is indeed a bisimulation between \(\norm(⟨s⟩)\) and \(\norm(⟨u⟩)\) and \(s ∼ u\).
 
     Finally, we can verify that \(δ_∼\) is well-defined by leveraging the conditions in~\Cref{thm:inductive-construction}. 
     Specifically, we will show that the definition of \(δ_∼\) covers all the possible cases, by case analysis on the result of \(δ_S\): for all \(α ∈ \At\),
