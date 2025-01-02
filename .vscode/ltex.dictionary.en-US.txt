@@ -11,3 +11,5 @@ GKAT
 coalgebraically
 Kleene
 GKAT
+endofunctor
+Bisimulation
