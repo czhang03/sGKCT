@@ -729,6 +729,7 @@ After we justify the above optimizations of the algorithm, we will show the core
 
         Then by condition~\labelcref{itm:transition-bisim}, there exists a bisimulation \(∼_{s', t'}\) between \(⟨s'⟩\) and \(⟨t'⟩\) s.t. \(s' ∼_{s', t'} t'\). Because bisimulation preserves liveness (\cref{thm:bisim-preserve-liveness}), \(s', t'\) has to be both dead or live. 
         Finally, because \(s'\) is live, therefore \(u'\) is also live, and we obtain the final case in the definition of \(δ_{∼}\): \(δ_{\norm(S)}(s, α) = (s', p)\) and \(δ_{\norm(U)}(u, α) = (u', p)\).
+        \qedhere
     \end{itemize}
 \end{proof}
 
