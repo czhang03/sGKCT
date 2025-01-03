@@ -713,24 +713,42 @@ After we justify the above optimizations of the algorithm, we will show the core
     \[{∼} ≜ {∼'} ∪ \{(s, u)\},\] 
     with the following transition \(δ_{∼}\): for all \(α ∈ \At\),
     \begin{itemize}[nosep]
-        \item If \(δ_{\norm(S)}(s, α) = δ_{\norm(U)}(u, α) = \accept\), then \(δ_{∼}((s, u), α) ≜ \accept\);
-        \item If \(δ_{\norm(S)}(s, α) = δ_{\norm(U)}(u, α) = \reject\), then \(δ_{∼}((s, u), α) ≜ \reject\);
-        \item If \(δ_{\norm(S)}(s, α) = (s', p)\) and \(δ_{\norm(U)}(u, α) = (u', p)\), then \(δ_{∼}((s, u), α) = ((s', u'), p)\)
-        \item Finally, for all \((s', u') ∈ {∼}'\) that is not equal to \((s, u)\), we let \(δ_∼\) inherits the transition of \(δ_{∼'}\), i.e. \(δ_{∼}((s', u'), α) = δ_{∼'}((s', u'), α)\)
+        \item if \(δ_{\norm(S)}(s, α) = δ_{\norm(U)}(u, α) = \accept\), then \(δ_{∼}((s, u), α) ≜ \accept\);
+        \item if \(δ_{\norm(S)}(s, α) = δ_{\norm(U)}(u, α) = \reject\), then \(δ_{∼}((s, u), α) ≜ \reject\);
+        \item if \(δ_{\norm(S)}(s, α) = (s', p)\) and \(δ_{\norm(U)}(u, α) = (u', p)\), then \(δ_{∼}((s, u), α) = ((s', u'), p)\);
+        \item for all \((s', u') ∈ {∼}'\) that is not equal to \((s, u)\), we let \(δ_∼\) inherits the transition of \(δ_{∼'}\), i.e. \(δ_{∼}((s', u'), α) = δ_{∼'}((s', u'), α)\)
     \end{itemize}
-    By checking all the requirement for bisimulation, we can verify that \emph{if \(δ_{∼}\) is well-defined}, then \(∼\) is indeed a bisimulation between \(\norm(⟨s⟩)\) and \(\norm(⟨u⟩)\) and \(s ∼ u\).
+    \emph{if \(δ_{∼}\) is well-defined}, then we can verify that \(∼\) is indeed a bisimulation between \(\norm(⟨s⟩)\) and \(\norm(⟨u⟩)\) where \(s ∼ u\). 
+    We show the slightly more complicated case: \(δ_{\norm(S)}(s, α) = (s', p)\) and \(δ_{\norm(U)}(u, α) = (u', p)\) implies \(s' ∼ u'\) as an example. 
+    By condition~\labelcref{itm:transition-bisim}, there exists a bisimulation \(∼_{s', u'} ⊆ \norm(⟨s'⟩) × \norm(⟨u'⟩)\), and because \(≡_{s', u'}\) is the maximal bisimulation between \(\norm(⟨s'⟩)\) and \(\norm(⟨u'⟩)\),
+    \[(s', u') ∈ {∼_{s', u'}} ⊆ {≡_{s', u'}} ⊆ {∼}.\]
 
-    Finally, we can verify that \(δ_∼\) is well-defined by leveraging the conditions in~\Cref{thm:inductive-construction}. 
+    Finally, we demonstrate that \(δ_∼\) is well-defined by leveraging the conditions in~\Cref{thm:inductive-construction}. 
     Specifically, we will show that the definition of \(δ_∼\) covers all the possible cases, by case analysis on the result of \(δ_S\): for all \(α ∈ \At\),
     \begin{itemize}
         \item If \(δ_S(s, α) = \accept\), then by condition~\labelcref{itm:acc-condition}, \(δ_U(u, α) = \accept\); therefore \[(δ_{\norm(S)})(s, α) = \norm(δ_{\norm(U)})(u, α) = \accept.\]
-        \item If \(δ_S(s, α)\) transitions to a dead state or reject, then by conditions~\labelcref{itm:rej-or-dead} \(δ_U(u, α)\) will also transition to a dead state or reject, then \[δ_{\norm(S)}(s, α) = δ_{\norm(U)}(u, α) = \reject.\]
-        \item If \(δ_S(s, α) = (s', p)\) and \(s'\) is live, then by condition~\labelcref{itm:acc-condition} and condition~\labelcref{itm:rej-or-dead}, \(δ_U(u, α) = (u', q)\). By the contrapositive of condition~\labelcref{itm:transition-dead}, if either \(s, u\) are live, then \(p = q\).
+        \item If \(δ_S(s, α)\) transitions to a dead state or reject, then by condition~\labelcref{itm:rej-or-dead} \(δ_U(u, α)\) will also transition to a dead state or reject, then \[δ_{\norm(S)}(s, α) = δ_{\norm(U)}(u, α) = \reject.\]
+        \item If \(δ_S(s, α) = (s', p)\) and \(s'\) is live, then \(δ_U(u, α) = (u', p)\) necessarily holds, otherwise it would violate one of conditions~\labelcref{itm:acc-condition,itm:rej-or-dead,itm:transition-dead}. 
 
-        Then by condition~\labelcref{itm:transition-bisim}, there exists a bisimulation \(∼_{s', t'}\) between \(⟨s'⟩\) and \(⟨t'⟩\) s.t. \(s' ∼_{s', t'} t'\). Because bisimulation preserves liveness (\cref{thm:bisim-preserve-liveness}), \(s', t'\) has to be both dead or live. 
+        By condition~\labelcref{itm:transition-bisim}, there exists a bisimulation \(∼_{s', u'}\) between \(\norm(⟨s'⟩)\) and \(\norm(⟨u'⟩)\) s.t. \(s' ∼_{s', u'} u'\). Because bisimulation preserves liveness (\Cref{thm:bisim-preserve-liveness}), \(s', u'\) has to be both dead or live. 
         Finally, because \(s'\) is live, therefore \(u'\) is also live, and we obtain the final case in the definition of \(δ_{∼}\): \(δ_{\norm(S)}(s, α) = (s', p)\) and \(δ_{\norm(U)}(u, α) = (u', p)\).
         \qedhere
     \end{itemize}
+\end{proof}
+
+\begin{corollary}[Correctness]
+    For any two states in two GKAT coalgebra \(s ∈ S, u ∈ U\),the four condition in~\Cref{thm:inductive-construction} is satisfied if and only if \(s\) and \(u\) are finite-trace equivalent
+\end{corollary}
+
+\begin{proof}
+    By the standard argument with normalization preserves sub-coalgebra (\Cref{thm:norm-sub-coalg}), we can obtain 
+    \(\norm(⟨s⟩) ⊑ \norm(S)\) and \(\norm(⟨u⟩) ⊑ \norm(U)\).
+    Because sub-coalgebra reflects and preserves bisimulation (\Cref{thm:sub-coalg-preserve-bisim}) with the correctness of bisimulation between normalized coalgebras: let \({∼}\) and \({∼'}\) be bisimulations,
+    \begin{align*}
+        & ∃~ {∼} ⊆ \norm(⟨s⟩) × \norm(⟨u⟩), s ∼ u \\
+        ⟺{}& ∃~ {∼'} ⊆ \norm(S) × \norm(U), s ∼ u \\ 
+        ⟺{}& ⟦s⟧_{S} = ⟦u⟧_{U}. \qedhere
+    \end{align*}
 \end{proof}
 
 The above theorem already gives us a way to recursively construct an algorithm that include \(s ∼ u\), this consequently will let us decide the trace equivalence of \(s\) and \(u\): \(⟦s⟧ = ⟦u⟧\).
