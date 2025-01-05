@@ -102,10 +102,10 @@
 \algnewcommand\algorithmicwith{\textbf{with}}
 \algnewcommand\algorithmiccase{\textbf{case}}
 \algnewcommand\algorithmicdefault{\textbf{default}}
-\algnewcommand\Skip{\textbf{skip}}
+\algnewcommand\Continue{\textbf{continue}}
 \algdef{SE}[MATCH]{Match}{EndMatch}[1]{\algorithmicmatch\ #1\ \algorithmicwith}{\algorithmicend\ \algorithmicmatch}%
 \algdef{SE}[CASE]{Case}{EndCase}[1]{\algorithmiccase\ #1 \algorithmicthen}{\algorithmicend\ \algorithmiccase}%
-\algdef{SE}[DEFAULT]{Default}{EndDefault}{\algorithmicdefault\ }{\algorithmicend\ \algorithmicdefault}%
+\algdef{SE}[DEFAULT]{Default}{EndDefault}{\hskip\algorithmicindent\algorithmicdefault}{\algorithmicend\algorithmicdefault}%
 \algtext*{EndMatch}%
 \algtext*{EndCase}%
 \algtext*{EndDefault}%
@@ -618,7 +618,7 @@ Another way to speed up the algorithm is to use efficient data structures to fin
 This optimization is a special case of the \emph{up-to technique}~\cite{bonchi_GeneralAccountCoinduction_2017a}.
 Specifically, we will extend~\Cref{thm:bisim-iff-bisim-eq} to a setting where the bisimulation is no longer over the same coalgebra.
 
-\begin{theorem}
+\begin{theorem}\label{thm:GKAT-bisim-iff-bisim-eq}
     Given two states in two coalgebras \(s ∈ S, u ∈ U\), let \(S + U\) be the coproduct coalgebra of \(S\) and \(U\)~\cite{rutten_UniversalCoalgebraTheory_2000}. 
     There exists a bisimulation \({∼} ⊆ S × U\) s.t. \(s ∼ u\) if and only if there exists a bisimulation equivalence on \({≃} ⊆ (S + U) × (S + U)\), s.t. \(s ≃ u\).
 \end{theorem}
@@ -626,7 +626,7 @@ Specifically, we will extend~\Cref{thm:bisim-iff-bisim-eq} to a setting where th
 \begin{proof}
     Notice that both \(S\) and \(U\) are sub-coalgebra of \(S + U\) witnessed by the canonical injection \(\mathrm{inj}ₗ: S → S + U\) and \(\mathrm{inj}ᵣ: U → S + U\).
 
-    Let \(∼\) be a bisimulation and \(≃\) be a bisimulation equivalence:
+    Let \(∼\) be a bisimulation and \(≃\) be a bisimulation equivalence, by~\Cref{thm:sub-coalg-preserve-bisim} and~\Cref{thm:bisim-iff-bisim-eq}:
     \begin{align*}
         & ∃~ {∼} ⊆ S × U, s ∼ u \\
         ⟺{}& ∃~ {∼} ⊆ (S+U) × (S+U), s ∼ u \\  
@@ -650,7 +650,7 @@ After we justify the above optimizations of the algorithm, we will show the core
     By computation
 \end{proof}
 
-\begin{theorem}[Recursive Construction]\label{thm:inductive-construction}
+\begin{theorem}[Recursive Construction]\label{thm:recursive-construction}
     Given two GKAT coalgebra \(S\) and \(U\), and two of their elements \(s ∈ S\) and \(u ∈ U\),
     there exists a bisimulation \({∼} ⊆ \norm(⟨s⟩) × \norm(⟨u⟩)\) s.t. \(s ∼ u\), if and only if all the following holds:
     \begin{enumerate}
@@ -723,7 +723,7 @@ After we justify the above optimizations of the algorithm, we will show the core
     By condition~\labelcref{itm:transition-bisim}, there exists a bisimulation \(∼_{s', u'} ⊆ \norm(⟨s'⟩) × \norm(⟨u'⟩)\), and because \(≡_{s', u'}\) is the maximal bisimulation between \(\norm(⟨s'⟩)\) and \(\norm(⟨u'⟩)\),
     \[(s', u') ∈ {∼_{s', u'}} ⊆ {≡_{s', u'}} ⊆ {∼}.\]
 
-    Finally, we demonstrate that \(δ_∼\) is well-defined by leveraging the conditions in~\Cref{thm:inductive-construction}. 
+    Finally, we demonstrate that \(δ_∼\) is well-defined by leveraging the conditions in~\Cref{thm:recursive-construction}. 
     Specifically, we will show that the definition of \(δ_∼\) covers all the possible cases, by case analysis on the result of \(δ_S\): for all \(α ∈ \At\),
     \begin{itemize}
         \item If \(δ_S(s, α) = \accept\), then by condition~\labelcref{itm:acc-condition}, \(δ_U(u, α) = \accept\); therefore \[(δ_{\norm(S)})(s, α) = \norm(δ_{\norm(U)})(u, α) = \accept.\]
@@ -736,140 +736,176 @@ After we justify the above optimizations of the algorithm, we will show the core
     \end{itemize}
 \end{proof}
 
-\begin{corollary}[Correctness]
-    For any two states in two GKAT coalgebra \(s ∈ S, u ∈ U\),the four condition in~\Cref{thm:inductive-construction} is satisfied if and only if \(s\) and \(u\) are finite-trace equivalent
+\begin{corollary}[Correctness]\label{thm:recursive-construction-correctness}
+    For any two states in two GKAT coalgebra \(s ∈ S, u ∈ U\), \(s\) and \(u\) are finite-trace equivalent if and only if there exists a \emph{bisimulation equivalence} \(≃\) in \(\norm(⟨s⟩) + \norm(⟨u⟩)\), which is equivalent to all the following conditions hold:
+    \begin{enumerate}
+        \item for all \(α ∈ \At\), \(δ_{S}(s, α) = \accept ⟺ δ_{U}(u, α) = \accept\);
+        \item \(s\) reject \(α\) or transition to a dead state via \(α\) if and only if \(u\) rejects \(α\) or transition to a dead state via \(α\);  
+        \item if \(δ_{S}(s, α) = (s', p)\) and \(δ_{U}(u, α) = (u', p)\), then there exists a bisimulation equivalence \({≃'}\) in \(\norm(⟨s'⟩) + \norm(⟨u'⟩)\), s.t. \(s' ≃' u'\);
+        \item if \(δ_{S}(s, α) = (s', p)\) and \(δ_{U}(u, α) = (u', q)\), s.t. \(p ≠ q\), then both \(s'\) and \(t'\) are dead.
+    \end{enumerate}
+    Notice that above condition is similar to those in~\cref{thm:recursive-construction}, except bisimulation is replaced with bisimulation \emph{equivalence}.
 \end{corollary}
 
 \begin{proof}
     By the standard argument with normalization preserves sub-coalgebra (\Cref{thm:norm-sub-coalg}), we can obtain 
     \(\norm(⟨s⟩) ⊑ \norm(S)\) and \(\norm(⟨u⟩) ⊑ \norm(U)\).
-    Because sub-coalgebra reflects and preserves bisimulation (\Cref{thm:sub-coalg-preserve-bisim}) with the correctness of bisimulation between normalized coalgebras: let \({∼}\) and \({∼'}\) be bisimulations,
+    Because sub-coalgebra reflects and preserves bisimulation (\Cref{thm:sub-coalg-preserve-bisim}) and the correspondence between bisimulations and bisimulation equivalences in GKAT (\cref{thm:GKAT-bisim-iff-bisim-eq}): let \({∼_{s, u}} ⊆ \norm(⟨s⟩) × \norm(⟨u⟩)\) and \({∼} ⊆ \norm(S) × \norm(U)\) be bisimulations and \(≃\) be a bisimulation equivalence in \(\norm(⟨s⟩) + \norm(⟨u⟩)\):
     \begin{align*}
-        & ∃~ {∼} ⊆ \norm(⟨s⟩) × \norm(⟨u⟩), s ∼ u \\
-        ⟺{}& ∃~ {∼'} ⊆ \norm(S) × \norm(U), s ∼ u \\ 
-        ⟺{}& ⟦s⟧_{S} = ⟦u⟧_{U}. \qedhere
+        & \text{Conditions in \cref{thm:recursive-construction} is satisfied} \\  
+        ⟺{}& \text{Conditions in current theorem is satisfied}\\
+        ⟺{}& ∃~ {≃}, s ≃ u 
+        ⟺ ∃~ {∼_{s, u}}, s ∼ u \\
+        ⟺{}& ∃~ {∼} , s ∼ u 
+        ⟺ ⟦s⟧_{S} = ⟦u⟧_{U}. \qedhere
     \end{align*}
 \end{proof}
 
-The above theorem already gives us a way to recursively construct an algorithm that include \(s ∼ u\), this consequently will let us decide the trace equivalence of \(s\) and \(u\): \(⟦s⟧ = ⟦u⟧\).
-However, this algorithm can be further optimized, we will then derive that a dead state can never relate to live states. This means that when checking the bisimulation of states \(s\) and \(t\), if we already know one of them is dead, we only need to check whether the other is dead, instead of going through the convoluted process mentioned in~\cref{thm:inductive-construction}.
-
-However because homomorphism preserves liveness, if we already know one of the \(s\) and \(t\) is dead, the other has to be dead.
+The above theorem already gives us an algorithm to recursively decide whether \(⟦s⟧_{S} = ⟦u⟧_U\), when \(⟨s⟩_S\) and \(⟨u⟩_U\) is finite.
+However, this algorithm can be further optimized in several ways: we will then derive that a dead state can never relate to live states. This means that when checking the bisimulation of states \(s\) and \(t\), if we already know one of them is dead, we only need to check whether the other is dead, instead of going through all the conditions in~\cref{thm:recursive-construction}.
 
 \begin{theorem}\label{thm:bisim-one-dead}
-    Given two states \(s ∈ S\) and \(t ∈ T\), if \(s\) is a dead state in \(S\), then there exists a bisimulation \(∼\) between \(S\) and \(T\) where \(s ∼ t\) if and only if \(t\) is dead. Similarly for \(t ∈ T\).
+    Given two states \(s ∈ S\) and \(t ∈ T\), if \(s\) is a dead state in \(S\), then there exists a bisimulation equivalence \(≃\) in \(S + T\) where \(s ≃ t\) if and only if \(t\) is dead. Similarly, for \(t ∈ T\).
 \end{theorem}
 
 \begin{proof}
-    if there exists a bisimulation \(∼\), s.t. \(s ∼ t\), because \(s\) is dead and bisimulation preserves liveness~\cref{thm:bisim-preserve-liveness}, then \(t\) is dead. 
+    Notice because of the homomorphism \(\mathrm{inj_l}: S → S + T\) and homomorphism preserves liveness (\cref{thm:hom-preserve-liveness}), therefore \(s ∈ S\) is dead if and only if \(s ∈ S + T\) is dead; similarly for \(t ∈ T\).
 
-    And if both \(t\) and \(s\) is dead, then a bisimulation can by constructed by~\cref{thm:bisim-between-dead}.
+    If there exists a bisimulation equivalence \(≃\), s.t. \(s ≃ t\), because \(s\) is dead and bisimulation preserves liveness~\cref{thm:bisim-preserve-liveness}, then \(t\) is dead. 
+
+    And if both \(t\) and \(s\) is dead, then a bisimulation between \(S\) and \(T\) can be constructed in~\cref{thm:bisim-between-dead}, which induces a bisimulation equivalence via~\Cref{thm:GKAT-bisim-iff-bisim-eq}.
 \end{proof}
 
-\section{The Algorithm}
+Before we write down the optimized algorithm, we will first briefly sketch the dead state detection algorithm, which will use a DFS to check whether the there exists any accepting states in reachable states of \(s ∈ S\): if there exists any accepting state in \(⟨s⟩_S\), then the algorithm terminates immediately, and return that \(s\) is live, otherwise it would return all the states in \(⟨s⟩\), and by~\cref{thm:dead-iff-all-reachable-dead}, all the states in \(⟨s⟩\) is dead.
 
-In this section we will present the pseudo-code for our on-the-fly algorithm. 
-In order to implement the the inductive construction theorem (\cref{thm:inductive-construction}), we will need to determine the liveness of the state. This can be simply computed via a DFS from the state being checked. 
+We will cache all the known dead states from all the previous searches, we use the call \Call{knownDead\(_S\)}{$s$} to check whether the state \(s\) is in the cached dead states. 
+And \Call{isDead\(_S\)}{$s$} will first check if \(s\) is known to be dead, and invoke the depth-first-search algorithm in the coalgebra \(s\), if \(s\) is not in the cached dead states.
+Because the non-symbolic version of dead state checking is similar to the symbolic version, we only provide the symbolic version of this algorithm in appendix
+TODO: give the link to the section.
 
-TODO: we should merge the two so that it is easier to 
-\begin{algorithm}
-    \caption{Check whether a state \(s\) is dead}\label{alg:check-dead-main}
-    \begin{algorithmic}
-        \Function{isDeadLoop}{$s ∈ S$, explored}
-        \If {\(s ∈\) explored} {\Return explored} 
-        \Else { 
-            \For{\(α ∈ \At\)}{}{
-                \Match{\(δ_{S}(s, α)\)}
-                \Case{\(\accept\)} {\Return none} \Comment{\(s\) transition to accept}
-                \EndCase
-                \Case{\(\reject\)} {\texttt{continue}}
-                \Comment{skip if \(s\) transition to reject}
-                \EndCase
-                \Case{($s', p$)}{ 
-                    \If{\Call{IsDeadLoop}{$s'$} = none} {\Return none} \Comment{\(s\) transitions to a live state \(s'\)}
-                    \Else { explored \(←\) (explored \(∪\) \Call{isDeadLoop}{$s'$, explored}) } \EndIf
-                } \EndCase
-                \EndMatch
-            }\EndFor}
-        \EndIf
-        \State {\Return explored}    
-        \EndFunction
-    \end{algorithmic}
-\end{algorithm}
-
-By~\cref{thm:dead-iff-all-reachable-dead}, if \(s\) is dead then all the reachable states of \(s\) (denoted by \(⟨s⟩\)). Then by returning all the reachable states of \(s\), we can cache these states to avoid checking them again. To encapsulate the caching, we have the following function, which we will actually use in our bisimulation algorithm.
 
 \begin{algorithm}
-    \caption{A cached algorithm to check whether a state is dead}\label{alg:is-dead}
-    \begin{algorithmic}
-        \State{deadStates \(← ∅\)}
-
-        \Function{isDead}{$s ∈ S$}
-        \If {\(s ∈\) deadStates} {\Return true} 
-        \ElsIf {\Call{isDeadLoop}{$s, ∅$} = none} {\Return false}
-        \Else 
-            \State {deadStates \(←\) (deadStates \(∪\) \Call{isDeadLoop}{$s, ∅$})}
-            \State {\Return {true}}
-        \EndIf
-        \EndFunction
-    \end{algorithmic}
-\end{algorithm}
-
-Given the direct correspondence between bisimulation and bisimulation equivalence and bisimulation in sub-algebra:
-\begin{align*}
-    & ∃ \text{ bisimulation } {∼} ⊆ ⟨s⟩ × ⟨t⟩ \text{ s.t. } s ∼ t \\
-    & ⟺ ∃ \text{ bisimulation } {∼} ⊆ (⟨s⟩∪⟨t⟩) × (⟨s⟩∪⟨t⟩) \text{ s.t. } s ∼ t 
-        & \text{\cref{thm:sub-coalg-preserve-bisim}}\\  
-    & ⟺ ∃ \text{ bisimulation equivalence } {≃} ⊆ (⟨s⟩∪⟨t⟩) × (⟨s⟩∪⟨t⟩) \text{ s.t. } s ≃ t 
-        & \text{\cref{thm:bisim-iff-bisim-equiv}}
-\end{align*}
-we can safely replace the bisimulation in inductive construction (\cref{thm:inductive-construction}) with bisimulation equivalence. 
-Dealing with equivalence relations allows us to leverage efficient data structures like union find in our bisimulation algorithm. 
-
-We will use \(\Call{union}{$s,t$}\) to denote the operation to equate \(s\) and \(t\) in a union-find, and use \(\Call{eq}{$s,t$}\) to check if \(s\) and \(t\) belongs to the same equivalence class, i.e. share the same representative.
-Specifically, we will use the union-find structures to keep track of the equivalence classes that we are in the process of checking, hence avoiding repeatedly checking the same pair of states to remove infinite loops.
-
-Our on-the-fly bisimulation algorithm will decide whether there exists a bisimulation relation in \(⟨s⟩ ∪ ⟨t⟩\) s.t. \(s ∼ t\). This algorithm generally reproduce the setting of inductive construction theorem~\cref{thm:inductive-construction};
-except by~\cref{thm:bisim-one-dead}, in the special case where \(s\) or \(t\) is dead, then we will only need to check whether the other is dead.
-
-\begin{algorithm*}
     \caption{On-the-fly bisimulation algorithm}\label{alg:bisim}
     \begin{algorithmic}
-        \Function{equiv}{$s ∈ S, t ∈ T$}
-        \If {\Call{eq}{$s, t$}} {\Return true}
-        \ElsIf {\(s ∈\) deadStates\(_S\)} {\Return \Call{isDead\(_T\)}{$t$}} 
-        \ElsIf {\(t ∈\) deadStates\(_T\)} {\Return \Call{isDead\(_S\)}{$s$}} 
-        \Else 
+        \Function{equiv}{$s ∈ S, u ∈ U$}
+        \If {\Call{eq}{$s, u$}} {\Return true} \EndIf
+        \If {\Call{knownDead\(_S\)}{s}} 
+            \State\Return \Call{isDead\(_U\)}{$u$}
+        \EndIf
+        \If {\Call{knownDead\(_U\)}{u}} 
+            \State\Return \Call{isDead\(_S\)}{$s$}
+        \EndIf
         \For{\(α ∈ \At\)}{}{
-            \Comment{Inductive construction,~\cref{thm:inductive-construction}}
-            \Match{$δ_{S}(s, α), δ_{T}(t, α)$}
-            \Case{\(\accept, \accept\)} {\Skip} \EndCase
-            \Case{\(\reject, \reject\)} {\Skip} \EndCase
-            \Case{\(\reject, (t', q)\)} {\Call{isDead}{$t'$}} \EndCase
-            \Case{\((s', p), \reject\)} {\Call{isDead}{$s'$}} \EndCase
-            \Case{\((s', p), (t', q)\)} {
-                \If {\(p = q\)} {\Call{union}{$s, t$}; \Call{equiv}{$s, t$}} 
-                \ElsIf {\Call{isDead}{$s$} and \Call{isDead}{$s$}} {\Skip}
-                \Else { \Return false }
+            \Match{$δ_{S}(s, α), δ_{U}(u, α)$}
+            \Case{\(\accept, \accept\)} {\Continue} \EndCase
+            \Case{\(\reject, \reject\)} {\Continue} \EndCase
+            \Case{\(\reject, (u', q)\)} 
+                \State\Return \Call{isDead\(_U\)}{$u'$} 
+            \EndCase
+            \Case{\((s', p), \reject\)}
+                \State\Return\Call{isDead\(_S\)}{$s'$}
+            \EndCase
+            \Case{\((s', p), (u', q)\)} {
+                \If {\(p = q\)}
+                    \State\Call{union}{$s, u$}
+                    \State\Return \Call{equiv}{$s, t$} 
                 \EndIf
+                \If{\Call{isDead\(_S\)}{$s$} and \Call{isDead\(_U\)}{$u$}}
+                    \State\Continue
+                \EndIf
+                \State\Return false
             } \EndCase
-            \Default {\Return false} \Comment{the results format does not match} \EndDefault
+            \Default { \Return false } \EndDefault
             \EndMatch
         }\EndFor
-        \EndIf
-        \Return true \Comment{no mismatch found}
+        \State\Return true
         \EndFunction
     \end{algorithmic}
-\end{algorithm*}
+\end{algorithm}
 
-Because the dead state detection algorithm is coalgebra-specific, we use a subscript on ``deadStates'' and ``\textsc{IsDead}'' to indicate the coalgebra. 
-The soundness and completeness of~\cref{alg:bisim} can be observed by the fact that \emph{when the algorithm terminate}, the algorithm returns true if and only if there exists a bisimulation between \(⟨s⟩\) and \(⟨t⟩\) s.t. \(s ∼ t\), which is then logically equivalent to trace equivalence.
-Such equivalence is a direct consequence of~\cref{thm:bisim-one-dead,thm:inductive-construction}.
+TODO: I am not sure if we need to give some intuition for this algorithm here.
 
-\begin{remark}
-    The caching of dead state and the shortcut to check whether \(s\) is dead when \(t\) is dead and vise versa, is not essential to the soundness and completeness of algorithm, they are here to trade speed with memory. 
-    In a memory-constraint situation, the ``\textnormal{deadStates}'' variable can be cleared periodically to save memory.
-\end{remark}
+Finally, we present our finite-trace equivalent checking algorithm as~\cref{alg:bisim}, where we search for a bisimulation equivalence \({≃}\) in \(\norm(⟨s⟩) + \norm(⟨u⟩)\), s.t. \(s ≃ u\), using the condition in~\Cref{thm:recursive-construction-correctness}.
+Seeking an equivalence relation allows us to organize our explored state pairs into equivalence classes, as opposed to a set of pairs, and enables us to use union-find data structures to avoid looking for two states that are already in the same equivalence class.
+Specifically, we use the call \(\Call{union}{$s, u$}\) to union the equivalence class of \(s\) and \(u\), and use \(\Call{eq}{$s, u$}\) to check whether \(s\) and \(u\) is in the same equivalence class. 
+In this algorithm, we first check if one of \(s\) and \(u\) is known to be dead, if so we only need to check whether the other is dead, because of~\Cref{thm:bisim-one-dead}.
+Otherwise, we will check the conditions in~\Cref{thm:recursive-construction-correctness}, which is a minor modification of the conditions in~\cref{thm:recursive-construction}.
+
+
+% \section{The Algorithm}
+
+% In this section we will present the pseudo-code for our on-the-fly algorithm. 
+% In order to implement the the inductive construction theorem (\cref{thm:recursive-construction}), we will need to determine the liveness of the state. This can be simply computed via a DFS from the state being checked. 
+
+% TODO: we should merge the two so that it is easier to 
+% \begin{algorithm}
+%     \caption{Check whether a state \(s\) is dead}\label{alg:check-dead-main}
+%     \begin{algorithmic}
+%         \Function{isDeadLoop}{$s ∈ S$, explored}
+%         \If {\(s ∈\) explored} {\Return explored} 
+%         \Else { 
+%             \For{\(α ∈ \At\)}{}{
+%                 \Match{\(δ_{S}(s, α)\)}
+%                 \Case{\(\accept\)} {\Return none} \Comment{\(s\) transition to accept}
+%                 \EndCase
+%                 \Case{\(\reject\)} {\texttt{continue}}
+%                 \Comment{skip if \(s\) transition to reject}
+%                 \EndCase
+%                 \Case{($s', p$)}{ 
+%                     \If{\Call{IsDeadLoop}{$s'$} = none} {\Return none} \Comment{\(s\) transitions to a live state \(s'\)}
+%                     \Else { explored \(←\) (explored \(∪\) \Call{isDeadLoop}{$s'$, explored}) } \EndIf
+%                 } \EndCase
+%                 \EndMatch
+%             }\EndFor}
+%         \EndIf
+%         \State {\Return explored}    
+%         \EndFunction
+%     \end{algorithmic}
+% \end{algorithm}
+
+% By~\cref{thm:dead-iff-all-reachable-dead}, if \(s\) is dead then all the reachable states of \(s\) (denoted by \(⟨s⟩\)). Then by returning all the reachable states of \(s\), we can cache these states to avoid checking them again. To encapsulate the caching, we have the following function, which we will actually use in our bisimulation algorithm.
+
+% \begin{algorithm}
+%     \caption{A cached algorithm to check whether a state is dead}\label{alg:is-dead}
+%     \begin{algorithmic}
+%         \State{deadStates \(← ∅\)}
+
+%         \Function{isDead}{$s ∈ S$}
+%         \If {\(s ∈\) deadStates} {\Return true} 
+%         \ElsIf {\Call{isDeadLoop}{$s, ∅$} = none} {\Return false}
+%         \Else 
+%             \State {deadStates \(←\) (deadStates \(∪\) \Call{isDeadLoop}{$s, ∅$})}
+%             \State {\Return {true}}
+%         \EndIf
+%         \EndFunction
+%     \end{algorithmic}
+% \end{algorithm}
+
+% Given the direct correspondence between bisimulation and bisimulation equivalence and bisimulation in sub-algebra:
+% \begin{align*}
+%     & ∃ \text{ bisimulation } {∼} ⊆ ⟨s⟩ × ⟨t⟩ \text{ s.t. } s ∼ t \\
+%     & ⟺ ∃ \text{ bisimulation } {∼} ⊆ (⟨s⟩∪⟨t⟩) × (⟨s⟩∪⟨t⟩) \text{ s.t. } s ∼ t 
+%         & \text{\cref{thm:sub-coalg-preserve-bisim}}\\  
+%     & ⟺ ∃ \text{ bisimulation equivalence } {≃} ⊆ (⟨s⟩∪⟨t⟩) × (⟨s⟩∪⟨t⟩) \text{ s.t. } s ≃ t 
+%         & \text{\cref{thm:bisim-iff-bisim-equiv}}
+% \end{align*}
+% we can safely replace the bisimulation in inductive construction (\cref{thm:recursive-construction}) with bisimulation equivalence. 
+% Dealing with equivalence relations allows us to leverage efficient data structures like union find in our bisimulation algorithm. 
+
+% We will use \(\Call{union}{$s,t$}\) to denote the operation to equate \(s\) and \(t\) in a union-find, and use \(\Call{eq}{$s,t$}\) to check if \(s\) and \(t\) belongs to the same equivalence class, i.e. share the same representative.
+% Specifically, we will use the union-find structures to keep track of the equivalence classes that we are in the process of checking, hence avoiding repeatedly checking the same pair of states to remove infinite loops.
+
+% Our on-the-fly bisimulation algorithm will decide whether there exists a bisimulation relation in \(⟨s⟩ ∪ ⟨t⟩\) s.t. \(s ∼ t\). This algorithm generally reproduce the setting of inductive construction theorem~\cref{thm:recursive-construction};
+% except by~\cref{thm:bisim-one-dead}, in the special case where \(s\) or \(t\) is dead, then we will only need to check whether the other is dead.
+
+% Because the dead state detection algorithm is coalgebra-specific, we use a subscript on ``deadStates'' and ``\textsc{IsDead}'' to indicate the coalgebra. 
+% The soundness and completeness of~\cref{alg:bisim} can be observed by the fact that \emph{when the algorithm terminate}, the algorithm returns true if and only if there exists a bisimulation between \(⟨s⟩\) and \(⟨t⟩\) s.t. \(s ∼ t\), which is then logically equivalent to trace equivalence.
+% Such equivalence is a direct consequence of~\cref{thm:bisim-one-dead,thm:recursive-construction}.
+
+% \begin{remark}
+%     The caching of dead state and the shortcut to check whether \(s\) is dead when \(t\) is dead and vise versa, is not essential to the soundness and completeness of algorithm, they are here to trade speed with memory. 
+%     In a memory-constraint situation, the ``\textnormal{deadStates}'' variable can be cleared periodically to save memory.
+% \end{remark}
 
 \section{Symbolic Algorithm}
 
@@ -912,9 +948,9 @@ The trace semantics of a GKAT coalgebra \(⟨S, ϵ̂, δ̂⟩\) is then defined 
     
 \end{proof}
 
-We can then migrate the normalized bisimulation algorithm to the symbolic setting, we will first prove an inductive construction theorem like~\cref{thm:inductive-construction}.
+We can then migrate the normalized bisimulation algorithm to the symbolic setting, we will first prove an inductive construction theorem like~\cref{thm:recursive-construction}.
 
-\begin{theorem}[Symbolic Inductive Construction]\label{thm:symb-inductive-construction}
+\begin{theorem}[Symbolic Inductive Construction]\label{thm:symb-recursive-construction}
     Given two symbolic GKAT coalgebra \(Ŝ = ⟨S, ϵ̂_S, δ̂_S⟩\) and \(T̂ = ⟨T, ϵ̂_T, δ̂_T⟩\) and two states \(s ∈ S\) and \(t ∈ T\), there exists a normalized bisimulation on the lowered coalgebra \({∼} ⊆ S × T\) s.t. \(s ∼ t\) if and only if all the following holds:
     \begin{itemize}
         \item \(⋁ ϵ̂_S(s) ≡ ⋁ ϵ̂_T(t)\);
@@ -926,10 +962,10 @@ We can then migrate the normalized bisimulation algorithm to the symbolic settin
 \end{theorem}
 
 \begin{proof}
-    Reduces to~\cref{thm:inductive-construction} i.e. all the above condition holds if and only if all the condition in~\cref{thm:inductive-construction} holds in the lowered coalgebra.
+    Reduces to~\cref{thm:recursive-construction} i.e. all the above condition holds if and only if all the condition in~\cref{thm:recursive-construction} holds in the lowered coalgebra.
 \end{proof}
 
-Then for the algorithm, we can just recursively check all the conditions in~\cref{thm:symb-inductive-construction}.
+Then for the algorithm, we can just recursively check all the conditions in~\cref{thm:symb-recursive-construction}.
 
 \begin{algorithm*}
     \caption{Symbolic On-the-fly bisimulation algorithm}\label{alg:symb-bisim}
@@ -940,7 +976,7 @@ Then for the algorithm, we can just recursively check all the conditions in~\cre
         \ElsIf {\(t ∈\) deadStates\(_T\)} {\Return \Call{isDead\(_S\)}{$s$}} 
         \Else {}
         \Return {
-            \Comment{conditions of ~\cref{thm:symb-inductive-construction}}
+            \Comment{conditions of ~\cref{thm:symb-recursive-construction}}
             \\\vspace{5px}
             \(\qquad
             \begin{aligned}

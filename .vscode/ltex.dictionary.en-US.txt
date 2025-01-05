@@ -13,3 +13,5 @@ Kleene
 GKAT
 endofunctor
 Bisimulation
+bisimulations
+coinductively
