@@ -216,7 +216,7 @@
 
 \begin{document}
 
-\title{Symbolic On-the-fly Algorithms for GKAT Equivalences
+\title{On-the-fly Algorithms for GKAT Equivalences
 \thanks{Identify applicable funding agency here. If none, delete this.}
 }
 
@@ -803,10 +803,10 @@ TODO: give the link to the section.
     \begin{algorithmic}
         \Function{equiv}{$s ∈ S, u ∈ U$}
         \If {\Call{eq}{$s, u$}} {\Return true} \EndIf
-        \If {\Call{knownDead\(_S\)}{s}} 
+        \If {\Call{knownDead\(_S\)}{$s$}} 
             \State\Return \Call{isDead\(_U\)}{$u$}
         \EndIf
-        \If {\Call{knownDead\(_U\)}{u}} 
+        \If {\Call{knownDead\(_U\)}{$u$}} 
             \State\Return \Call{isDead\(_S\)}{$s$}
         \EndIf
         \For{\(α ∈ \At\)}{}{
@@ -1000,26 +1000,26 @@ We can then migrate the normalized bisimulation algorithm to the symbolic settin
 Then for the algorithm, we can just recursively check all the conditions in~\cref{thm:symb-recursive-construction}.
 
 \begin{algorithm*}
-    \caption{Symbolic On-the-fly bisimulation algorithm}\label{alg:symb-bisim}
+    \caption{Symbolic On-the-fly Bisimulation Algorithm}\label{alg:symb-bisim}
     \begin{algorithmic}
-        \Function{equiv}{$s ∈ S, t ∈ T$}
-        \If {\Call{eq}{$s, t$}} {\Return true}
-        \ElsIf {\(s ∈\) deadStates\(_S\)} {\Return \Call{isDead\(_T\)}{$t$}} 
-        \ElsIf {\(t ∈\) deadStates\(_T\)} {\Return \Call{isDead\(_S\)}{$s$}} 
+        \Function{equiv}{$s ∈ S, u ∈ U$}
+        \If {\Call{eq}{$s, u$}} {\Return true}
+        \ElsIf {\Call{knownDead\(_S\)}{$s$}} {\Return \Call{isDead\(_U\)}{$u$}} 
+        \ElsIf {\Call{knownDead\(_U\)}{$u$}} {\Return \Call{isDead\(_S\)}{$s$}} 
         \Else {}
         \Return {
             \Comment{conditions of ~\cref{thm:symb-recursive-construction}}
             \\\vspace{5px}
             \(\qquad
             \begin{aligned}
-                & ⋁ ϵ̂_S(s) ≡ ⋁ ϵ̂_T(t) \mathrel{\&\!\&} \\  
-                & ∀ (b, s', p) ∈ δ̂_S(s), (c, t', q) ∈ δ̂_T(t), (b ∧ c) ≢ 0 ⟹ 
+                & ⋁ ϵ̂_S(s) ≡ ⋁ ϵ̂_U(u) \mathrel{\&\!\&} \\  
+                & ∀ (b, s', p) ∈ δ̂_S(s), (c, u', q) ∈ δ̂_U(u), (b ∧ c) ≢ 0 ⟹ 
                 \begin{cases}
-                    \text{\Call{IsDead$_S$}{$s$}} ∧ \text{\Call{IsDead$_T$}{$t$}} & \text{if \(p ≠ q\)} \\
-                    \text{\Call{Union}{$s$, $t$}}; \text{\Call{Equiv}{$s', t'$}} & \text{if \(p = q\)}
+                    \text{\Call{isDead$_S$}{$s$}} ∧ \text{\Call{isDead$_U$}{$u$}} & \text{if \(p ≠ q\)} \\
+                    \text{\Call{Union}{$s$, $u$}}; \text{\Call{Equiv}{$s', u'$}} & \text{if \(p = q\)}
                 \end{cases} \mathrel{\&\!\&}\\
-                & ∀ (b, s', p) ∈ δ̂_S(s), c ∈ ρ̂_T(t), (b ∧ c) ≢ 0 ⟹ \text{\Call{IsDead$_S$}{$s'$}} \mathrel{\&\!\&}\\
-                & ∀ b ∈ ρ̂_S(s), (c, t', q) ∈ δ̂_T(t), (b ∧ c) ≢ 0 ⟹ \text{\Call{IsDead$_T$}{$t'$}}
+                & ∀ (b, s', p) ∈ δ̂_S(s), c ∈ ρ̂_U(u), (b ∧ c) ≢ 0 ⟹ \text{\Call{IsDead$_S$}{$s'$}} \mathrel{\&\!\&}\\
+                & ∀ b ∈ ρ̂_S(s), (c, u', q) ∈ δ̂_U(u), (b ∧ c) ≢ 0 ⟹ \text{\Call{IsDead$_U$}{$u'$}}
             \end{aligned}\)
         }
         \EndIf
@@ -1078,59 +1078,35 @@ The correctness of these conversions is a consequence of  correctness of their n
         {e \transvia{c ∣ p} e'}
         {e^{(b)} \transvia{b ∧ c ∣ p}_{D̂} e'; e^{(b)}}
     \end{mathpar}
-    \caption{Symbolic Derivative of GKAT Automata.}\label{fig:derivatives-rules}
+    \caption{Symbolic Derivative}\label{fig:derivatives-rules}
 \end{figure*}
 
 The symbolic derivative coalgebra \(D̂\), with expressions as states, is the least symbolic GKAT coalgebra (ordered by point-wise subset ordering on \(ϵ̂\) and \(δ̂\)) that satisfy the rules in~\Cref{fig:derivatives-rules}.
-Notice that the rules listed on~\Cref{fig:derivatives-rules} is very close to that of Schmid et al.~\cite{schmid_GuardedKleeneAlgebra_2021}.
+Notice that the rules listed on~\Cref{fig:derivatives-rules} is very close to that of~\citeauthor{schmid_GuardedKleeneAlgebra_2021}~\cite{schmid_GuardedKleeneAlgebra_2021}.
 This is no coincidence, as our definition exactly lowers to the definition of theirs.
 This fact can be proven by case analysis on the shape of the source expression, and forms a basis on our correctness argument.
-
 \begin{theorem}[Correctness]
     The lowering of \(D̂\) is exactly the derivative defined by Schmid et. al.~\cite{schmid_GuardedKleeneAlgebra_2021}.
+    Therefore, the semantics of the expression is equal to the semantics \(⟦e⟧ = ⟦e⟧_{D̂}\).
     TODO: unfold the statement.
 \end{theorem}
 
-% \begin{table*}
+% For the ease of implementation, we will concretely define the accepting function \(ϵ̂_D\) and transition function \(δ̂_D\) of the derivative coalgebra \(D̂\).
+% Prior to that we will introduce an operation to ``guarded'' a function by a set of boolean \(B\), denoted \(⟨B|\), and it can be applied to both the accepting dynamic \(ϵ̂(s)\) and transition dynamic \(δ̂(s)\):
+% \begin{align*}
+%     ⟨B|ϵ̂(s) & ≜ \{b ∧ c ∣ b ∈ B, c ∈ ϵ(s)\}; \\
+%     ⟨B|δ̂(s) & ≜ \{(b ∧ c, s', p) ∣ b ∈ B, (c, s', p) ∈ δ(s)\}.
+% \end{align*}
+
+% \begin{figure*}
 %     \centering
-%     \begin{tabular}{c||c|c|c|c|c|c}
-%         Exp & \(S\) 
-%         & \(ϵ^*\) & \(δ^*\) 
-%         & \(ϵ̂(s)\) & \(δ̂(s)\) \\\hline
-%         \(b\) & \(∅\) 
-%         & \{b\} & \(∅\) 
-%         & N/A & N/A \\  
-%         \(p\) & \(\{*\}\) 
-%         & \(∅\) & \(\{(1, *, p)\}\) 
-%         & \(\{1\}\) & \(∅\)\\  
-%         \(e₁ +_b e₂\) & \(S₁ + S₂\) &
-%         \(⟨\{b\}|~ϵ₁^* ∪ ⟨\{\overline{b}\}|~ϵ₂^*\) &
-%         \(⟨\{b\}|~δ₁^* + ⟨\{\overline{b}\}|~δ₂^*\) & 
-%         \(\begin{cases}
-%             ϵ̂₁(s) & s ∈ S₁\\
-%             ϵ̂₂(s) & s ∈ S₂\\
-%         \end{cases}\) & 
-%         \(\begin{cases}
-%             δ̂₁(s) & s ∈ S₁\\
-%             δ̂₂(s) & s ∈ S₂\\
-%         \end{cases}\) \\  
-%         \(e₁ ; e₂\) & \(S₁ + S₂\) & 
-%         \(⟨ϵ₁^*|~ϵ₂^*\) & \(δ₁^* + ⟨ϵ₁^*|~δ₂^*\) & 
-%         \(\begin{cases}
-%             ⟨ϵ̂₁(s)| ~ ϵ₂^*& s ∈ S₁ \\  
-%             ϵ̂₂(s) & s ∈ S₂
-%         \end{cases}\)& 
-%         \(\begin{cases}
-%             δ̂₁(s) ∪ ⟨ϵ̂(s)|~δ₂^* & s ∈ S₁ \\  
-%             δ̂2(s) & s ∈ S₂
-%         \end{cases}\) \\  
-%         \(e₁^{(b)}\) & \(S₁\) & 
-%         \(\{\overline{b}\}\) & \(⟨\{b\}|~δ₁^*\) & 
-%         \(⟨\{\overline{b}\}|~ϵ̂1(s)\) & 
-%         \( ⟨\{b\}|⟨ϵ̂1(s)|~δ₁^* ∪ δ₁(s)\)
-%     \end{tabular}
-%     \caption{Symbolic Thompson's Construction}\label{tab:symb-thomposon-construction}
-% \end{table*}
+%     \begin{align*}
+%         δ̂(b) & ≜ ∅ & ϵ̂(b) & ≜ \{b\} \\  
+%         δ̂(p) & ≜ \{(1, 1, p)\} & ϵ̂(p) ≜ ∅ \\  
+%         δ̂(e +_b f) & ≜ ⟨\{b\}| δ̂(e) ∪ ⟨\{\overline{b}\}| δ̂(f) & 
+%         ϵ̂(e +_b f) & ≜ ⟨\{b\}| ϵ̂(e) ∪ ⟨\{\overline{b}\}| ϵ̂(f)
+%     \end{align*}
+% \end{figure*}
 
 
 \begin{table*}
@@ -1187,7 +1163,7 @@ This fact can be proven by case analysis on the shape of the source expression, 
     \caption{Symbolic Thompson's Construction}\label{tab:symb-thomposon-construction}
 \end{table*}
 
-Another way to construct an automaton is via Thompson's construction, we lift the original construction to the symbolic setting.
+Another way to construct a coalgebra from a GKAT expression is via Thompson's construction, we lift the original construction to the symbolic setting.
 A common expression to construct is a guard operation, denoted by \(⟨B|\), where \(B\) is a set of boolean expressions.
 TODO: define transition dynamics and accepting dynamics earlier.
 Concretely, this guard can be defined on both accepting dynamics and transition dynamics:
@@ -1195,18 +1171,24 @@ Concretely, this guard can be defined on both accepting dynamics and transition 
     ⟨B|ϵ̂(s) & ≜ \{b ∧ c ∣ b ∈ B, c ∈ ϵ(s)\}; \\
     ⟨B|δ̂(s) & ≜ \{(b ∧ c, s', p) ∣ b ∈ B, (c, s', p) ∈ δ(s)\}.
 \end{align*}
-Notably, besides guarding transition and acceptance with different conditions, like in if statements, the guard expression can be used to simulate uniform continuation. Specifically, we can use \(⟨ϵ̂(s)|~δ(s)\) to connecting all the accepting state of \(s\) to the dynamic \(δ(s)\).
+Notably, besides guarding transition and acceptance with different conditions in if statements and while loops, the guard operator can also be used to simulate uniform continuation. Specifically, we can use \(⟨ϵ̂(s)|δ(s')\) to connecting all the accepting state of \(s\) to the dynamic \(δ(s')\).
 
 With these definitions in mind, we can define symbolic Thompson's construction inductively as in~\Cref{tab:symb-thomposon-construction}, where we let \((S₁, ϵ̂₁, δ̂₁)\) and \((S₂, ϵ̂₂, δ̂₂)\) to be result of Thompson's construction for \(e₁\) and \(e₂\) respectively.
-The \(S₁ + S₂\) is the disjoint union of \(S₁\) and \(S₂\), and for any two transition dynamics \(δ₁(s₁): 𝒫(\BExp × S₁ × K)\) and \(δ₂(s₂): 𝒫(\BExp × S₂ × K)\), then \(δ₁^*(s₁) + δ₂^*(s₂): 𝒫(\BExp × (S₁ + S₂) × K)\) is the bifunctorial lift via \(+\).
+The \(S₁ + S₂\) is the disjoint union of \(S₁\) and \(S₂\), and for any two transition dynamics \(δ₁(s₁): 𝒫(\BExp × S₁ × K)\) and \(δ₂(s₂): 𝒫(\BExp × S₂ × K)\), then \(δ₁(s₁) + δ₂(s₂): 𝒫(\BExp × (S₁ + S₂) × K)\) is defined as follows:
+\begin{align*}
+    δ₁(s₁) & + δ₂(s₂) ≜ \\
+        & \{(b, \mathrm{inj}ₗ(s₁'), p) ∣ (b, s₁', p) ∈ δ₁(s₁)\} ∪ \\
+        & \{(b, \mathrm{inj}ᵣ(s₂'), p) ∣ (b, s₂', p) ∈ δ₂(s₂)\}
+\end{align*}
+where \(\mathrm{inj}ₗ: S₁ → S₁ + S₂\) and \(\mathrm{inj}ᵣ: S₂ → S₁ + S₂\) are the canonical left/right injection of the coproduct.
 
 One notable difference between the original construction~\cite{smolka_GuardedKleeneAlgebra_2020} and our construction is that we use a start state \(s^* ∈ S\), instead of a start dynamics (or pseudo-state).
-This choice will make the proof slightly easier. 
+This choice will make the proof of~\Cref{thm:hom-thompson-derivative} slightly easier. 
 However, in~\Cref{sec:optimization-implementation}, we will explain that our implementation uses start dynamics instead of start state, to avoid unnecessary lookups and unreachable states.
 
 We would like to explore several desirable theoretical properties of both derivatives and Thompson's construction.
-Specifically, the correctness, i.e. the semantics of the ``start state'' the both construction have the same preserves the trace semantics of the expression; finiteness, i.e. the coalgebra generated is always finite, which means that our equivalence algorithm will eventually terminate; and finally, how does the number of reachable state relate to the size of the expression, so that we can estimate the complexity of the equivalence checking algorithm.
-Turns out all of these questions can be answered by a connection by a homomorphism from symbolic Thompson's construction to the symbolic derivatives.
+Specifically, the \emph{correctness}, i.e. the semantics of the ``start state'' the both construction have the same preserves the trace semantics of the expression; \emph{finiteness}, i.e. the coalgebra generated is always finite, which means that our equivalence algorithm will eventually terminate; and finally, \emph{complexity}, the relationship between the number of reachable states and the size of the input expression, which serves as an estimated complexity of our equivalence checking algorithm.
+Turns out all of these questions can be answered by a homomorphism from symbolic Thompson's construction to the symbolic derivatives.
 
 \begin{theorem}\label{thm:hom-thompson-derivative}
     Given any GKAT expression \(e\), the resulting symbolic GKAT coalgebra from Thompson's construction \(Ŝ_e\) have a homomorphism to derivatives \(h: Ŝ_e → D̂\), s.t. for the start state \(s^* ∈ S, h(s^*) = e\).
@@ -1228,14 +1210,14 @@ Turns out all of these questions can be answered by a connection by a homomorphi
     \end{cases}\]
     We show that \(h\) is a homomorphism. Because \(Ŝₑ\) preserves the transition and acceptance of \(Ŝ_{e₁}\) and \(Ŝ_{e₂}\), then for all \(s ∈ Ŝ_{e₁} ∩ Ŝ_{e}\), we have
     \begin{align*}
-        & s \transAcc{Ŝ_{e}}{c} \text{ iff }
-        s \transAcc{Ŝ_{e₁}}{c} \text{ iff }
-        h₁(s) \transAcc{D̂}{c} \text{ iff }
-        h(s) \transAcc{D̂}{c} \\ 
-        & s \transvia{c ∣ p}_{Ŝ_{e}} s' \text{ iff }
-        s \transvia{c ∣ p}_{Ŝ_{e₁}} s' \text{ iff }
-        h₁(s) \transvia{c ∣ p}_{D̂} h₁(s') \text{ iff }
-        h(s) \transvia{c ∣ p}_{D̂} h(s')  
+        & s \transAcc{Ŝ_{e}}{c} 
+        \text{ iff } s \transAcc{Ŝ_{e₁}}{c} \\*
+        & \text{ iff } h₁(s) \transAcc{D̂}{c} 
+        \text{ iff } h(s) \transAcc{D̂}{c}; \\ 
+        & s \transvia{c ∣ p}_{Ŝ_{e}} s' 
+        \text{ iff } s \transvia{c ∣ p}_{Ŝ_{e₁}} s' \\*
+        & \text{ iff } h₁(s) \transvia{c ∣ p}_{D̂} h₁(s') 
+        \text{ iff } h(s) \transvia{c ∣ p}_{D̂} h(s'). 
     \end{align*}
     And similarly for \(s ∈ Ŝ_{e₂} ∩ Ŝ_{e}\).
     So we only need to show the homomorphic condition for the start state \(s^*\):
@@ -1243,20 +1225,20 @@ Turns out all of these questions can be answered by a connection by a homomorphi
         & s^* \transAcc{Ŝ_{e}}{c} \\
         \text{iff } &
         (∃ a, b ∧ a = c \text{ and } 
-        s₁^* \transAcc{Ŝ_{e₁}}{a})
-        \text{ or } 
+        s₁^* \transAcc{Ŝ_{e₁}}{a}) \\*
+        & \text{ or } 
         (∃ a, \overline{b} ∧ a = c \text{ and } 
         s₂^* \transAcc{Ŝ_{e₂}}{a}) \\
         \text{iff } & 
         (∃ a, b ∧ a = c \text{ and } 
-        h₁(s₁^*) \transAcc{D̂}{a})
-        \text{ or } 
+        h₁(s₁^*) \transAcc{D̂}{a}) \\*
+        & \text{ or } 
         (∃ a, \overline{b} ∧ a = c \text{ and } 
         h₂(s₂^*) \transAcc{D̂}{a}) \\  
         \text{iff } & 
         (∃ a, b ∧ a = c \text{ and } 
-        e₁ \transAcc{D̂}{a})
-        \text{ or } 
+        e₁ \transAcc{D̂}{a}) \\*
+        & \text{ or } 
         (∃ a, \overline{b} ∧ a = c \text{ and } 
         e₂ \transAcc{D̂}{a}) \\  
         \text{iff }& e₁ +_b e₂ \transAcc{D̂}{c}\\
@@ -1264,24 +1246,24 @@ Turns out all of these questions can be answered by a connection by a homomorphi
         & s^* \transvia{a ∣ p}_{Ŝ_{e}} s' \\
         \text{iff } &
         (∃ a, b ∧ a = c \text{ and } 
-        s₁^* \transvia{a ∣ p}_{Ŝ_{e₁}} s')
-        \text{ or } 
+        s₁^* \transvia{a ∣ p}_{Ŝ_{e₁}} s') \\*
+        & \text{ or } 
         (∃ a, \overline{b} ∧ a = c \text{ and } 
         s₂^* \transvia{a ∣ p}_{Ŝ_{e₂}} s') \\
         \text{iff } & 
         (∃ a, b ∧ a = c \text{ and } 
-        h₁(s₁^*) \transvia{a ∣ p}_{D̂} h(s'))
-        \text{ or } 
+        h₁(s₁^*) \transvia{a ∣ p}_{D̂} h(s')) \\*
+        & \text{ or } 
         (∃ a, \overline{b} ∧ a = c \text{ and } 
         h₂(s₂^*) \transvia{a ∣ p}_{D̂} h(s')) \\  
         \text{iff } & 
         (∃ a, b ∧ a = c \text{ and } 
-        e₁ \transvia{a ∣ p}_{D̂} h(s'))
-        \text{ or } 
+        e₁ \transvia{a ∣ p}_{D̂} h(s')) \\*
+        & \text{ or } 
         (∃ a, \overline{b} ∧ a = c \text{ and } 
         e₂ \transvia{a ∣ p}_{D̂} h(s')) \\  
         \text{iff }& e₁ +_b e₂ \transvia{a ∣ p}_{D̂} h(s') \\ 
-        \text{iff }& h(s^*) \transvia{a ∣ p}_{D̂} h(s')
+        \text{iff }& h(s^*) \transvia{a ∣ p}_{D̂} h(s').
     \end{align*}
 
     When \(e ≜ e₁; e₂\), by induction hypothesis, we have two homomorphisms \(h₁: Ŝ_{e₁} → D̂\) and \(h₂: Ŝ_{e₂} → D̂\).
@@ -1293,7 +1275,7 @@ Turns out all of these questions can be answered by a connection by a homomorphi
     Then we can prove that \(h\) is a homomorphism by case analysis on \(s\). 
     First case is that \(s ∈ Ŝ_{e₁}\):
     \begin{align*}
-        s \transAcc{Ŝ_{e}}{c} 
+        & s \transAcc{Ŝ_{e}}{c} \\
         \text{ iff } & 
             ∃ a, b, a ∧ b = c, 
                 s \transAcc{Ŝ_{e₁}}{a} 
@@ -1306,36 +1288,40 @@ Turns out all of these questions can be answered by a connection by a homomorphi
                 f \transAcc{D̂}{b} \\
         \text{ iff } & h₁(s); f \transAcc{D̂}{c} 
         \text{ iff } h(s) \transAcc{D̂}{c}.\\[5px]
-        s \transvia{c ∣ p}_{S_{e}} s'
+        & s \transvia{c ∣ p}_{S_{e}} s' \\
         \text{ iff } & 
-            (s \transvia{c ∣ p}_{Ŝ_{e₁}} s')
-            \text{ or }
-            (∃ a, b, a ∧ b = c
-                \text{ and }
-                s \transAcc{Ŝ_{e₁}}{a}
-                \text{ and }
-                s₂^* \transvia{b ∣ p}_{Ŝ_{e₂}} s') \\  
+            \begin{aligned}[t]
+                (∃ a, b, a ∧ b = c
+                & \text{ and }
+                s \transAcc{Ŝ_{e₁}}{a} \\*
+                & \text{ and }
+                s₂^* \transvia{b ∣ p}_{Ŝ_{e₂}} s') 
+            \end{aligned} \\*
+            & \text{ or }
+            (s \transvia{c ∣ p}_{Ŝ_{e₁}} s') \\  
         \text{ iff } & 
-            (h₁(s) \transvia{c ∣ p}_{D̂} h₁(s')) 
-            \text{ or }
-            (∃ a, b, a ∧ b = c
-                \text{ and }
-                h₁(s) \transAcc{D̂}{a}
-                \text{ and }
-                e₂ \transvia{b ∣ p}_{D̂} h₂(s')) \\
+            \begin{aligned}[t]
+                (∃ a, b, a ∧ b = c
+                & \text{ and }
+                h₁(s) \transAcc{D̂}{a} \\*
+                &\text{ and }
+                e₂ \transvia{b ∣ p}_{D̂} h₂(s'))
+            \end{aligned} \\*
+            & \text{ or }
+            (h₁(s) \transvia{c ∣ p}_{D̂} h₁(s')) \\
         \text{ iff } & h₁(s) \transvia{c ∣ p} h(s') 
         \text{ iff } h(s) \transvia{c ∣ p} h(s').
     \end{align*}
     The case where \(s₂ ∈ Ŝ_{e₂}\) is straightforward, as \(Ŝ_{e}\) preserves the transitions of \(Ŝ_{e₂}\):
     \begin{align*}
-        & s \transAcc{Ŝ_{e}}{c} \text{ iff }
-        s \transAcc{Ŝ_{e₂}}{c} \text{ iff }
-        h₂(s) \transAcc{D̂}{c} \text{ iff }
-        h(s) \transAcc{D̂}{c}, \\ 
-        & s \transvia{c ∣ p}_{Ŝ_{e}} s' \text{ iff }
-        s \transvia{c ∣ p}_{Ŝ_{e₂}} s' \text{ iff }
-        h₂(s) \transvia{c ∣ p}_{D̂} h₂(s') \text{ iff }
-        h(s) \transvia{c ∣ p}_{D̂} h(s').
+        & s \transAcc{Ŝ_{e}}{c} 
+        \text{ iff } s \transAcc{Ŝ_{e₂}}{c} \\*
+        & \text{ iff } h₂(s) \transAcc{D̂}{c} 
+        \text{ iff } h(s) \transAcc{D̂}{c}, \\ 
+        & s \transvia{c ∣ p}_{Ŝ_{e}} s' 
+        \text{ iff } s \transvia{c ∣ p}_{Ŝ_{e₂}} s' \\*
+        & \text{ iff } h₂(s) \transvia{c ∣ p}_{D̂} h₂(s') 
+        \text{ iff } h(s) \transvia{c ∣ p}_{D̂} h(s').
     \end{align*}
     
 
@@ -1347,9 +1333,9 @@ Turns out all of these questions can be answered by a connection by a homomorphi
     We prove the homomorphism condition by case analysis on \(s\). First case is that \(s = s^*\), then:
     \begin{align*}
         (s^* \transAcc{Ŝ_e}{c})
-        \text{ iff } & (s^* \transAcc{Ŝ_e}{c} \text{ and } c = \overline{b})
-        \text{ iff } ({e₁}^{(b)} \transAcc{D̂}{c} \text{ and } c = \overline{b})
-        \text{ iff } (h(s^*) \transAcc{D̂}{c}) \\
+        \text{ iff } & (s^* \transAcc{Ŝ_e}{c} \text{ and } c = \overline{b}) \\*
+        \text{ iff } & ({e₁}^{(b)} \transAcc{D̂}{c} \text{ and } c = \overline{b}) \\*
+        \text{ iff } & (h(s^*) \transAcc{D̂}{c}); \\
         (s^* \transvia{c ∣ p}_{Ŝ_e} s')
         \text{ iff } & (∃ a, b ∧ a = c \text{ and } s₁^* \transvia{a ∣ p}_{Ŝ_{e₁}} s') \\
         \text{ iff } & (∃ a, b ∧ a = c \text{ and } e₁ \transvia{a ∣ p}_{D̂} h₁(s')) \\ 
@@ -1365,33 +1351,39 @@ Turns out all of these questions can be answered by a connection by a homomorphi
         \text{ iff } h(s) \transAcc{D̂}{c} \\[5px]
         & s \transvia{c ∣ p}_{Ŝ_e} s' \\
         \text{ iff } & 
-            (s \transvia{c ∣ p}_{Ŝ_{e₁}} s' 
-            \text{ or } 
-            ∃ a₁, a₂, 
-                b ∧ a₁ ∧ a₂ = c 
-                \text{ and } 
-                s \transAcc{Ŝ_{e₁}}{a₁} 
-                \text{ and } 
-                s₁^* \transvia{a₂ ∣ p}_{Ŝ_{e₁}} s') \\
+            (s \transvia{c ∣ p}_{Ŝ_{e₁}} s' \\
+            & \text{ or } 
+            \begin{aligned}[t]
+                ∃ a₁, a₂, {}
+                & b ∧ a₁ ∧ a₂ = c \\*
+                & \text{ and } 
+                s \transAcc{Ŝ_{e₁}}{a₁} \\*
+                & \text{ and } 
+                s₁^* \transvia{a₂ ∣ p}_{Ŝ_{e₁}} s')
+            \end{aligned} \\
         \text{ iff } & 
-            (h₁(s) \transvia{c ∣ p}_{D̂} h₁(s') 
-            \text{ or } 
-            ∃ a₁, a₂, b ∧ a₁ ∧ a₂ = c 
-                \text{ and } 
-                h₁(s) \transAcc{D̂}{a₁} 
-                \text{ and } 
-                e₁ \transvia{a₂ ∣ p}_{D̂} h₁(s'))\\
+            (h₁(s) \transvia{c ∣ p}_{D̂} h₁(s') \\*
+            & \text{ or } 
+            \begin{aligned}[t]
+                ∃ a₁, a₂, &{} b ∧ a₁ ∧ a₂ = c \\*
+                & \text{ and } 
+                h₁(s) \transAcc{D̂}{a₁} \\*
+                & \text{ and } 
+                e₁ \transvia{a₂ ∣ p}_{D̂} h₁(s')) 
+            \end{aligned}\\
         \text{ iff } & 
-            (h₁(s) \transvia{c ∣ p}_{D̂} h₁(s') 
-            \text{ or } 
-            ∃ a₁, a₂, b ∧ a₁ ∧ a₂ = c 
-                \text{ and } 
-                h₁(s) \transAcc{D̂}{a₁} 
-                \text{ and } 
+            (h₁(s) \transvia{c ∣ p}_{D̂} h₁(s')  \\
+            & \text{ or } 
+            \begin{aligned}[t]
+                ∃ a₁, a₂, &{} b ∧ a₁ ∧ a₂ = c \\
+                & \text{ and } 
+                h₁(s) \transAcc{D̂}{a₁} \\
+                &{} \text{ and } 
                 e₁^{(b)} \transvia{b ∧ a₂ ∣ p}_{D̂} h₁(s');e₁^{(b)}) \\ 
+            \end{aligned}\\
         \text{ iff } &
-            (h₁(s); e₁^{(b)} \transvia{c ∣ p}_{D̂} h₁(s'); e₁^{(b)}) 
-        \text{ iff } h(s) \transvia{c ∣ p}_{D̂} h(s')
+            (h₁(s); e₁^{(b)} \transvia{c ∣ p}_{D̂} h₁(s'); e₁^{(b)}) \\
+        \text{ iff } & h(s) \transvia{c ∣ p}_{D̂} h(s').
         \qedhere
     \end{align*}
 \end{proof}
@@ -1399,7 +1391,7 @@ Turns out all of these questions can be answered by a connection by a homomorphi
 \Cref{thm:hom-thompson-derivative} have several consequences, one of the more obvious one is that we can use the functoriality of the lowering operation to show the semantic equivalence of the start state in the thompson's construction and the expression in derivative. 
 
 \begin{corollary}[Correctness]
-    Given any expression \(e\) and its Thompson's coalgebra \(Ŝ_{e}\) with a start state \(s^* ∈ Ŝ_{e}\), then the semantics of the start state is equivalent to the semantics of \(e\): \(⟦s^*⟧_{Ŝ_{e}} = ⟦e⟧.\)
+    Given any expression \(e\) and its Thompson's coalgebra \(Ŝ_{e}\) with the start state \(s^* ∈ Ŝ_{e}\), then the semantics of the start state is equivalent to the semantics of \(e\): \(⟦s^*⟧_{Ŝ_{e}} = ⟦e⟧.\)
 \end{corollary}
 
 A not so obvious consequence of the homomorphism in~\Cref{thm:hom-thompson-derivative}, is the complexity of the algorithm based on derivatives.
@@ -1413,13 +1405,17 @@ On the other hand the size of \(⟨e⟩_{D̂}\) can, again, be derived from the 
 \end{corollary}
 
 \begin{proof}
-    We define \(h'\) to be point-wise equal to \(h\), i.e. \(h'(s) ≜ h(s)\). 
-    Then we need to show that \(h'\) is well-defined ans surjective, which is a consequence of homomorphic image preserves principle sub-coalgebra (\Cref{thm:homo-img-preserve-principle-sub-coalg}): \(h(⟨s^*⟩_{Ŝ_{e}}) = ⟨h(s)⟩_{D̂} = ⟨e⟩_{D̂}.\)
-    In other words, the image of \(h\) on \(⟨s^*⟩_{Ŝ_{e}}\) is equal to \(⟨e⟩_{D̂}\); thus, because \(h'\) is point-wise equal to \(h\) and is defined on \(⟨s^*⟩_{Ŝ_{e}}\), the range of \(h'\) contains its codomain \(⟨e⟩_{D̂}\), showing that \(h'\) is surjective.
+    We define \(h'\) to be point-wise equal to \(h\), i.e. \(h'(s) ≜ h(s)\), i.e. \(h'\) is \(h\) restricted on the domain \(⟨s^*⟩_{Ŝ_{e}}\). 
+    We need to show that \(h'\) is well-defined and surjective, which is a consequence of homomorphic image preserves principle sub-coalgebra (\Cref{thm:homo-img-preserve-principle-sub-coalg}): \(h(⟨s^*⟩_{Ŝ_{e}}) = ⟨h(s)⟩_{D̂} = ⟨e⟩_{D̂}.\)
+    In other words, the image of \(h\) on \(⟨s^*⟩_{Ŝ_{e}}\) is equal to \(⟨e⟩_{D̂}\); thus, because \(h'\) the restriction of \(h\) on \(⟨s^*⟩_{Ŝ_{e}}\), the range of \(h'\) contains its codomain \(⟨e⟩_{D̂}\), showing that \(h'\) is surjective.
 \end{proof}
 
-An important consequence of~\cref{thm:suj-hom-thompson-derivative} is that \(⟨s^*⟩_{Ŝ_{e}}\) will have no less state than \(⟨e⟩_{D̂}\).
-However, it is important to notice that this does not mean running bisimulation algorithm on 
+Therefore, \(⟨s^*⟩_{Ŝ_{e}}\) will have no less state than \(⟨e⟩_{D̂}\) as a consequence of the surjectivity of \(h'\) in~\cref{thm:suj-hom-thompson-derivative}.
+Because \(Ŝ_{e}\) have more states than \(⟨s^*⟩_{Ŝ_{e}}\), which have more states than \(⟨e⟩_{D̂}\), and notice that the size of \(Ŝ_{e}\) is linear to the size of the input expression, therefore \(⟨e⟩_{D̂}\) is at most linear to the size of the expression. 
+
+Although the size of the coalgebra generated by the derivative is smaller than Thompson's construction, this does not imply that the decision procedure based on derivative is always more efficient than those based on Thompson's construction. 
+Crucially, the states in the derivative coalgebra \(D̂\) are expressions, and computing the next transition of the coalgebra can also be more expensive.
+Thompson's construction, on the other hand, only requires inductively going through the expression once to construct the entire coalgebra \(Ŝ_{e}\), and its states can be represented by more efficient constructs, like integers. 
 
 \section{Implementation}
 

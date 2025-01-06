@@ -16,3 +16,7 @@ Bisimulation
 bisimulations
 coinductively
 lowerings
+homomorphisms
+codomain
+surjective
+surjectivity
