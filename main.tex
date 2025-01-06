@@ -565,15 +565,15 @@ This gives us more tool in proving semantic equivalence between two states in GK
 
 \section{On-The-Fly Bisimulation}
 
-The original algorithm for deciding GKAT equivalences~\cite{smolka_GuardedKleeneAlgebra_2020} requires the entire automaton to be known prior to the execution of the bisimulation algorithm; specifically, in order to compute the liveness of a state \(s\), it is necessary iterate through all its reachable states \(⟨s⟩\) to see if there are any accepting states within.
+The original algorithm for deciding GKAT equivalences~\cite{smolka_GuardedKleeneAlgebra_2020} requires the entire coalgebra to be known prior to the execution of the bisimulation algorithm; specifically, in order to compute the liveness of a state \(s\), it is necessary iterate through all its reachable states \(⟨s⟩\) to see if there are any accepting states within.
 This limitation poses challenges to design an efficient on-the-fly algorithm for GKAT.
-In order to make the decision procedure scalable, we will need to merge the normalization and bisimulation procedure, so that our algorithm can normalized the automaton only when we need to.
+In order to make the decision procedure scalable, we will need to merge the normalization and bisimulation procedure, so that our algorithm can normalize the coalgebra only when we need to.
 
 In this section, we introduce an algorithm that merges bisimulation and normalization where we only need to test the liveness of the state when a disparity in the bisimulation has been found.
-For example, when one automaton leads to reject where the other transition to a state, then we will need to verify whether that state is dead or not.
+For example, when one state leads to reject where the other transition to another state, then we will need to verify whether the resulting state is dead or not.
 
-This on-the-fly algorithm inherits the efficiency of the original algorithm~\cite{smolka_GuardedKleeneAlgebra_2020}, where the worst case will require two passes of the automaton, where one pass will try to establish a bisimulation, when failed the other pass will kick in and compute whether the failed states are dead.
-In some special case, the on-the-fly algorithm can even out perform the original algorithm; for example, when the two input automata are bisimular (even when they are not normal), the on-the-fly algorithm can skip the liveness checking, only performing the bisimulation.
+This on-the-fly algorithm inherits the efficiency of the original algorithm~\cite{smolka_GuardedKleeneAlgebra_2020}, where the worst case will require two passes of the coalgebra, where one pass will try to establish a bisimulation, when failed the other pass will kick in and compute whether the failed states are dead.
+In some special case, the on-the-fly algorithm can even out perform the original algorithm; for example, when the two input states are bisimular (even when they are not normal), the on-the-fly algorithm can skip the liveness checking, only performing the bisimulation.
 
 TODO: I think we should move the next couple theorem to the background.
 
@@ -1018,8 +1018,8 @@ Then for the algorithm, we can just recursively check all the conditions in~\cre
                     \text{\Call{isDead$_S$}{$s$}} ∧ \text{\Call{isDead$_U$}{$u$}} & \text{if \(p ≠ q\)} \\
                     \text{\Call{Union}{$s$, $u$}}; \text{\Call{Equiv}{$s', u'$}} & \text{if \(p = q\)}
                 \end{cases} \mathrel{\&\!\&}\\
-                & ∀ (b, s', p) ∈ δ̂_S(s), c ∈ ρ̂_U(u), (b ∧ c) ≢ 0 ⟹ \text{\Call{IsDead$_S$}{$s'$}} \mathrel{\&\!\&}\\
-                & ∀ b ∈ ρ̂_S(s), (c, u', q) ∈ δ̂_U(u), (b ∧ c) ≢ 0 ⟹ \text{\Call{IsDead$_U$}{$u'$}}
+                & ∀ (b, s', p) ∈ δ̂_S(s), c ∈ ρ̂_U(u), (b ∧ c) ≢ 0 ⟹ \text{\Call{isDead$_S$}{$s'$}} \mathrel{\&\!\&}\\
+                & ∀ b ∈ ρ̂_S(s), (c, u', q) ∈ δ̂_U(u), (b ∧ c) ≢ 0 ⟹ \text{\Call{isDead$_U$}{$u'$}}
             \end{aligned}\)
         }
         \EndIf
@@ -1028,7 +1028,7 @@ Then for the algorithm, we can just recursively check all the conditions in~\cre
 \end{algorithm*}
 
 Inspired by the syntax of Ocaml, the \(\mathrel{\&\!\&}\) is the logical-and operator on the language level, specifying that all four conditions in the return statements must be satisfied to return true. 
-Notice just like the non-symbolic case, this algorithm can be modified to perform symbolic bisimulation of (non-normalized) GKAT automaton, which coincides with infinite trace equivalence~\cite{schmid_GuardedKleeneAlgebra_2021}, by letting \textsc{IsDead} always return false and keep deadStates empty.
+Notice just like the non-symbolic case, this algorithm can be modified to perform symbolic bisimulation of (non-normalized) GKAT coalgebra, which coincides with infinite trace equivalence~\cite{schmid_GuardedKleeneAlgebra_2021}, by letting \textsc{isDead} and \textsc{knownDead} to always return false.
 
 
 \section{Symbolic GKAT Coalgebra Construction}
