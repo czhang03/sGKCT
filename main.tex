@@ -201,8 +201,7 @@
 % set of models
 \newcommand{\theoryOf}[1]{\ensuremath{\mathsf{#1}}}
 \newcommand{\Exp}{\theoryOf{Exp}}
-\newcommand{\GKAT}{\theoryOf{GKAT}}
-\newcommand{\Bool}{\theoryOf{Bool}}
+\newcommand{\BExp}{\theoryOf{BExp}}
 \DeclareMathOperator{\GS}{\mathrm{GS}}
 
 \newcommand\altxrightarrow[2][0pt]{\mathrel{\ensurestackMath{\stackengine%
@@ -327,7 +326,7 @@ Similar to sub-coalgebra, principle sub-coalgebra is also preserved under homomo
 \end{theorem}
 
 \begin{proof}
-    We will need to show that \(h(⟨s⟩_{S})\) is the smallest sub-GKAT coalgebra of \(S\) that contain \(h(s)\). First by definition of image, \(h(s) ∈ h(⟨s⟩_{S})\); second by \cref{thm:hom-(pre)img-preserve-sub-coalg}, \(h(⟨S⟩_S) ⊑ U\).
+    We will need to show that \(h(⟨s⟩_{S})\) is the smallest sub-GKAT coalgebra of \(S\) that contain \(h(s)\). First by definition of image, \(h(s) ∈ h(⟨s⟩_{S})\); second by \cref{thm:hom-(pre)img-preserve-sub-coalg}, \(h(⟨s⟩_S) ⊑ U\).
 
     Finally, take any \(U' ⊑ U\) and \(h(s) ∈ U'\), recall that by \cref{thm:hom-(pre)img-preserve-sub-coalg}, \(h^{-1}(U') ⊑ S\). We can then derive that \(h(⟨s⟩_S) ⊑ U'\): 
     \begin{align*}
@@ -379,12 +378,12 @@ This result is very important, as it allows us to leverage more efficient data s
 \subsection{GKAT and Its Coalgebra}
 
 Guarded Kleene Algebra with Tests, or GKAT~\cite{smolka_GuardedKleeneAlgebra_2020}, is a deterministic fragment of Kleene Algebra with Tests. 
-The syntax of GKAT over a set of primitive actions \(K\) and a set of primitive tests \(T\) can be defined in two sorts, boolean expressions \(\Bool\) and expressions \(\Exp\):
+The syntax of GKAT over a set of primitive actions \(K\) and a set of primitive tests \(T\) can be defined in two sorts, boolean expressions \(\BExp\) and expressions \(\Exp\):
 \begin{align*}
-    a, b, c ∈ \Bool 
+    a, b, c ∈ \BExp 
         & ≜ 1 ∣ 0 ∣ t ∈ T ∣ b ∧ c ∣ b ∨ c ∣ \overline{b} \\  
     e, f ∈ \Exp 
-        & ≜ p ∈ K ∣ b ∈ \Bool ∣ e +_b f ∣ e ; f ∣ e^{(b)} 
+        & ≜ p ∈ K ∣ b ∈ \BExp ∣ e +_b f ∣ e ; f ∣ e^{(b)} 
 \end{align*}
 where \(e +_b f\) is the if statement with condition \(b\); \(e;f\) is the sequencing of expression \(e\) and \(f\); finally \(e^{(b)}\) is the while loop with body \(e\) and condition \(b\).
 A GKAT expression can be unfolded into a KAT expression in the usual manner~\cite{kozen_KleeneAlgebraTests_1997c}:
@@ -393,10 +392,11 @@ A GKAT expression can be unfolded into a KAT expression in the usual manner~\cit
     e^{(b)} & ≜ (b; e)^*; \overline{b}.
 \end{align*}
 Then the semantics of each expression \(⟦e⟧\) can be computed by the semantics of Kleene Algebra with tests~\cite{kozen_KleeneAlgebraTests_1997c}.
-An important construct in the semantics is \emph{atoms}, which are a string of all the primitive tests either in its positive or negative form: for \(B ≜ \{b₁, b₂, …, bₙ\}\)
-\[\At_B ≜ \{b₁' ⋅ b₂' ⋅ ⋯ ⋅ bₙ' ∣ bᵢ' ∈ \{bᵢ, \overline{bᵢ}\}\}.\]
+An important construct in the semantics is \emph{atoms}, which are conjunctions of all the primitive tests either in its positive or negative form: for \(B ≜ \{b₁, b₂, …, bₙ\}\)
+\[\At_B ≜ \{b₁' ∧ b₂' ∧ ⋯ ∧ bₙ' ∣ bᵢ' ∈ \{bᵢ, \overline{bᵢ}\}\}.\]
 Follow the conventional notation, we denote an atom using \(α, β\); and we sometimes omit the subscript \(B\) when no confusing can arise.
-Intuitively, atoms are truth assignments to each primitive tests, indicating which primitive tests is satisfied in the current program states.
+For a boolean expression \(b\), if \(α\) can be proven to be smaller than \(b\) using axioms of the Boolean Algebra, we will say \(b\) \emph{contains} \(α\), denoted as \(α ≤ b\).
+Alternatively, atoms can also be thought of as truth assignments to each primitive tests, indicating which primitive tests is satisfied in the current program states; and \(α ≤ b\) if and only if the truth assignment represented by \(α\) satisfies \(b\).
 
 For the sake of brevity, we omit the complete definition of GKAT and KAT semantics, we refer the reader to previous works~\cite{smolka_GuardedKleeneAlgebra_2020,schmid_GuardedKleeneAlgebra_2021,kozen_KleeneAlgebraTests_1997c}, which explains these semantics in detail.
 Our work avoids directly interact with the semantics by leveraging results in the coalgebraic theory of GKAT, which we will recap below.
@@ -491,7 +491,11 @@ Concretely, given a GKAT coalgebra \(S ≜ (S, δ_S)\), we let \(δ_{\norm(S)} :
 
 The finality of \(𝒢\) means that the finite trace semantics \(⟦-⟧\) is the unique coalgebra homomorphism \(\norm(S) → 𝒢\). 
 Furthermore, the finite trace equivalence between \(s ∈ S\) and \(u ∈ U\) can be computed by first normalizing \(S\) and \(U\), then decide whether there is a bisimulation on \(\norm(S)\) and \(\norm(U)\) that includes \((s, t)\).
-For a more detailed explanation on the finite trace semantics, we refer the reader to the work of \Citeauthor{smolka_GuardedKleeneAlgebra_2020}~\cite{smolka_GuardedKleeneAlgebra_2020}.
+For a more detailed explanation on the finite trace semantics, we refer the reader to the work of \Citeauthor{smolka_GuardedKleeneAlgebra_2020}~\cite{smolka_GuardedKleeneAlgebra_2020}, however we will recall two important theorems here.
+
+\begin{theorem}[Correctness~\cite{smolka_GuardedKleeneAlgebra_2020}]\label{thm:norm-bisim-correctness}
+    Given two states in two GKAT coalgebra \(s ∈ S\) and \(u ∈ U\), then there exists a bisimulation between normalized coalgebras \({∼} ⊆ \norm(S) × \norm(U)\) s.t. \(s ∼ u\) if and only if \(s\) and \(u\) are trace equivalent \(⟦s⟧_S = ⟦u⟧_U\)
+\end{theorem}
 
 Besides giving us the finite-trace semantics, the normalization operation also connects the finite and infinite trace semantics, because it is an endofunctor on the category of GKAT coalgebra.
 
@@ -556,7 +560,7 @@ This gives us more tool in proving semantic equivalence between two states in GK
         & \norm(∼) \ar{r}{π₂} \ar[swap]{l}{π₁} 
         & \norm(U)
     \end{tikzcd}\]
-    And because normalization operation preserves states in \(∼\), therefore \((s, u) ∈ \norm(∼)\), and because \(\norm(∼)\) is a bisimulation between the normalization of \(S\) and \(U\), therefore \(⟦s⟧_{S} = ⟦u⟧_{U}\)
+    Because \(s ∼ u\) and normalization operation preserves states in \(∼\), therefore \((s, u) ∈ \norm(∼)\), and because \(\norm(∼)\) is a bisimulation between the normalization of \(S\) and \(U\), therefore \(⟦s⟧_{S} = ⟦u⟧_{U}\) (\cref{thm:norm-bisim-correctness}).
 \end{proof}
 
 \section{On-The-Fly Bisimulation}
@@ -650,7 +654,7 @@ After we justify the above optimizations of the algorithm, we will show the core
     By computation
 \end{proof}
 
-\begin{theorem}[Recursive Construction]\label{thm:recursive-construction}
+\begin{lemma}\label{thm:recursive-construction-lemma}
     Given two GKAT coalgebra \(S\) and \(U\), and two of their elements \(s ∈ S\) and \(u ∈ U\),
     there exists a bisimulation \({∼} ⊆ \norm(⟨s⟩) × \norm(⟨u⟩)\) s.t. \(s ∼ u\), if and only if all the following holds:
     \begin{enumerate}
@@ -659,7 +663,7 @@ After we justify the above optimizations of the algorithm, we will show the core
         \item\label{itm:transition-bisim} If \(δ_{S}(s, α) = (s', p)\) and \(δ_{U}(u, α) = (u', p)\), then there exists a bisimulation \({∼'} ⊆ \norm(⟨s'⟩) × \norm(⟨u'⟩)\), s.t. \(s' ∼' u'\);
         \item\label{itm:transition-dead} If \(δ_{S}(s, α) = (s', p)\) and \(δ_{U}(u, α) = (u', q)\), s.t. \(p ≠ q\), then both \(s'\) and \(t'\) are dead.
     \end{enumerate}
-\end{theorem}
+\end{lemma}
 
 \begin{proof}
     We first prove \(⟹\) direction, recall that there exists a bisimulation \({∼} ⊆ \norm(⟨s⟩) × \norm(⟨u⟩)\) if and only if for all \(s₁ ∼ u₁\):
@@ -726,7 +730,7 @@ After we justify the above optimizations of the algorithm, we will show the core
     Finally, we demonstrate that \(δ_∼\) is well-defined by leveraging the conditions in~\Cref{thm:recursive-construction}. 
     Specifically, we will show that the definition of \(δ_∼\) covers all the possible cases, by case analysis on the result of \(δ_S\): for all \(α ∈ \At\),
     \begin{itemize}
-        \item If \(δ_S(s, α) = \accept\), then by condition~\labelcref{itm:acc-condition}, \(δ_U(u, α) = \accept\); therefore \[(δ_{\norm(S)})(s, α) = \norm(δ_{\norm(U)})(u, α) = \accept.\]
+        \item If \(δ_S(s, α) = \accept\), then by condition~\labelcref{itm:acc-condition}, \(δ_U(u, α) = \accept\); therefore \[δ_{\norm(S)}(s, α) = δ_{\norm(U)}(u, α) = \accept.\]
         \item If \(δ_S(s, α)\) transitions to a dead state or reject, then by condition~\labelcref{itm:rej-or-dead} \(δ_U(u, α)\) will also transition to a dead state or reject, then \[δ_{\norm(S)}(s, α) = δ_{\norm(U)}(u, α) = \reject.\]
         \item If \(δ_S(s, α) = (s', p)\) and \(s'\) is live, then \(δ_U(u, α) = (u', p)\) necessarily holds, otherwise it would violate one of conditions~\labelcref{itm:acc-condition,itm:rej-or-dead,itm:transition-dead}. 
 
@@ -736,44 +740,54 @@ After we justify the above optimizations of the algorithm, we will show the core
     \end{itemize}
 \end{proof}
 
-\begin{corollary}[Correctness]\label{thm:recursive-construction-correctness}
-    For any two states in two GKAT coalgebra \(s ∈ S, u ∈ U\), \(s\) and \(u\) are finite-trace equivalent if and only if there exists a \emph{bisimulation equivalence} \(≃\) in \(\norm(⟨s⟩) + \norm(⟨u⟩)\), which is equivalent to all the following conditions hold:
+\begin{theorem}[Recursive Construction]\label{thm:recursive-construction}
+    For any two states in two GKAT coalgebra \(s ∈ S, u ∈ U\), \(s\) and \(u\) are finite-trace equivalent \(⟦s⟧_{S} = ⟦u⟧_{U}\) if and only if all the following conditions hold:
     \begin{enumerate}
         \item for all \(α ∈ \At\), \(δ_{S}(s, α) = \accept ⟺ δ_{U}(u, α) = \accept\);
         \item \(s\) reject \(α\) or transition to a dead state via \(α\) if and only if \(u\) rejects \(α\) or transition to a dead state via \(α\);  
-        \item if \(δ_{S}(s, α) = (s', p)\) and \(δ_{U}(u, α) = (u', p)\), then there exists a bisimulation equivalence \({≃'}\) in \(\norm(⟨s'⟩) + \norm(⟨u'⟩)\), s.t. \(s' ≃' u'\);
+        \item if \(δ_{S}(s, α) = (s', p)\) and \(δ_{U}(u, α) = (u', p)\), then \(⟦s⟧_{S} = ⟦u⟧_{U}\);
         \item if \(δ_{S}(s, α) = (s', p)\) and \(δ_{U}(u, α) = (u', q)\), s.t. \(p ≠ q\), then both \(s'\) and \(t'\) are dead.
     \end{enumerate}
-    Notice that above condition is similar to those in~\cref{thm:recursive-construction}, except bisimulation is replaced with bisimulation \emph{equivalence}.
-\end{corollary}
+    Notice that above condition is similar to those in~\cref{thm:recursive-construction}, except bisimulation of \(s'\) and \(u'\) is replaced with trace equivalence.
+\end{theorem}
 
 \begin{proof}
-    By the standard argument with normalization preserves sub-coalgebra (\Cref{thm:norm-sub-coalg}), we can obtain 
-    \(\norm(⟨s⟩) ⊑ \norm(S)\) and \(\norm(⟨u⟩) ⊑ \norm(U)\).
-    Because sub-coalgebra reflects and preserves bisimulation (\Cref{thm:sub-coalg-preserve-bisim}) and the correspondence between bisimulations and bisimulation equivalences in GKAT (\cref{thm:GKAT-bisim-iff-bisim-eq}): let \({∼_{s, u}} ⊆ \norm(⟨s⟩) × \norm(⟨u⟩)\) and \({∼} ⊆ \norm(S) × \norm(U)\) be bisimulations and \(≃\) be a bisimulation equivalence in \(\norm(⟨s⟩) + \norm(⟨u⟩)\):
+    By the standard argument with normalization preserves sub-coalgebra (\Cref{thm:norm-sub-coalg}), we can obtain for all \(s ∈ S\) and \(u ∈ U\), \(\norm(⟨s⟩) ⊑ \norm(S)\) and \(\norm(⟨u⟩) ⊑ \norm(U)\).
+    Therefore, because subcoalgebra preserve and reflect bisimulation (\Cref{thm:sub-coalg-preserve-bisim}) and the correctness of bisimulation on normalized coalgebra (\Cref{thm:norm-bisim-correctness}): for all \(s ∈ S\) and \(u ∈ U\),
     \begin{align*}
-        & \text{Conditions in \cref{thm:recursive-construction} is satisfied} \\  
-        ⟺{}& \text{Conditions in current theorem is satisfied}\\
-        ⟺{}& ∃~ {≃}, s ≃ u 
-        ⟺ ∃~ {∼_{s, u}}, s ∼ u \\
-        ⟺{}& ∃~ {∼} , s ∼ u 
-        ⟺ ⟦s⟧_{S} = ⟦u⟧_{U}. \qedhere
+        & ∃~ {∼} ⊆ \norm(⟨s⟩) × \norm(⟨u⟩), s ∼ u \\
+        ⟺{}& ∃~ {∼} ⊆ \norm(S) × \norm(U), s ∼ u \\  
+        ⟺{}& ⟦s⟧_S = ⟦u⟧_U.
+    \end{align*}
+    We can instantiate the above equivalence to \(s', u'\) and \(s, u\) respectively: the instantiation to \(s', u'\) will give us the conditions in this theorem is equivalent to the ones in~\Cref{thm:recursive-construction-lemma}; and instantiation to \(s, u\) show that existence of bisimulation is equivalent to trace equivalence:
+    \begin{align*}
+        & \text{Conditions in \cref{thm:recursive-construction-lemma} hold} \\  
+        ⟺{}& \text{Conditions in the current theorem hold}\\
+        ⟺{}& ∃~ {∼} ⊆ \norm(⟨s⟩) × \norm(⟨u⟩), s ∼ u\\
+        ⟺{}& ⟦s⟧_{S} = ⟦u⟧_{U}. \qedhere
     \end{align*}
 \end{proof}
 
 The above theorem already gives us an algorithm to recursively decide whether \(⟦s⟧_{S} = ⟦u⟧_U\), when \(⟨s⟩_S\) and \(⟨u⟩_U\) is finite.
-However, this algorithm can be further optimized in several ways: we will then derive that a dead state can never relate to live states. This means that when checking the bisimulation of states \(s\) and \(t\), if we already know one of them is dead, we only need to check whether the other is dead, instead of going through all the conditions in~\cref{thm:recursive-construction}.
+However, this algorithm can be further optimized: we will then derive that a dead state is only trace equivalent to other dead states. This means that when checking the trace-equivalence of states \(s\) and \(u\), if we already know one of them is dead, we only need to check whether the other is dead, instead of going through all the conditions in~\cref{thm:recursive-construction}.
 
 \begin{theorem}\label{thm:bisim-one-dead}
-    Given two states \(s ∈ S\) and \(t ∈ T\), if \(s\) is a dead state in \(S\), then there exists a bisimulation equivalence \(≃\) in \(S + T\) where \(s ≃ t\) if and only if \(t\) is dead. Similarly, for \(t ∈ T\).
+    Given two states \(s ∈ S\) and \(u ∈ U\), if \(s\) is a dead state in \(S\), then \(s\) and \(u\) is trace equivalent if and only if \(u\) is also dead.
 \end{theorem}
 
 \begin{proof}
-    Notice because of the homomorphism \(\mathrm{inj_l}: S → S + T\) and homomorphism preserves liveness (\cref{thm:hom-preserve-liveness}), therefore \(s ∈ S\) is dead if and only if \(s ∈ S + T\) is dead; similarly for \(t ∈ T\).
+    TODO: I think we can refine \(⟹\) direction, but I am not sure...  
 
-    If there exists a bisimulation equivalence \(≃\), s.t. \(s ≃ t\), because \(s\) is dead and bisimulation preserves liveness~\cref{thm:bisim-preserve-liveness}, then \(t\) is dead. 
-
-    And if both \(t\) and \(s\) is dead, then a bisimulation between \(S\) and \(T\) can be constructed in~\cref{thm:bisim-between-dead}, which induces a bisimulation equivalence via~\Cref{thm:GKAT-bisim-iff-bisim-eq}.
+    For the \(⟸\) direction, we can construct the bisimulation as in~\cref{thm:bisim-between-dead}, which implies trace equivalence.
+    And the \(⟹\) direction, if \(s\) is dead, then by definition of normalization, it will be all rejecting, i.e. for all \(α ∈ \At\), \(δ_{\norm(S)}(s, α) = \reject\).
+    If \(s\) and \(u\) are trace equivalent, then there exists a bisimulation \({∼}: \norm(S) × \norm(U)\) s.t. \(s ∼ u\).
+    By unfolding the definition of a bisimulation, \(u\) also need to be all rejecting in \(\norm(U)\).
+    By definition of \(\norm\), for all \(α ∈ \At\), \(δ_U(u, α)\) either reject to go to a dead state, and because \(⟨u⟩_U\) is all the reachable state from \(u\), therefore 
+    \begin{align*}
+        ⟨u⟩_U = & ⋃ \{⟨u'⟩ ∣ ∃ α ∈ \At, p ∈ K, δ_U(u, α) = (u', p)\} \\
+        & ∪ \{u\}
+    \end{align*}
+    And because all of \(u'\) is dead, all of \(⟨u'⟩_U\) cannot be accepting (\Cref{thm:dead-iff-all-reachable-dead}), nor is \(u\) an accepting state, then \(⟨u⟩_U\) does not contain any accepting state, and by definition of dead state, \(u\) is dead.
 \end{proof}
 
 Before we write down the optimized algorithm, we will first briefly sketch the dead state detection algorithm, which will use a DFS to check whether the there exists any accepting states in reachable states of \(s ∈ S\): if there exists any accepting state in \(⟨s⟩_S\), then the algorithm terminates immediately, and return that \(s\) is live, otherwise it would return all the states in \(⟨s⟩\), and by~\cref{thm:dead-iff-all-reachable-dead}, all the states in \(⟨s⟩\) is dead.
@@ -825,11 +839,10 @@ TODO: give the link to the section.
 
 TODO: I am not sure if we need to give some intuition for this algorithm here.
 
-Finally, we present our finite-trace equivalent checking algorithm as~\cref{alg:bisim}, where we search for a bisimulation equivalence \({≃}\) in \(\norm(⟨s⟩) + \norm(⟨u⟩)\), s.t. \(s ≃ u\), using the condition in~\Cref{thm:recursive-construction-correctness}.
-Seeking an equivalence relation allows us to organize our explored state pairs into equivalence classes, as opposed to a set of pairs, and enables us to use union-find data structures to avoid looking for two states that are already in the same equivalence class.
+Finally, we present our algorithm to decide trace-equivalence as~\cref{alg:bisim}, where we recursively check the condition in~\Cref{thm:recursive-construction}.
+Notice that trace equivalence is an equivalence relation, therefore we can organize the previously explored states into equivalent relation using union-find structure, instead of a set of state pairs.
 Specifically, we use the call \(\Call{union}{$s, u$}\) to union the equivalence class of \(s\) and \(u\), and use \(\Call{eq}{$s, u$}\) to check whether \(s\) and \(u\) is in the same equivalence class. 
-In this algorithm, we first check if one of \(s\) and \(u\) is known to be dead, if so we only need to check whether the other is dead, because of~\Cref{thm:bisim-one-dead}.
-Otherwise, we will check the conditions in~\Cref{thm:recursive-construction-correctness}, which is a minor modification of the conditions in~\cref{thm:recursive-construction}.
+In this algorithm, we first check if one of \(s\) and \(u\) is known to be dead, if so we only need to check whether the other is dead, because of~\Cref{thm:bisim-one-dead}; otherwise, we will check the conditions in~\Cref{thm:recursive-construction}.
 
 
 % \section{The Algorithm}
@@ -907,36 +920,51 @@ Otherwise, we will check the conditions in~\Cref{thm:recursive-construction-corr
 %     In a memory-constraint situation, the ``\textnormal{deadStates}'' variable can be cleared periodically to save memory.
 % \end{remark}
 
-\section{Symbolic Algorithm}
+\section{Symbolic Coalgebra and Algorithm}
 
-Given the alphabet \(K, B\), a \emph{symbolic GKAT coalgebra} \(Ŝ ≜ ⟨S, ϵ̂, δ̂⟩\) consists of a state set \(S\) and a accepting function \(ϵ̂\) and a transition function \(δ̂\):
+Although \cref{alg:bisim} is on-the-fly, which do not require the construction of the entire coalgebra prior to running the bisimulation algorithm, it still uses GKAT coalgebra, which is known to be inefficient.
+Specifically, the transition function \(δ: S → \At_B → \{\accept, \reject\} + S × K\) requires computing the transition result for each \emph{atom}, and the number of atoms \(\At_B ≅ 2^{B}\) is exponential to the size of primitive tests in \(B\).
+
+In our symbolic GKAT coalgebra, instead of computing the behavior of each atom individually, we group them into boolean expressions, this leads to a much more space efficient coalgebra and an efficient equivalence checking algorithm with the help of off-the-shelf SAT solvers.
+Specifically, given the alphabet \(K, B\), a \emph{symbolic GKAT coalgebra} \(Ŝ ≜ (S, ϵ̂, δ̂)\) consists of a state set \(S\) and an accepting function \(ϵ̂\) and a transition function \(δ̂\):
 \begin{mathpar}
-    ϵ̂: S → 𝒫(\Bool_B), \and
-    δ̂: S → 𝒫(\Bool_B × S × K),
+    ϵ̂: S → 𝒫(\BExp_B), \and
+    δ̂: S → 𝒫(\BExp_B × S × K),
 \end{mathpar}
-where \(\Bool_B\) is the free boolean algebra over \(B\) (boolean expressions modulo boolean algebra axioms); for all states \(s ∈ S\), all the booleans are ``disjoint''; namely the conjunction of any two expression from the set \(\{ϵ̂(s)\} ∪ \{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) are false. 
-We will then use \(ρ̂(s): \Bool_B\) to denote the boolean expressions that contain all the atoms that the state \(s\) rejects, and \(ρ̂(s)\) can be computed as follows:
-\[ρ̂(s) ≜ ¬ ϵ̂(s) ∨ ¬ \left( ⋁_{(b, s', p) ∈ δ(s)} b \right)\]
+where for all states \(s ∈ S\), all the boolean expressions are ``disjoint''; namely the conjunction of any two expressions from the set \(\{ϵ̂(s)\} ∪ \{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) is equivalent to \(0\) under boolean algebra.
 
-Instead of modeling each atom individually in the automata, we group them into boolean expressions, this leads to a much more space efficient automata, and enables efficient bisimulation algorithms using off-the-shelf SAT solvers.
-
-With the above intuition in mind, a symbolic GKAT coalgebra \(Ŝ ≜ ⟨S, ϵ̂, δ̂⟩\) can be lowered into a GKAT coalgebra \(⟨S, δ⟩\) in the following manner:
+Notice that we call \(ϵ̂\) the accepting function and \(δ̂\) the transition function; intuitively, a state \(s\) accepts an atom \(α\) if and only if there exists a \(b ∈ ϵ̂(s)\), s.t. \(α ≤ b\); similarly, the state \(s\) transitions to \(s'\) via atom \(α\) while executing \(p\) if and only if there exists \((b, s', p) ∈ δ̂(s)\) and \(α ≤ b\).
+With the above intuition in mind, a symbolic GKAT coalgebra \(Ŝ ≜ (S, ϵ̂, δ̂)\) can be lowered into a GKAT coalgebra \((S, δ)\) in the following manner:
 \begin{align}\label{cons:lowering}
 δ(s, α) ≜ \begin{cases}
-    \accept & ∃ b ∈ ϵ̂(s), α ≤ b \\  
-    (s', p) & ∃ b ∈ \Bool_B, α ≤ b \text{ and } δ(s, b) = (s', p) \\  
+    \accept & ∃ b ∈ ϵ̂(s), α ≤ b \\[5px]
+    (s', p) & 
+        \begin{aligned}
+            & ∃ b ∈ \BExp_B, α ≤ b \\
+            & \text{ and } δ(s, b) = (s', p)  
+        \end{aligned}\\[5px]
     \reject & \text{otherwise}
 \end{cases}
 \end{align}
 This is well-defined, i.e. no more than one clause can be satisfied precisely because the boolean expressions appear in \(ϵ̂\) and \(δ̂\) are disjoint.
-The trace semantics of a GKAT coalgebra \(⟨S, ϵ̂, δ̂⟩\) is then defined as the trace semantics of its lowering \(⟨S, δ⟩\).
+We usually use \(S\) to denote the lowering of \(Ŝ\).
 
-\begin{remark}[Canonicity]
-    Notice that symbolic GKAT coalgebra is not canonical, i.e. there exists two different symbolic GKAT colagebra with the same lowering, consider the state set \(S ≜ \{*\}\):
-    \[{δ̂}₁(*) ≜ \{b ↦ (*, p), ¬ b ↦ (*, p)\} \qquad 
-    {δ̂}₂(*) ≜ \{⊤ ↦ (*, p)\},\] 
-    and both \(ϵ̂\) will return constant \(⊥\).
-    These two symbolic GKAT coalgebra obviously have the same lowering hence behavior, yet, they are different.
+We will then use \(ρ̂(s): \BExp_B\) to represent the boolean expressions that contain all the atoms that the state \(s\) rejects, and \(ρ̂(s)\) can be computed as follows:
+\begin{align*}
+    ρ̂(s) ≜ ⋀ \{\overline{b} ∣{}
+        & ∃ s' ∈ S, p ∈ K, (b, s', p) ∈ δ̂(s) \\
+        & \text{ or } b ∈ ϵ̂(s)\}.
+\end{align*}
+The trace semantics of a GKAT coalgebra \((S, ϵ̂, δ̂)\) is then defined as the trace semantics of its lowering \((S, δ)\).
+
+\begin{remark}[Canonicity]\label{rem:canonicity}
+    Notice that symbolic GKAT coalgebra is not canonical, i.e. there exists two different symbolic GKAT colagebra with the same lowering, consider the state set \(S ≜ \{s\}\):
+    \begin{align*}
+        {δ̂}₁(s) & ≜ \{b ↦ (s, p), \overline{b} ↦ (s, p)\} \\
+        {δ̂}₂(s) & ≜ \{⊤ ↦ (s, p)\},
+    \end{align*} 
+    and both \(ϵ̂₁, ϵ̂₂\) will return constant \(0\).
+    These two symbolic GKAT coalgebra \(Ŝ₁ ≜ (S, δ̂₁, ϵ̂₁)\) and \(Ŝ₂ ≜ (S, δ̂₂, ϵ̂₂)\) have the same lowering and semantics, yet, they are different.
     There are other symbolic representation that will satisfy canonicity, yet we opt to use our current representation for ease of construction and computational efficiency.
 \end{remark}
 
@@ -945,19 +973,23 @@ The trace semantics of a GKAT coalgebra \(⟨S, ϵ̂, δ̂⟩\) is then defined 
 \end{theorem}
 
 \begin{proof}
-    
+    Since \(Ŝ\) and \(Û\) have the same states as their lowering, therefore \(h: S → U\) is indeed a function, then we only need to verify the homomorphism condition on \(h\).
+    TODO: finish.
 \end{proof}
+
+The functoriality states that a homomorphism on two symbolic coalgebras implies a homomorphism of on their lowing; similarly, a bisimulation on symbolic GKAT coalgebra induces a bisimulation on their lowering.
+However, the converse is not true, precisely because of the canonicity problem noted in~\Cref{rem:canonicity}: take the \(Ŝ₁\) and \(Ŝ₂\) in~\Cref{rem:canonicity}, because they have the same lowering, therefore the identity homomorphism is a homomorphism on their lowerings, yet there is no homomorphism from \(Ŝ₁\) to \(Ŝ₂\).
 
 We can then migrate the normalized bisimulation algorithm to the symbolic setting, we will first prove an inductive construction theorem like~\cref{thm:recursive-construction}.
 
-\begin{theorem}[Symbolic Inductive Construction]\label{thm:symb-recursive-construction}
-    Given two symbolic GKAT coalgebra \(Ŝ = ⟨S, ϵ̂_S, δ̂_S⟩\) and \(T̂ = ⟨T, ϵ̂_T, δ̂_T⟩\) and two states \(s ∈ S\) and \(t ∈ T\), there exists a normalized bisimulation on the lowered coalgebra \({∼} ⊆ S × T\) s.t. \(s ∼ t\) if and only if all the following holds:
+\begin{theorem}[Symbolic Recursive Construction]\label{thm:symb-recursive-construction}
+    Given two symbolic GKAT coalgebra \(Ŝ = (S, ϵ̂_S, δ̂_S)\) and \(Û = (U, ϵ̂_U, δ̂_U)\) and two states \(s ∈ S\) and \(u ∈ U\), \(s\) and \(u\) are trace equivalent \(⟦s⟧_{Ŝ} = ⟦u⟧_{Û}\), if and only if all the following holds:
     \begin{itemize}
-        \item \(⋁ ϵ̂_S(s) ≡ ⋁ ϵ̂_T(t)\);
-        \item for all \((b, s', p) ∈ δ̂_S(s)\) and \((c, t', q) ∈ δ̂_T(t)\), if \(b ∧ c ≢ 0\) and \(p = q\) then here exists a normalized bisimulation \({∼_{s',t'}} ⊆ S × T\) s.t. \(s' ∼_{s',t'} t'\);
-        \item for all \((b, s', p) ∈ δ̂_S(s)\) and \((c, t', q) ∈ δ̂_T(t)\), if \(b ∧ c ≢ 0\) and \(p ≠ q\) then both \(s'\) and \(t'\) is dead;  
-        \item for all \((b, s', p) ∈ δ̂_S(s)\) and \(c ∈ ρ̂_T(t)\), if \(b ∧ c ≢ 0\), then \(s'\) is dead;
-        \item for all \(b ∈ ρ̂_S(s)\) and \((c, t', q) ∈ δ̂_T(t)\), if \(b ∧ c ≢ 0\), then \(t'\) is dead;
+        \item \(⋁ ϵ̂_S(s) ≡ ⋁ ϵ̂_U(u)\); 
+        \item for all \((b, s', p) ∈ δ̂_S(s)\) and \(c ∈ ρ̂_U(u)\), if \(b ∧ c ≢ 0\), then \(s'\) is dead;
+        \item for all \(b ∈ ρ̂_S(s)\) and \((c, u', q) ∈ δ̂_U(u)\), if \(b ∧ c ≢ 0\), then \(u'\) is dead;
+        \item for all \((b, s', p) ∈ δ̂_S(s)\) and \((c, u', q) ∈ δ̂_U(u)\), if \(b ∧ c ≢ 0\) and \(p ≠ q\) then both \(s'\) and \(u'\) is dead; 
+        \item for all \((b, s', p) ∈ δ̂_S(s)\) and \((c, u', q) ∈ δ̂_U(u)\), if \(b ∧ c ≢ 0\) and \(p = q\) then \(⟦s'⟧_{Ŝ} = ⟦u'⟧_{Û}\).
     \end{itemize}
 \end{theorem}
 
@@ -981,13 +1013,13 @@ Then for the algorithm, we can just recursively check all the conditions in~\cre
             \(\qquad
             \begin{aligned}
                 & ⋁ ϵ̂_S(s) ≡ ⋁ ϵ̂_T(t) \mathrel{\&\!\&} \\  
-                & \forall (b, s', p) ∈ δ̂_S(s), (c, t', q) ∈ δ̂_T(t), (b ∧ c) ≢ ⊥ ⟹ 
+                & ∀ (b, s', p) ∈ δ̂_S(s), (c, t', q) ∈ δ̂_T(t), (b ∧ c) ≢ 0 ⟹ 
                 \begin{cases}
                     \text{\Call{IsDead$_S$}{$s$}} ∧ \text{\Call{IsDead$_T$}{$t$}} & \text{if \(p ≠ q\)} \\
                     \text{\Call{Union}{$s$, $t$}}; \text{\Call{Equiv}{$s', t'$}} & \text{if \(p = q\)}
                 \end{cases} \mathrel{\&\!\&}\\
-                & \forall (b, s', p) ∈ δ̂_S(s), c ∈ ρ̂_T(t), (b ∧ c) ≢ ⊥ ⟹ \text{\Call{IsDead$_S$}{$s'$}} \mathrel{\&\!\&}\\
-                & \forall b ∈ ρ̂_S(s), (c, t', q) ∈ δ̂_T(t), (b ∧ c) ≢ ⊥ ⟹ \text{\Call{IsDead$_T$}{$t'$}}
+                & ∀ (b, s', p) ∈ δ̂_S(s), c ∈ ρ̂_T(t), (b ∧ c) ≢ 0 ⟹ \text{\Call{IsDead$_S$}{$s'$}} \mathrel{\&\!\&}\\
+                & ∀ b ∈ ρ̂_S(s), (c, t', q) ∈ δ̂_T(t), (b ∧ c) ≢ 0 ⟹ \text{\Call{IsDead$_T$}{$t'$}}
             \end{aligned}\)
         }
         \EndIf
@@ -999,7 +1031,7 @@ Inspired by the syntax of Ocaml, the \(\mathrel{\&\!\&}\) is the logical-and ope
 Notice just like the non-symbolic case, this algorithm can be modified to perform symbolic bisimulation of (non-normalized) GKAT automaton, which coincides with infinite trace equivalence~\cite{schmid_GuardedKleeneAlgebra_2021}, by letting \textsc{IsDead} always return false and keep deadStates empty.
 
 
-\section{Construction of Symbolic GKAT Automata}
+\section{Symbolic GKAT Coalgebra Construction}
 
 The final piece of the puzzle is to convert any given expression into an ``equivalent'' Symbolic GKAT Automata. This goal can be achieved by lifting existent constructions like derivatives and Thompson's construction~\cite{schmid_GuardedKleeneAlgebra_2021,smolka_GuardedKleeneAlgebra_2020}.
 The correctness of these conversions is a consequence of  correctness of their non-symbolic counter-part, i.e. we will prove that the lowering as shown in~\labelcref{cons:lowering} of these constructions will yield the conventional derivative and Thompson's construction. 
@@ -1166,7 +1198,7 @@ Concretely, this guard can be defined on both accepting dynamics and transition 
 Notably, besides guarding transition and acceptance with different conditions, like in if statements, the guard expression can be used to simulate uniform continuation. Specifically, we can use \(⟨ϵ̂(s)|~δ(s)\) to connecting all the accepting state of \(s\) to the dynamic \(δ(s)\).
 
 With these definitions in mind, we can define symbolic Thompson's construction inductively as in~\Cref{tab:symb-thomposon-construction}, where we let \((S₁, ϵ̂₁, δ̂₁)\) and \((S₂, ϵ̂₂, δ̂₂)\) to be result of Thompson's construction for \(e₁\) and \(e₂\) respectively.
-The \(S₁ + S₂\) is the disjoint union of \(S₁\) and \(S₂\), and for any two transition dynamics \(δ₁(s₁): 𝒫(\Bool × S₁ × K)\) and \(δ₂(s₂): 𝒫(\Bool × S₂ × K)\), then \(δ₁^*(s₁) + δ₂^*(s₂): 𝒫(\Bool × (S₁ + S₂) × K)\) is the bifunctorial lift via \(+\).
+The \(S₁ + S₂\) is the disjoint union of \(S₁\) and \(S₂\), and for any two transition dynamics \(δ₁(s₁): 𝒫(\BExp × S₁ × K)\) and \(δ₂(s₂): 𝒫(\BExp × S₂ × K)\), then \(δ₁^*(s₁) + δ₂^*(s₂): 𝒫(\BExp × (S₁ + S₂) × K)\) is the bifunctorial lift via \(+\).
 
 One notable difference between the original construction~\cite{smolka_GuardedKleeneAlgebra_2020} and our construction is that we use a start state \(s^* ∈ S\), instead of a start dynamics (or pseudo-state).
 This choice will make the proof slightly easier. 

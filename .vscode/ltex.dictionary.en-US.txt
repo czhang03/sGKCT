@@ -15,3 +15,4 @@ endofunctor
 Bisimulation
 bisimulations
 coinductively
+lowerings
