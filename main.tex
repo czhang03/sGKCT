@@ -289,7 +289,7 @@ A homomorphism between two \(F\)-coalgebra \(S\) and \(U\) is a map \(h: S → U
     \end{tikzcd}    
 \]
 
-When we can restrict the homomorphism map into an inclusion map \(i: S' → S\) for \(S' ⊆ S\), or more generally any monomorphism, then we say that \(S'\) is a \emph{sub-coalgebra} of \(S\), denoted as \(S' ⊑ S\). Specifically, the following diagram commutes when \(S' ⊑ S\):
+When we can restrict the homomorphism map into an inclusion map \(i: S' → S\) for \(S' ⊆ S\) then we say that \(S'\) is a \emph{sub-coalgebra} of \(S\), denoted as \(S' ⊑ S\). Specifically, the following diagram commutes when \(S' ⊑ S\):
 \[
     \begin{tikzcd}
         S' \ar[hook]{r}{i} \ar[swap]{d}{σ_{S'}} & S \ar{d}{σ_S} \\  
@@ -383,8 +383,42 @@ Formally, GKAT coalgebras over primitive actions \(K\) and primitive tests \(T\)
 \[G(S) ≜ (\{\accept, \reject\} + S × K)^{\At_T}.\] 
 Intuitively, given a state \(s ∈ S\) and an atom \(α ∈ \At\), \(δ(s, α)\) will deterministically execute one of the following: reject \(α\) when \(δ(s, α) = \reject\); accept \(α\) when \(δ(s, α) = \accept\); or transition to a state \(s' ∈ S\) and execute action \(p ∈ K\) when \(δ(s, α) = (s', p)\).
 
-This deterministic behavior contrast that of Kleene coalgebra with tests~\cite{kozen_CoalgebraicTheoryKleene_2017}, where for each atom, the state can accept or  reject the atom (but not both), yet the state can also non-deterministically transition to multiple different state via the same atom, while executing different actions.
-% TODO: I think this belongs in the intro
+In particular, \(G\) is a simple polynomial functor~\cite{jacobs_IntroductionCoalgebraMathematics_2016}, allowing the sub-coalgebra to preserve and reflect bisimulations.
+\begin{theorem}[sub-coalgebras perserve and reflect bisimulation]\label{thm:sub-coalg-preserve-bisim}
+    Given two states in sub-coalgebra \(s ∈ S' ⊑ S\) and \(u ∈ U' ⊑ U\), there exists a bisimulation \({∼'} ⊆ S' × U'\) s.t. \(s ∼' u\) if and only if there exists a bisimulation \({∼} ⊆ S × U\) s.t. \(s ∼ u\).
+\end{theorem}
+
+\begin{proof}
+    For \(⟹\) direction, we will show that if \({∼'} ⊆ S' × U'\) is a bisimulation, then \({∼'}\) is also a bisimulation between \(S\) and \(U\):
+    \[
+        \begin{tikzcd}
+            S \ar{d}{δ_S} & S' \ar[hook',swap]{l}{i} \ar{d}{δ_S}
+            & ∼ \ar[swap]{l}{π₁} \ar{r}{π₂} \ar{d}{δ_∼}
+            & U' \ar[hook]{r}{i} \ar{d}{δ_S} & U \ar{d}{δ_T}\\  
+            G(S) & G(S') \ar[hook',swap]{l}{G(i)} 
+            & G(∼) \ar[swap]{l}{G(π₁)} \ar{r}{G(π₂)} & U' \ar[hook]{r}{G(i)} & U 
+        \end{tikzcd}
+    \]
+    Because the inclusion homomorphism \(i\) doesn't change the input, we have:
+    \begin{align*}
+        & {∼} \xrightarrow{π₁} S' \xrightarrow{i} S = {∼} \xrightarrow{π₁} S; \\
+        & {∼} \xrightarrow{π₂} U' \xrightarrow{i} U = {∼} \xrightarrow{π₂} U.
+    \end{align*}
+
+    To prove the \(⟸\) we will show that if \({∼} ⊆ S × U\) is a bisimulation, then the restriction \({∼}' ≜ \{(s, u) ∈ {∼} ∣ s ∈ S', u ∈ U'\}\) is a bisimulation between \(S'\) and \(U'\).
+    We first realize that \(∼_{S', U'}\) is a pre-image of the maximal bisimulation \(≣_{S', U'}\) along the inclusion homomorphism \(i: {∼} → {≡_{S, U}}\).
+    This means that \(∼_{S', U'}\) can be formed by a pullback square:
+    \[
+        \begin{tikzcd}
+            ∼_{S', U'} \ar{r}{i} \ar[swap]{d}{i} \ar[phantom, very near start]{dr}{\scalebox{1.5}{\(\lrcorner\)}} & ≣_{S', U'} \ar{d}{i}\\ 
+            {∼} \ar[swap]{r}{i} & {≡_{S, U}}
+        \end{tikzcd}
+    \]
+    Recall that elementary polynomial functor~\cite{jacobs_IntroductionCoalgebraMathematics_2016} like \(G\) preserves pullback, hence the pullback also uniquely generates a GKAT coalgebra~\cite{rutten_UniversalCoalgebraTheory_2000}
+\end{proof}
+
+Besides nice property with bisimulation, GKAT coalgebra is also deterministic, unlike Kleene coalgebra with tests (KCT)~\cite{kozen_CoalgebraicTheoryKleene_2017}.
+For each atom, states in a KCT can accept or reject the atom (but not both), yet states can also non-deterministically transition to multiple different states via the same atom, while executing different actions.
 As we will see later, the deterministic behavior of GKAT coalgebra not only enables a more versatile symbolic algorithm than KCT~\cite{pous_SymbolicAlgorithmsLanguage_2015}, but also present challenges. 
 Specifically, GKAT coalgebra requires normalization to compute finite trace equivalences~\cite{smolka_GuardedKleeneAlgebra_2020}, where we reroute all the transitions that cannot lead to acceptance immediately into rejection; and states that can never lead to acceptance is called \emph{dead states}.
 
@@ -550,77 +584,12 @@ The original algorithm for deciding GKAT equivalences~\cite{smolka_GuardedKleene
 This limitation poses challenges to design an efficient on-the-fly algorithm for GKAT.
 In order to make the decision procedure scalable, we will need to merge the normalization and bisimulation procedure, so that our algorithm can normalize the coalgebra only when we need to.
 
-In this section, we introduce an algorithm that merges bisimulation and normalization where we only need to test the liveness of the state when a disparity in the bisimulation has been found.
-For example, when one state leads to reject where the other transition to another state, then we will need to verify whether the resulting state is dead or not.
+In this section, we introduce an algorithm that merges bisimulation and normalization, where we only test the liveness of states when a disparity is noticed by the bisimulation algorithm.
+For example, when deciding the trace equivalence between \(s ∈ S\) and \(u ∈ U\), if \(δ_S(s, α) = (s', p)\) and \(δ_U(u, α) = (u', p)\), we will proceed to recurse on \(s'\) and \(u'\), without checking the liveness of \(s'\) and \(u'\).
+However, if \(s\) rejects \(α\) instead of transitioning to \(s'\), we will then check whether \(u'\) is dead.
 
-This on-the-fly algorithm inherits the efficiency of the original algorithm~\cite{smolka_GuardedKleeneAlgebra_2020}, where the worst case will require two passes of the coalgebra, where one pass will try to establish a bisimulation, when failed the other pass will kick in and compute whether the failed states are dead.
-In some special case, the on-the-fly algorithm can even out perform the original algorithm; for example, when the two input states are bisimular (even when they are not normal), the on-the-fly algorithm can skip the liveness checking, only performing the bisimulation.
-
-TODO: I think we should move the next couple theorem to the background.
-
-\begin{theorem}[sub-coalgebras perserve and reflect bisimulation]\label{thm:sub-coalg-preserve-bisim}
-    Given any sub-coalgebra \(S' ⊑ S\) and \(T' ⊑ T\),
-    \begin{itemize}
-        \item Given a bisimulation \(∼\) between \(S'\) and \(T'\), then \(∼\) is also a bisimulation between \(S\) and \(T\);
-        \item if there exists a bisimulation \(∼\) between \(S\) and \(T\), then the restriction 
-        \begin{mathpar}
-            ∼_{S', T'} ≜ \{(s, t) ∣ s ∈ S', t ∈ T', s ∼ t\}
-        \end{mathpar}
-        forms a bisimulation between \(S'\) and \(T'\).
-    \end{itemize}
-\end{theorem}
-
-\begin{proof}
-    To prove that bisimulation \(∼\) between \(S'\) and \(T'\) is also a bisimulation of \(S\) and \(T\), we can simply enlarge the diagram by the inclusion homomorphism
-    \[
-        \begin{tikzcd}
-            S \ar{d}{δ_S} & S' \ar[hook',swap]{l}{i} \ar{d}{δ_S}
-            & ∼ \ar[swap]{l}{π₁} \ar{r}{π₂} \ar{d}{δ_∼}
-            & T' \ar[hook]{r}{i} \ar{d}{δ_S} & T \ar{d}{δ_T}\\  
-            G(S) & G(S') \ar[hook',swap]{l}{G(i)} 
-            & G(∼) \ar[swap]{l}{G(π₁)} \ar{r}{G(π₂)} & T' \ar[hook]{r}{G(i)} & T \\  
-        \end{tikzcd}
-    \]
-    Because the inclusion homomorphism \(i\) doesn't change the input thus, we have:
-    \begin{mathpar}
-        {∼} \xrightarrow{π₁} S' \xrightarrow{i} S = {∼} \xrightarrow{π₁} S \and 
-        {∼} \xrightarrow{π₂} T' \xrightarrow{i} T = {∼} \xrightarrow{π₂} T
-    \end{mathpar}
-
-    To prove that the bisimulation can be restricted, we first realize that \(∼_{S', T'}\) is a pre-image of the maximal bisimulation \(≣_{S', T'}\) along the inclusion homomorphism \(i: {∼} → {≡_{S, T}}\).
-    This means that \(∼_{S', T'}\) can be formed by a pullback square:
-    \[
-        \begin{tikzcd}
-            ∼_{S', T'} \ar{r}{i} \ar[swap]{d}{i} \ar[phantom, very near start]{dr}{\scalebox{1.5}{\(\lrcorner\)}} & ≣_{S', T'} \ar{d}{i}\\ 
-            {∼} \ar[swap]{r}{i} & {≡_{S, T}}
-        \end{tikzcd}
-    \]
-    Recall that elementary polynomial functor~\cite{jacobs_IntroductionCoalgebraMathematics_2016} like \(G\) preserves pullback, hence the pullback also uniquely generates a GKAT coalgebra~\cite{rutten_UniversalCoalgebraTheory_2000}
-\end{proof}
-
-\Cref{thm:sub-coalg-preserve-bisim} allows us to only search for bisimulation on a sub-coalgebra, speeding up our search algorithm.
-Another way to speed up the algorithm is to use efficient data structures to find a bisimulation equivalence instead of a bisimulation relation.
-This optimization is a special case of the \emph{up-to technique}~\cite{bonchi_GeneralAccountCoinduction_2017a}.
-Specifically, we will extend~\Cref{thm:bisim-iff-bisim-eq} to a setting where the bisimulation is no longer over the same coalgebra.
-
-\begin{theorem}\label{thm:GKAT-bisim-iff-bisim-eq}
-    Given two states in two coalgebras \(s ∈ S, u ∈ U\), let \(S + U\) be the coproduct coalgebra of \(S\) and \(U\)~\cite{rutten_UniversalCoalgebraTheory_2000}. 
-    There exists a bisimulation \({∼} ⊆ S × U\) s.t. \(s ∼ u\) if and only if there exists a bisimulation equivalence on \({≃} ⊆ (S + U) × (S + U)\), s.t. \(s ≃ u\).
-\end{theorem}
-
-\begin{proof}
-    Notice that both \(S\) and \(U\) are sub-coalgebra of \(S + U\) witnessed by the canonical injection \(\mathrm{inj}ₗ: S → S + U\) and \(\mathrm{inj}ᵣ: U → S + U\).
-
-    Let \(∼\) be a bisimulation and \(≃\) be a bisimulation equivalence, by~\Cref{thm:sub-coalg-preserve-bisim} and~\Cref{thm:bisim-iff-bisim-eq}:
-    \begin{align*}
-        & ∃~ {∼} ⊆ S × U, s ∼ u \\
-        ⟺{}& ∃~ {∼} ⊆ (S+U) × (S+U), s ∼ u \\  
-        ⟺{}& ∃~ {≃} ⊆ (S+U) × (S+U), s ≃ u.
-        \qedhere
-    \end{align*}
-\end{proof}
-
-After we justify the above optimizations of the algorithm, we will show the core theorem that establishes the correctness of our algorithm.
+We present several sound and complete conditions for finite-trace equivalence between states of GKAT coalgebras in~\Cref{thm:norm-bisim-correctness}, which also serves as the core correctness theorem for our equivalence-checking algorithm i.e.~\Cref{alg:bisim}.
+This algorithm mostly consists of recursively checking the conditions in~\Cref{thm:norm-bisim-correctness} with minor optimizations, which we will outline later.
 
 \begin{lemma}[bisimulation between dead states]\label{thm:bisim-between-dead}
     Given two dead states \(s ∈ S\) and \(u ∈ U\), then the singleton bisimulation \({∼} ⊆ \norm(S) × \norm(U)\):
@@ -721,6 +690,9 @@ After we justify the above optimizations of the algorithm, we will show the core
     \end{itemize}
 \end{proof}
 
+With some slight tweak to \Cref{thm:recursive-construction-lemma}, it will be applicable to trace equivalence instead of bisimulation.
+The correctness of this modification is supported by the correspondence between trace equivalence and the existence of a bisimulation between normalized GKAT coalgebras, which is stated in~\Cref{thm:norm-bisim-correctness}.
+
 \begin{theorem}[Recursive Construction]\label{thm:recursive-construction}
     For any two states in two GKAT coalgebra \(s ∈ S, u ∈ U\), \(s\) and \(u\) are finite-trace equivalent \(⟦s⟧_{S} = ⟦u⟧_{U}\) if and only if all the following conditions hold:
     \begin{enumerate}
@@ -742,15 +714,16 @@ After we justify the above optimizations of the algorithm, we will show the core
     \end{align*}
     We can instantiate the above equivalence to \(s', u'\) and \(s, u\) respectively: the instantiation to \(s', u'\) will give us the conditions in this theorem is equivalent to the ones in~\Cref{thm:recursive-construction-lemma}; and instantiation to \(s, u\) show that existence of bisimulation is equivalent to trace equivalence:
     \begin{align*}
-        & \text{Conditions in \cref{thm:recursive-construction-lemma} hold} \\  
+        & \text{Conditions in \Cref{thm:recursive-construction-lemma} hold} \\  
         ⟺{}& \text{Conditions in the current theorem hold}\\
         ⟺{}& ∃~ {∼} ⊆ \norm(⟨s⟩) × \norm(⟨u⟩), s ∼ u\\
         ⟺{}& ⟦s⟧_{S} = ⟦u⟧_{U}. \qedhere
     \end{align*}
 \end{proof}
 
-The above theorem already gives us an algorithm to recursively decide whether \(⟦s⟧_{S} = ⟦u⟧_U\), when \(⟨s⟩_S\) and \(⟨u⟩_U\) is finite.
-However, this algorithm can be further optimized: we will then derive that a dead state is only trace equivalent to other dead states. This means that when checking the trace-equivalence of states \(s\) and \(u\), if we already know one of them is dead, we only need to check whether the other is dead, instead of going through all the conditions in~\cref{thm:recursive-construction}.
+The above construction theorem already gives us an algorithm to recursively decide whether \(⟦s⟧_{S} = ⟦u⟧_U\), when \(⟨s⟩_S\) and \(⟨u⟩_U\) is finite.
+However, this algorithm can be further optimized: we will derive that a dead state is only trace equivalent to other dead states. 
+This means that when checking the trace-equivalence of states \(s\) and \(u\), if we already know one of them is dead, we only need to check whether the other is dead, instead of going through all the conditions in~\Cref{thm:recursive-construction}.
 
 \begin{theorem}\label{thm:bisim-one-dead}
     Given two states \(s ∈ S\) and \(u ∈ U\), if \(s\) is a dead state in \(S\), then \(s\) and \(u\) is trace equivalent if and only if \(u\) is also dead.
@@ -771,11 +744,12 @@ However, this algorithm can be further optimized: we will then derive that a dea
     And because all of \(u'\) is dead, all of \(⟨u'⟩_U\) cannot be accepting (\Cref{thm:dead-iff-all-reachable-dead}), nor is \(u\) an accepting state, then \(⟨u⟩_U\) does not contain any accepting state, and by definition of dead state, \(u\) is dead.
 \end{proof}
 
-Before we write down the optimized algorithm, we will first briefly sketch the dead state detection algorithm, which will use a DFS to check whether the there exists any accepting states in reachable states of \(s ∈ S\): if there exists any accepting state in \(⟨s⟩_S\), then the algorithm terminates immediately, and return that \(s\) is live, otherwise it would return all the states in \(⟨s⟩\), and by~\cref{thm:dead-iff-all-reachable-dead}, all the states in \(⟨s⟩\) is dead.
+Before we introduce the optimized algorithm, we will first briefly sketch the liveness-check algorithm, which will use a depth-first search to check whether the there exists any accepting states in reachable states of \(s ∈ S\): if there exists any accepting state in \(⟨s⟩_S\), then the algorithm terminates immediately, and return that \(s\) is live, otherwise it would return all the states in \(⟨s⟩\), and by~\cref{thm:dead-iff-all-reachable-dead}, all the states in \(⟨s⟩\) is dead.
+In this case, we use depth-first search for its simplicity to implement, other search algorithm will also be sound.
 
-We will cache all the known dead states from all the previous searches, we use the call \Call{knownDead\(_S\)}{$s$} to check whether the state \(s\) is in the cached dead states. 
-And \Call{isDead\(_S\)}{$s$} will first check if \(s\) is known to be dead, and invoke the depth-first-search algorithm in the coalgebra \(s\), if \(s\) is not in the cached dead states.
-Because the non-symbolic version of dead state checking is similar to the symbolic version, we only provide the symbolic version of this algorithm in appendix
+We will cache all the known dead states from the previous searches; whether a state \(s\) is in this cache can be checked by the function call \Call{knownDead\(_S\)}{$s$}. 
+The function \Call{isDead\(_S\)}{$s$} will first check if \(s\) is known to be dead, and invoke the search algorithm in the coalgebra \(⟨s⟩\), if \(s\) is not in the cached dead states.
+Because the non-symbolic version of liveness checking is similar to the symbolic version, we only provide the symbolic version of this algorithm in appendix
 TODO: give the link to the section.
 
 
@@ -818,12 +792,20 @@ TODO: give the link to the section.
     \end{algorithmic}
 \end{algorithm}
 
-TODO: I am not sure if we need to give some intuition for this algorithm here.
+Finally, we present our equivalence-checking algorithm as~\cref{alg:bisim}, where we first check if one of \(s\) or \(u\) is known to be dead, if so we only need to check whether the other is dead, because of~\Cref{thm:bisim-one-dead}; otherwise, we will check the conditions in~\Cref{thm:recursive-construction}.
+Because trace equivalence is an equivalence relation, therefore we can organize the previously explored states into equivalent classes using an efficient union-find structure, instead of a set of state pairs.
+This union-find structure need to provide two functions: \(\Call{union}{$s, u$}\) unions the equivalence class of \(s\) and \(u\), whereas \(\Call{eq}{$s, u$}\) checks whether \(s\) and \(u\) is in the same equivalence class. 
 
-Finally, we present our algorithm to decide trace-equivalence as~\cref{alg:bisim}, where we recursively check the condition in~\Cref{thm:recursive-construction}.
-Notice that trace equivalence is an equivalence relation, therefore we can organize the previously explored states into equivalent relation using union-find structure, instead of a set of state pairs.
-Specifically, we use the call \(\Call{union}{$s, u$}\) to union the equivalence class of \(s\) and \(u\), and use \(\Call{eq}{$s, u$}\) to check whether \(s\) and \(u\) is in the same equivalence class. 
-In this algorithm, we first check if one of \(s\) and \(u\) is known to be dead, if so we only need to check whether the other is dead, because of~\Cref{thm:bisim-one-dead}; otherwise, we will check the conditions in~\Cref{thm:recursive-construction}.
+Concerning the complexity, our algorithm have similar worst case complexity as the original algorithm.
+In particular, when deciding the trace equivalence of two states \(s ∈ S\) and \(u ∈ U\), the original algorithm~\cite{smolka_GuardedKleeneAlgebra_2020} requires one pass of \(⟨s⟩\) and \(⟨u⟩\) to normalize them, then the bisimulation will visit each pair of states in \(⟨s⟩ × ⟨u⟩\) at most once, which means that they will visit at most \(|⟨s⟩ + ⟨u⟩ + ⟨s⟩ × ⟨u⟩|\) number of states.
+
+Similarly, our equivalence-checking algorithm attempts to find a bisimulation first, which visits each pair in \(⟨s⟩ × ⟨u⟩\) at most once, and when a mismatch is found in the process, the liveness-checking algorithm is then invoked.
+Crucially, our algorithm satisfy the following property: if the liveness-checking algorithm find a live or accepting state, the entire equivalence checking algorithm will halt and return false.
+Thus, by caching all the known dead states, the liveness-checking only visits states in \(⟨s⟩\) and \(⟨u⟩\) at most once.
+Therefore, the worst case of our algorithm is also \(|⟨s⟩ × ⟨u⟩ + ⟨s⟩ + ⟨u⟩|\).
+
+However, the on-the-fly algorithm will always out-perform the original algorithm, in terms of number of states visited, because this algorithm only invoke liveness check when necessary.
+In the extreme case when the two input states are infinite-trace equivalent, the on-the-fly algorithm can skip liveness checking entirely.
 
 
 % \section{The Algorithm}
@@ -903,10 +885,12 @@ In this algorithm, we first check if one of \(s\) and \(u\) is known to be dead,
 
 \section{Symbolic Coalgebra and Algorithm}
 
-Although \cref{alg:bisim} is on-the-fly, which do not require the construction of the entire coalgebra prior to running the bisimulation algorithm, it still uses GKAT coalgebra, which is known to be inefficient.
-Specifically, the transition function \(δ: S → \At_T → \{\accept, \reject\} + S × K\) requires computing the transition result for each \emph{atom}, and the number of atoms \(\At_T ≅ 2^{T}\) is exponential to the size of primitive tests in \(T\).
+Although \cref{alg:bisim} is on-the-fly, it still uses GKAT coalgebra, which contains exponentially many transitions with respect to the number of primitive tests \(|T|\).
+Concretely, the transition function \(δ: S → \At_T → \{\accept, \reject\} + S × K\) requires computing the transition result for each \emph{atom}, and the number of atoms \(\At_T ≅ 2^{T}\) is exponential to the size of primitive tests in \(T\).
+This is also why several GKAT-related complexity results only consider constant sized \(T\).
 
-In our symbolic GKAT coalgebra, instead of computing the behavior of each atom individually, we group them into boolean expressions, this leads to a much more space efficient coalgebra and an efficient equivalence checking algorithm with the help of off-the-shelf SAT solvers.
+Symbolic GKAT coalgebra, instead of computing the behavior of each atom individually, groups atoms into boolean expressions. 
+This optimization leads to space-efficient coalgebras and an equivalence checking algorithm making use of off-the-shelf SAT solvers.
 Specifically, given a set of primitive actions \(K\) and primitive tests \(T\), a \emph{symbolic GKAT coalgebra} \(Ŝ ≜ (S, ϵ̂, δ̂)\) consists of a state set \(S\) and an accepting function \(ϵ̂\) and a transition function \(δ̂\):
 \begin{mathpar}
     ϵ̂: S → 𝒫(\BExp_T), \and
