@@ -1,0 +1,5 @@
+- Use `T` as coalgebra and `t` as state should be changed to `U` and `u` respectively
+- Mention of automaton
+- Mention of bisimulation equivalence
+- Use of `+` and `×` to not denote coproduct or product without defining it.
+- Use `B` to indicate the set of primitive tests

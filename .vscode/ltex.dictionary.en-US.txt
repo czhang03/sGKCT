@@ -20,3 +20,8 @@ homomorphisms
 codomain
 surjective
 surjectivity
+Sub-coalgebras
+monomorphism
+sub-coalgebras
+bifunctorial
+inequivalence
