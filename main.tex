@@ -894,12 +894,12 @@ This optimization leads to space-efficient coalgebras and an equivalence checkin
 Specifically, given a set of primitive actions \(K\) and primitive tests \(T\), a \emph{symbolic GKAT coalgebra} \(Ŝ ≜ (S, ϵ̂, δ̂)\) consists of a state set \(S\) and an accepting function \(ϵ̂\) and a transition function \(δ̂\):
 \begin{mathpar}
     ϵ̂: S → 𝒫(\BExp_T), \and
-    δ̂: S → 𝒫(\BExp_T × S × K),
+    δ̂: S → 𝒫(\BExp_T × S × K).
 \end{mathpar}
-where for all states \(s ∈ S\), all the boolean expressions are ``disjoint''; namely the conjunction of any two expressions from the set \(\{ϵ̂(s)\} ∪ \{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) is equivalent to \(0\) under boolean algebra.
+This coalgebra is also required to satisfy the disjointedness condition, i.e. for all states \(s ∈ S\), the conjunction of any two expressions from the set \(ϵ̂(s) ∪ \{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) is equivalent to \(0\) under boolean algebra.
 
-Notice that we call \(ϵ̂\) the accepting function and \(δ̂\) the transition function; intuitively, a state \(s\) accepts an atom \(α\) if and only if there exists a \(b ∈ ϵ̂(s)\), s.t. \(α ≤ b\); similarly, the state \(s\) transitions to \(s'\) via atom \(α\) while executing \(p\) if and only if there exists \((b, s', p) ∈ δ̂(s)\) and \(α ≤ b\).
-With the above intuition in mind, a symbolic GKAT coalgebra \(Ŝ ≜ (S, ϵ̂, δ̂)\) can be lowered into a GKAT coalgebra \((S, δ)\) in the following manner:
+We name \(ϵ̂\) the accepting function because intuitively a state \(s\) accepts an atom \(α\) when there exists a \(b ∈ ϵ̂(s)\), s.t. \(α ≤ b\); similarly, \(δ̂\) is called the transition function because a state \(s\) transitions to \(s'\) via atom \(α\) while executing \(p\) when there exists \((b, s', p) ∈ δ̂(s)\) and \(α ≤ b\).
+With the above intuition in mind, a symbolic GKAT coalgebra \(Ŝ ≜ (S, ϵ̂, δ̂)\) can be lowered into a GKAT coalgebra \(S ≜ (S, δ)\) in the following manner:
 \begin{align}\label{cons:lowering}
 δ(s, α) ≜ \begin{cases}
     \accept & ∃ b ∈ ϵ̂(s), α ≤ b \\[5px]
@@ -911,30 +911,29 @@ With the above intuition in mind, a symbolic GKAT coalgebra \(Ŝ ≜ (S, ϵ̂, 
     \reject & \text{otherwise}
 \end{cases}
 \end{align}
-This is well-defined, i.e. no more than one clause can be satisfied precisely because the boolean expressions appear in \(ϵ̂\) and \(δ̂\) are disjoint.
+This is well-defined, i.e. exactly one clause can be satisfied for any \(s ∈ S\) and \(α ∈ \At\), because of the disjointedness condition.
 We usually use \(S\) to denote the lowering of \(Ŝ\); and the semantics of a state \(s ∈ Ŝ\) is defined as its semantics in the lowering \(⟦s⟧_{Ŝ} ≜ ⟦s⟧_{S}.\)
 
-We will then use \(ρ̂(s): \BExp_T\) to represent the boolean expressions that contain all the atoms that the state \(s\) rejects, and \(ρ̂(s)\) can be computed as follows:
+We will then use \(ρ̂(s): \BExp_T\) to represent all the atoms that the state \(s\) rejects in the lowering, and \(ρ̂(s)\) is computed as follows:
 \begin{align*}
     ρ̂(s) ≜ ⋀ \{\overline{b} ∣{}
         & ∃ s' ∈ S, p ∈ K, (b, s', p) ∈ δ̂(s) \\
         & \text{ or } b ∈ ϵ̂(s)\}.
 \end{align*}
-The trace semantics of a GKAT coalgebra \((S, ϵ̂, δ̂)\) is then defined as the trace semantics of its lowering \((S, δ)\).
 
 \begin{remark}[Canonicity]\label{rem:canonicity}
-    Notice that symbolic GKAT coalgebra is not canonical, i.e. there exists two different symbolic GKAT colagebra with the same lowering, consider the state set \(S ≜ \{s\}\):
+    Symbolic GKAT coalgebra is not canonical, i.e. there exists two different symbolic GKAT coalgebra with the same lowering, consider the state set \(S ≜ \{s\}\):
     \begin{align*}
         {δ̂}₁(s) & ≜ \{b ↦ (s, p), \overline{b} ↦ (s, p)\} \\
         {δ̂}₂(s) & ≜ \{⊤ ↦ (s, p)\},
     \end{align*} 
     and both \(ϵ̂₁, ϵ̂₂\) will return constant \(0\).
     These two symbolic GKAT coalgebra \(Ŝ₁ ≜ (S, δ̂₁, ϵ̂₁)\) and \(Ŝ₂ ≜ (S, δ̂₂, ϵ̂₂)\) have the same lowering and semantics, yet, they are different.
-    There are other symbolic representation that will satisfy canonicity, yet we opt to use our current representation for ease of construction and computational efficiency.
+    It is possible to construct symbolic representations that satisfies canonicity, yet we opt to use our current representation for ease of construction and computational efficiency.
 \end{remark}
 
 \begin{theorem}[Functoriality]\label{thm:lowering-functor}
-    The lowering operation is a functor, given a symbolic GKAT coalgebra homomorphism \(h: Ŝ → Û\), then \(h\) is also a homomorphism \(h: S → U\).
+    The lowering operation is a functor, every symbolic GKAT coalgebra homomorphism \(h: Ŝ → Û\), is also a GKAT coalgebra homomorphism \(h: S → U\).
 \end{theorem}
 
 \begin{proof}
@@ -942,10 +941,10 @@ The trace semantics of a GKAT coalgebra \((S, ϵ̂, δ̂)\) is then defined as t
     TODO: finish.
 \end{proof}
 
-The functoriality states that a homomorphism on two symbolic coalgebras implies a homomorphism of on their lowing; similarly, a bisimulation on symbolic GKAT coalgebra induces a bisimulation on their lowering.
-However, the converse is not true, precisely because of the canonicity problem noted in~\Cref{rem:canonicity}: take the \(Ŝ₁\) and \(Ŝ₂\) in~\Cref{rem:canonicity}, because they have the same lowering, therefore the identity homomorphism is a homomorphism on their lowerings, yet there is no homomorphism from \(Ŝ₁\) to \(Ŝ₂\).
+The functoriality states that a homomorphism on two symbolic coalgebras induces a homomorphism of on their lowing; similarly, a bisimulation on symbolic GKAT coalgebra also induces a bisimulation on their lowering.
+However, the converse is not true, precisely because of the canonicity problem noted in~\Cref{rem:canonicity}: take the \(Ŝ₁\) and \(Ŝ₂\) in~\Cref{rem:canonicity}, because they have the same lowering, therefore the identity homomorphism is a homomorphism on their lowerings, but there is no homomorphism from \(Ŝ₁\) to \(Ŝ₂\).
 
-We can then migrate the normalized bisimulation algorithm to the symbolic setting, we will first prove an inductive construction theorem like~\cref{thm:recursive-construction}.
+We can then define the symbolic equivalence algorithm, with its correctness stated in~\cref{thm:recursive-construction}.
 
 \begin{theorem}[Symbolic Recursive Construction]\label{thm:symb-recursive-construction}
     Given two symbolic GKAT coalgebra \(Ŝ = (S, ϵ̂_S, δ̂_S)\) and \(Û = (U, ϵ̂_U, δ̂_U)\) and two states \(s ∈ S\) and \(u ∈ U\), \(s\) and \(u\) are trace equivalent \(⟦s⟧_{Ŝ} = ⟦u⟧_{Û}\), if and only if all the following holds:
@@ -959,10 +958,13 @@ We can then migrate the normalized bisimulation algorithm to the symbolic settin
 \end{theorem}
 
 \begin{proof}
-    Reduces to~\cref{thm:recursive-construction} i.e. all the above condition holds if and only if all the condition in~\cref{thm:recursive-construction} holds in the lowered coalgebra.
+    Reduces to~\Cref{thm:recursive-construction} i.e. all the above condition holds if and only if all the condition in~\Cref{thm:recursive-construction} holds in the lowering.
 \end{proof}
 
-Then for the algorithm, we can just recursively check all the conditions in~\cref{thm:symb-recursive-construction}.
+Similar to the non-symbolic version of the algorithm, we will first check if either of the input states is dead, then  recursively check all the conditions in~\cref{thm:symb-recursive-construction}.
+And the symbolic version of the liveness checking algorithm is also based on a graph search algorithm on all the reachable state, where we try to identify an accepting state by checking whether \(⋁ ϵ̂(s) ≡ 0\).
+The only deviation from the non-symbolic cases is that we do not follow empty transitions in the symbolic case, i.e. if \(δ̂(s) ≜ (b, s', p)\) and \(b ≡ 0\), we will not search \(s'\) to check the liveness of \(s'\).
+In~\Cref{sec:optimization-implementation}, we will outline a simple modification for the symbolic GKAT coalgebra generation algorithm in~\Cref{sec:symb-gkat-construction} to avoid generating empty transitions, allowing us to skip the emptiness check when deciding whether a state is dead.
 
 \begin{algorithm*}
     \caption{Symbolic On-the-fly Bisimulation Algorithm}\label{alg:symb-bisim}
@@ -992,11 +994,10 @@ Then for the algorithm, we can just recursively check all the conditions in~\cre
     \end{algorithmic}
 \end{algorithm*}
 
-Inspired by the syntax of Ocaml, the \(\mathrel{\&\!\&}\) is the logical-and operator on the language level, specifying that all four conditions in the return statements must be satisfied to return true. 
-Notice just like the non-symbolic case, this algorithm can be modified to perform symbolic bisimulation of (non-normalized) GKAT coalgebra, which coincides with infinite trace equivalence~\cite{schmid_GuardedKleeneAlgebra_2021}, by letting \textsc{isDead} and \textsc{knownDead} to always return false.
+The symbolic trace-equivalence algorithm is presented as~\cref{alg:symb-bisim}, where \(\mathrel{\&\!\&}\) is the logical-and operator on the language level, specifying that all the conditions in~\cref{thm:symb-recursive-construction} must be satisfied for the algorithm to return true. 
 
 
-\section{Symbolic GKAT Coalgebra Construction}
+\section{Symbolic GKAT Coalgebra Construction}\label{sec:symb-gkat-construction}
 
 The final piece of the puzzle is to convert any given expression into an ``equivalent'' Symbolic GKAT Automata. This goal can be achieved by lifting existent constructions like derivatives and Thompson's construction~\cite{schmid_GuardedKleeneAlgebra_2021,smolka_GuardedKleeneAlgebra_2020}.
 The correctness of these conversions is a consequence of  correctness of their non-symbolic counter-part, i.e. we will prove that the lowering as shown in~\labelcref{cons:lowering} of these constructions will yield the conventional derivative and Thompson's construction. 
