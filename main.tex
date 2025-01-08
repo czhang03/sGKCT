@@ -588,8 +588,8 @@ In this section, we introduce an algorithm that merges bisimulation and normaliz
 For example, when deciding the trace equivalence between \(s ∈ S\) and \(u ∈ U\), if \(δ_S(s, α) = (s', p)\) and \(δ_U(u, α) = (u', p)\), we will proceed to recurse on \(s'\) and \(u'\), without checking the liveness of \(s'\) and \(u'\).
 However, if \(s\) rejects \(α\) instead of transitioning to \(s'\), we will then check whether \(u'\) is dead.
 
-We present several sound and complete conditions for finite-trace equivalence between states of GKAT coalgebras in~\Cref{thm:norm-bisim-correctness}, which also serves as the core correctness theorem for our equivalence-checking algorithm i.e.~\Cref{alg:bisim}.
-This algorithm mostly consists of recursively checking the conditions in~\Cref{thm:norm-bisim-correctness} with minor optimizations, which we will outline later.
+We present several sound and complete conditions for finite-trace equivalence between states of GKAT coalgebras in~\Cref{thm:recursive-construction}, which also serves as the core correctness theorem for our equivalence-checking algorithm i.e.~\Cref{alg:bisim}.
+This algorithm mostly consists of recursively checking the conditions in~\Cref{thm:recursive-construction} with minor optimizations, which we will outline later.
 
 \begin{lemma}[bisimulation between dead states]\label{thm:bisim-between-dead}
     Given two dead states \(s ∈ S\) and \(u ∈ U\), then the singleton bisimulation \({∼} ⊆ \norm(S) × \norm(U)\):
@@ -698,7 +698,7 @@ The correctness of this modification is supported by the correspondence between 
     \begin{enumerate}
         \item for all \(α ∈ \At\), \(δ_{S}(s, α) = \accept ⟺ δ_{U}(u, α) = \accept\);
         \item \(s\) reject \(α\) or transition to a dead state via \(α\) if and only if \(u\) rejects \(α\) or transition to a dead state via \(α\);  
-        \item if \(δ_{S}(s, α) = (s', p)\) and \(δ_{U}(u, α) = (u', p)\), then \(⟦s⟧_{S} = ⟦u⟧_{U}\);
+        \item if \(δ_{S}(s, α) = (s', p)\) and \(δ_{U}(u, α) = (u', p)\), then \(⟦s'⟧_{S} = ⟦u'⟧_{U}\);
         \item if \(δ_{S}(s, α) = (s', p)\) and \(δ_{U}(u, α) = (u', q)\), s.t. \(p ≠ q\), then both \(s'\) and \(t'\) are dead.
     \end{enumerate}
     Notice that above condition is similar to those in~\cref{thm:recursive-construction}, except bisimulation of \(s'\) and \(u'\) is replaced with trace equivalence.
@@ -896,7 +896,7 @@ Specifically, given a set of primitive actions \(K\) and primitive tests \(T\), 
     ϵ̂: S → 𝒫(\BExp_T), \and
     δ̂: S → 𝒫(\BExp_T × S × K).
 \end{mathpar}
-This coalgebra is also required to satisfy the disjointedness condition, i.e. for all states \(s ∈ S\), the conjunction of any two expressions from the set \(ϵ̂(s) ∪ \{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) is equivalent to \(0\) under boolean algebra.
+This coalgebra is also required to satisfy the disjointedness condition, i.e. for all states \(s ∈ S\), the boolean expressions that \(s\) accepts \(ϵ̂(s)\) and the boolean expressions that enables \(s\) to transition \(\{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) is disjoint; also the conjunction of any two distinct expressions from the set \(ϵ̂(s) ∪ \{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) is equivalent to \(0\) under boolean algebra.
 
 We name \(ϵ̂\) the accepting function because intuitively a state \(s\) accepts an atom \(α\) when there exists a \(b ∈ ϵ̂(s)\), s.t. \(α ≤ b\); similarly, \(δ̂\) is called the transition function because a state \(s\) transitions to \(s'\) via atom \(α\) while executing \(p\) when there exists \((b, s', p) ∈ δ̂(s)\) and \(α ≤ b\).
 With the above intuition in mind, a symbolic GKAT coalgebra \(Ŝ ≜ (S, ϵ̂, δ̂)\) can be lowered into a GKAT coalgebra \(S ≜ (S, δ)\) in the following manner:
@@ -961,11 +961,6 @@ We can then define the symbolic equivalence algorithm, with its correctness stat
     Reduces to~\Cref{thm:recursive-construction} i.e. all the above condition holds if and only if all the condition in~\Cref{thm:recursive-construction} holds in the lowering.
 \end{proof}
 
-Similar to the non-symbolic version of the algorithm, we will first check if either of the input states is dead, then  recursively check all the conditions in~\cref{thm:symb-recursive-construction}.
-And the symbolic version of the liveness checking algorithm is also based on a graph search algorithm on all the reachable state, where we try to identify an accepting state by checking whether \(⋁ ϵ̂(s) ≡ 0\).
-The only deviation from the non-symbolic cases is that we do not follow empty transitions in the symbolic case, i.e. if \(δ̂(s) ≜ (b, s', p)\) and \(b ≡ 0\), we will not search \(s'\) to check the liveness of \(s'\).
-In~\Cref{sec:optimization-implementation}, we will outline a simple modification for the symbolic GKAT coalgebra generation algorithm in~\Cref{sec:symb-gkat-construction} to avoid generating empty transitions, allowing us to skip the emptiness check when deciding whether a state is dead.
-
 \begin{algorithm*}
     \caption{Symbolic On-the-fly Bisimulation Algorithm}\label{alg:symb-bisim}
     \begin{algorithmic}
@@ -994,13 +989,22 @@ In~\Cref{sec:optimization-implementation}, we will outline a simple modification
     \end{algorithmic}
 \end{algorithm*}
 
-The symbolic trace-equivalence algorithm is presented as~\cref{alg:symb-bisim}, where \(\mathrel{\&\!\&}\) is the logical-and operator on the language level, specifying that all the conditions in~\cref{thm:symb-recursive-construction} must be satisfied for the algorithm to return true. 
+Similar to the non-symbolic version of the algorithm, \cref{alg:symb-bisim} first check if either of the input states is dead, then  recursively check all the conditions in~\Cref{thm:symb-recursive-construction}, where \(\mathrel{\&\!\&}\) denotes the logical and operator on boolean data type.
+The symbolic version of the liveness checking algorithm is also based on a graph search algorithm on all the reachable state, where we try to identify an accepting state by checking whether \(⋁ ϵ̂(s) ≡ 0\).
+The only deviation from the non-symbolic cases is that we do not follow empty transitions in the symbolic case, i.e. if \(δ̂(s) ≜ (b, s', p)\) and \(b ≡ 0\), we will not search \(s'\) to check the liveness of \(s'\).
+In~\Cref{sec:optimization-implementation}, we will outline a simple modification for the symbolic GKAT coalgebra generation algorithm in~\Cref{sec:symb-gkat-construction} to avoid generating empty transitions, allowing us to skip the emptiness check when deciding whether a state is dead.
+TODO: I think we need to make sure that we are presenting the dead state checking algorithm ignoring the empty transition.
+After which we can comment it here, to claim that this is for generality.
 
 
 \section{Symbolic GKAT Coalgebra Construction}\label{sec:symb-gkat-construction}
 
-The final piece of the puzzle is to convert any given expression into an ``equivalent'' Symbolic GKAT Automata. This goal can be achieved by lifting existent constructions like derivatives and Thompson's construction~\cite{schmid_GuardedKleeneAlgebra_2021,smolka_GuardedKleeneAlgebra_2020}.
-The correctness of these conversions is a consequence of  correctness of their non-symbolic counter-part, i.e. we will prove that the lowering as shown in~\labelcref{cons:lowering} of these constructions will yield the conventional derivative and Thompson's construction. 
+The final piece of the puzzle is to convert any given expression into an \emph{equivalent} state in some symbolic GKAT coalgebra. 
+This goal can be achieved by lifting existing constructions like derivatives and Thompson's construction~\cite{schmid_GuardedKleeneAlgebra_2021,smolka_GuardedKleeneAlgebra_2020} to the symbolic setting.
+Then the correctness of non-symbolic version can be used to show the correctness of the symbolic construction i.e. we will prove that the lowering as shown in construction~\labelcref{cons:lowering} of these constructions will yield the conventional derivative.
+However, several other important properties, like finiteness of derivative coalgebra and the correctness of the Thompson's construction can be established using a symbolic GKAT coalgebra homomorphism from the Thompson's construction to the derivative.
+
+We introduce some new notations for the transitions of symbolic GKAT coalgebra: for a symbolic GKAT coalgebra \(Ŝ ≜ (S, δ̂, ϵ̂)\) and state \(s ∈ S\), we will use \(s \transAcc{S}{b}\) to denote \(b ∈ ϵ̂(s)\); and use \(s \transvia{b ∣ p}_S s'\) to denote \((b, s', p) ∈ δ̂(s)\).
 
 \begin{figure*}
     \begin{mathpar}
@@ -1044,11 +1048,12 @@ The correctness of these conversions is a consequence of  correctness of their n
         {e \transvia{c ∣ p} e'}
         {e^{(b)} \transvia{b ∧ c ∣ p}_{D̂} e'; e^{(b)}}
     \end{mathpar}
-    \caption{Symbolic Derivative}\label{fig:derivatives-rules}
+    \caption{Symbolic Derivative Coalgebra \(D̂\)}\label{fig:derivatives-rules}
 \end{figure*}
 
 The symbolic derivative coalgebra \(D̂\), with expressions as states, is the least symbolic GKAT coalgebra (ordered by point-wise subset ordering on \(ϵ̂\) and \(δ̂\)) that satisfy the rules in~\Cref{fig:derivatives-rules}.
-Notice that the rules listed on~\Cref{fig:derivatives-rules} is very close to that of~\citeauthor{schmid_GuardedKleeneAlgebra_2021}~\cite{schmid_GuardedKleeneAlgebra_2021}.
+In more plain words, a transition is in \(D̂\) if and only if it is derivable by the rules in~\Cref{fig:derivatives-rules}.
+These rules are very close to the rules of GKAT derivative by~\citeauthor{schmid_GuardedKleeneAlgebra_2021}~\cite{schmid_GuardedKleeneAlgebra_2021}.
 This is no coincidence, as our definition exactly lowers to the definition of theirs.
 This fact can be proven by case analysis on the shape of the source expression, and forms a basis on our correctness argument.
 \begin{theorem}[Correctness]\label{thm:derivative-correctness}
@@ -1111,35 +1116,34 @@ This fact can be proven by case analysis on the shape of the source expression, 
             δ₁(s) ∪ ⟨\{b\}|⟨ϵ̂1(s)| δ̂₁(s₁^*) & s ∈ S₁
         \end{cases}\)
     \end{tabular}
-    \caption{Symbolic Thompson's Construction}\label{tab:symb-thomposon-construction}
+    \caption{Symbolic Thompson's Construction}\label{tab:symb-Thompson-construction}
 \end{table*}
 
 Another way to construct a coalgebra from a GKAT expression is via Thompson's construction, we lift the original construction to the symbolic setting.
-A common expression to construct is a guard operation, denoted by \(⟨B|\), where \(B\) is a set of boolean expressions.
-TODO: define transition dynamics and accepting dynamics earlier.
-Concretely, this guard can be defined on both accepting dynamics and transition dynamics:
+A useful operation for Thompson's construction is the following guard operation, denoted by \(⟨B|\), where \(B\) is a set of boolean expressions: for a transition function \(δ̂\), a accepting function \(ϵ̂\), and a state \(s\),
 \begin{align*}
     ⟨B|ϵ̂(s) & ≜ \{b ∧ c ∣ b ∈ B, c ∈ ϵ(s)\}; \\
     ⟨B|δ̂(s) & ≜ \{(b ∧ c, s', p) ∣ b ∈ B, (c, s', p) ∈ δ(s)\}.
 \end{align*}
-Notably, besides guarding transition and acceptance with different conditions in if statements and while loops, the guard operator can also be used to simulate uniform continuation. Specifically, we can use \(⟨ϵ̂(s)|δ(s')\) to connecting all the accepting state of \(s\) to the dynamic \(δ(s')\).
+Besides guarding transition and acceptance with different conditions in if statements and while loops, the guard operator can also be used to simulate uniform continuation. Specifically, we can use \(⟨ϵ̂(s)|δ(s')\) to connecting all the accepting transition of \(s\) to the dynamic \(δ(s')\).
 
-With these definitions in mind, we can define symbolic Thompson's construction inductively as in~\Cref{tab:symb-thomposon-construction}, where we let \((S₁, ϵ̂₁, δ̂₁)\) and \((S₂, ϵ̂₂, δ̂₂)\) to be result of Thompson's construction for \(e₁\) and \(e₂\) respectively.
-The \(S₁ + S₂\) is the disjoint union of \(S₁\) and \(S₂\), and for any two transition dynamics \(δ₁(s₁): 𝒫(\BExp × S₁ × K)\) and \(δ₂(s₂): 𝒫(\BExp × S₂ × K)\), then \(δ₁(s₁) + δ₂(s₂): 𝒫(\BExp × (S₁ + S₂) × K)\) is defined as follows:
+With these definitions in mind, we can define symbolic Thompson's construction inductively as in~\Cref{tab:symb-Thompson-construction}, where we let \((S₁, ϵ̂₁, δ̂₁)\) and \((S₂, ϵ̂₂, δ̂₂)\) to be result of Thompson's construction for \(e₁\) and \(e₂\) respectively.
+In this table, \(S₁ + S₂\) denotes the disjoint union of \(S₁\) and \(S₂\), and for any two transition dynamics \(δ₁(s₁): 𝒫(\BExp × S₁ × K)\) and \(δ₂(s₂): 𝒫(\BExp × S₂ × K)\), we can also compose them in parallel as \(δ₁(s₁) + δ₂(s₂)\):
 \begin{align*}
-    δ₁(s₁) & + δ₂(s₂) ≜ \\
-        & \{(b, \mathrm{inj}ₗ(s₁'), p) ∣ (b, s₁', p) ∈ δ₁(s₁)\} ∪ \\
-        & \{(b, \mathrm{inj}ᵣ(s₂'), p) ∣ (b, s₂', p) ∈ δ₂(s₂)\}
+    δ₁(s₁) & + δ₂(s₂): 𝒫(\BExp × (S₁ + S₂) × K) \\*
+    δ₁(s₁) & + δ₂(s₂) ≜ \\*
+        & \{(b, \mathrm{inj}ₗ(s₁'), p) ∣ (b, s₁', p) ∈ δ₁(s₁)\} ∪ \\*
+        & \{(b, \mathrm{inj}ᵣ(s₂'), p) ∣ (b, s₂', p) ∈ δ₂(s₂)\},
 \end{align*}
 where \(\mathrm{inj}ₗ: S₁ → S₁ + S₂\) and \(\mathrm{inj}ᵣ: S₂ → S₁ + S₂\) are the canonical left/right injection of the coproduct.
 
-One notable difference between the original construction~\cite{smolka_GuardedKleeneAlgebra_2020} and our construction is that we use a start state \(s^* ∈ S\), instead of a start dynamics (or pseudo-state).
+Our construction deviates from the original construction~\cite{smolka_GuardedKleeneAlgebra_2020} by using a start state \(s^* ∈ S\) instead of a start dynamics (or pseudo-state).
 This choice will make the proof of~\Cref{thm:hom-thompson-derivative} slightly easier. 
 However, in~\Cref{sec:optimization-implementation}, we will explain that our implementation uses start dynamics instead of start state, to avoid unnecessary lookups and unreachable states.
 
 We would like to explore several desirable theoretical properties of both derivatives and Thompson's construction.
-Specifically, the \emph{correctness}, i.e. the semantics of the ``start state'' the both construction have the same preserves the trace semantics of the expression; \emph{finiteness}, i.e. the coalgebra generated is always finite, which means that our equivalence algorithm will eventually terminate; and finally, \emph{complexity}, the relationship between the number of reachable states and the size of the input expression, which serves as an estimated complexity of our equivalence checking algorithm.
-Turns out all of these questions can be answered by a homomorphism from symbolic Thompson's construction to the symbolic derivatives.
+Specifically, the \emph{correctness}, i.e. the semantics of the ``start state'' the both construction have the same preserves the trace semantics of the expression; \emph{finiteness}, i.e. the coalgebra generated is always finite, implying the termination of our equivalence algorithm; and finally, \emph{complexity}, i.e. the relationship between the number of reachable states and the size of the input expression, which serves as an estimated complexity of our equivalence checking algorithm.
+Turns out, all of these questions can be answered by a homomorphism from symbolic Thompson's construction to the symbolic derivatives.
 
 \begin{theorem}\label{thm:hom-thompson-derivative}
     Given any GKAT expression \(e\), the resulting symbolic GKAT coalgebra from Thompson's construction \(Ŝ_e\) have a homomorphism to derivatives \(h: Ŝ_e → D̂\), s.t. for the start state \(s^* ∈ S, h(s^*) = e\).
@@ -1339,7 +1343,7 @@ Turns out all of these questions can be answered by a homomorphism from symbolic
     \end{align*}
 \end{proof}
 
-\Cref{thm:hom-thompson-derivative} have several consequences, one of the more obvious one is that we can use the functoriality of the lowering operation to show the semantic equivalence of the start state in the thompson's construction and the expression in derivative. 
+\Cref{thm:hom-thompson-derivative} have several consequences, one of the more obvious one is that we can use the functoriality of the lowering operation to show the semantic equivalence of the start state in the Thompson's construction and the expression in derivative. 
 
 \begin{corollary}[Correctness]
     Given any expression \(e\) and its Thompson's coalgebra \(Ŝ_{e}\) with the start state \(s^* ∈ Ŝ_{e}\), then the semantics of the start state is equivalent to the semantics of \(e\): \(⟦s^*⟧_{Ŝ_{e}} = ⟦e⟧.\)
@@ -1347,9 +1351,10 @@ Turns out all of these questions can be answered by a homomorphism from symbolic
 
 \begin{proof}
     By functoriality of lowering~\cref{thm:lowering-functor}, then \(h: S_{e} → D\) is a homomorphism on their lowerings. 
-    By standard theorem of universal coalgebra, homomorphism preserves the result to the final coalgebra~\cite{rutten_UniversalCoalgebraTheory_2000}, in particular, \(⟦s^*⟧^{ω}_{S_{e}} = ⟦h(s^*)⟧^{ω}_{D} = ⟦e⟧^{ω}_{D}\), where \(⟦-⟧^{ω}\) is the infinite trace semantics i.e. the unique map into the final GKAT coalgebra.
+    Because homomorphism preserves semantics (\Cref{thm:hom-preserves-semantics}) \(⟦s^*⟧^{ω}_{S_{e}} = ⟦h(s^*)⟧^{ω}_{D} = ⟦e⟧^{ω}_{D}\), where \(⟦-⟧^{ω}\) is the infinite trace semantics i.e. the unique map into the final GKAT coalgebra \(𝒢_ω\).
 
-    Finally, because infinite trace equivalence implies finite trace equivalence (\Cref{thm:inf-trace-equiv-implies-fin-trace-equiv}), \(⟦s^*⟧_{S_{e}} = ⟦e⟧_{D}\); then the correctness of derivative (\Cref{thm:derivative-correctness}) concludes our proof: \(⟦s^*⟧_{S_{e}} = ⟦e⟧_{D} = ⟦e⟧\).
+    Finally, because infinite trace equivalence implies finite trace equivalence (\Cref{thm:inf-trace-equiv-implies-fin-trace-equiv}) and the correctness of derivative (\Cref{thm:derivative-correctness}), we obtain the following chain of equalities:
+    \(⟦s^*⟧_{S_{e}} = ⟦e⟧_{D} = ⟦e⟧\).
 \end{proof}
 
 A not so obvious consequence of the homomorphism in~\Cref{thm:hom-thompson-derivative}, is the complexity of the algorithm based on derivatives.
@@ -1368,12 +1373,12 @@ On the other hand the size of \(⟨e⟩_{D̂}\) can, again, be derived from the 
     In other words, the image of \(h\) on \(⟨s^*⟩_{Ŝ_{e}}\) is equal to \(⟨e⟩_{D̂}\); thus, because \(h'\) the restriction of \(h\) on \(⟨s^*⟩_{Ŝ_{e}}\), the range of \(h'\) contains its codomain \(⟨e⟩_{D̂}\), showing that \(h'\) is surjective.
 \end{proof}
 
-Therefore, \(⟨s^*⟩_{Ŝ_{e}}\) will have no less state than \(⟨e⟩_{D̂}\) as a consequence of the surjectivity of \(h'\) in~\cref{thm:suj-hom-thompson-derivative}.
-Because \(Ŝ_{e}\) have more states than \(⟨s^*⟩_{Ŝ_{e}}\), which have more states than \(⟨e⟩_{D̂}\), and notice that the size of \(Ŝ_{e}\) is linear to the size of the input expression, therefore \(⟨e⟩_{D̂}\) is at most linear to the size of the expression. 
+Because of the surjectivity of \(h'\) in~\Cref{thm:suj-hom-thompson-derivative}, \(⟨s^*⟩_{Ŝ_{e}}\) has no fewer states than \(⟨e⟩_{D̂}\).
+And, the number of states in \(Ŝ_{e}\) is greater than \(⟨s^*⟩_{Ŝ_{e}}\), which is greater than \(⟨e⟩_{D̂}\); by induction, the number of states in \(Ŝ_{e}\) is linear to the size of the input expression, therefore the number of states in \(⟨e⟩_{D̂}\) is at most linear to the size of the expression \(e\). 
 
-Although the size of the coalgebra generated by the derivative is smaller than Thompson's construction, this does not imply that the decision procedure based on derivative is always more efficient than those based on Thompson's construction. 
-Crucially, the states in the derivative coalgebra \(D̂\) are expressions, and computing the next transition of the coalgebra can also be more expensive.
-Thompson's construction, on the other hand, only requires inductively going through the expression once to construct the entire coalgebra \(Ŝ_{e}\), and its states can be represented by more efficient constructs, like integers. 
+Although the size of the coalgebra generated by the derivative is smaller than Thompson's construction, the decision procedure based on derivative is not always more efficient than those based on Thompson's construction. 
+Crucially, the states in the derivative coalgebra \(D̂\) are expressions, which is more expensive to store; and computing the next transition of the coalgebra can also be more computationally expensive.
+Whereas, Thompson's construction only requires inductively going through the expression once to construct the entire coalgebra \(Ŝ_{e}\), and its states can be represented by more efficient constructs, like integers. 
 
 \section{Implementation}
 
@@ -1382,9 +1387,32 @@ Thompson's construction, on the other hand, only requires inductively going thro
 \subsection{Performance}\label{sec:performance-implementation}
 
 
-\section{Future Work}
+\section{Related Works and Discussions}
 
-Can weak symbolic coalgebra leads to a simpler completeness proof.
+\subsection{Generic Symbolic Techniques}
+
+There are many studies that utilizes symbolic techniques to solve various problems surrounding (extended) regular expressions, and have found a wide range of real-world applications, including but not limited to low level program analysis~\cite{dallapreda_AbstractSymbolicAutomata_2015a}, list comprehension~\cite{saarikivi_FusingEffectfulComprehensions_2017}, constraint solving~\cite{stanford_SymbolicBooleanDerivatives_2021}, HTML decoding, malware fingerprinting, image blurring, location privacy~\cite{veanes_SymbolicFiniteState_2012}, regex processing, and string sanitizer~\cite{veanes_ApplicationsSymbolicFinite_2013}.
+
+Our study, on the other hand,  focus on GKAT and GKAT automata (represented as coalgebra throughout the paper). 
+Although previous works on deterministic symbolic transducer~\cite{saarikivi_FusingEffectfulComprehensions_2017,veanes_SymbolicFiniteState_2012} might seem similar to that of GKAT, the automata shape are subtly different, specifically, instead of having accept and rejecting states, states in GKAT automata will accept or reject its input.
+
+Another difference between aforementioned works and ours is that we utilize the coalgebraic theory of GKAT to streamline some of our proofs.
+In fact, we are not the first to look at symbolic transition system through the lens of coalgebra, \citeauthor{bonchi_CoalgebraicSymbolicSemantics_2009}~\cite{bonchi_CoalgebraicSymbolicSemantics_2009} have an elegant coalgebra theory surrounding symbolic transition system.
+However, instead of defining the symbolic semantics via the coalgebra theory, we opt to use the notion of lowering to connect symbolic GKAT coalgebra and GKAT coalgebra.
+This approach allows us to leverage previous correctness proofs like in~\Cref{thm:derivative-correctness}, and also enables a non-symbolic equivalence-checking algorithm as in~\cref{alg:bisim}.
+Another notable difference is that our equivalence checking also need to handle normalization, which is a unique property of GKAT not found in general coalgebra.
+
+\subsection{KAT and GKAT}
+
+GKAT is a guarded fragment of Kleene Algebra with Tests (KAT), which enjoys a symbolic algorithm~\cite{pous_SymbolicAlgorithmsLanguage_2015}.
+This algorithm by~\citeauthor{pous_SymbolicAlgorithmsLanguage_2015} generalizes the notion of derivatives also to boolean expressions, which uses binary decision diagram (BDD) as transition between symbolic expressions.
+Although some of our examples utilizes BDD to solve equivalence and inequivalence of boolean expressions, because of the structure of GKAT, our algorithm is not bounded by a particular boolean representation or solvers.
+In fact, we have demonstrated that in many scenarios, solvers like z3 and sentential decision diagram (SDD) can achieve better performance than BDD.
+
+In similar veins, KATch~\cite{moeller_KATchFastSymbolic_2024} is a symbolic solver for NetKAT~\cite{anderson_NetKATSemanticFoundations_2014} based on forwarding decision diagram, and achieved outstanding performance among state-of-the-art tools for reasoning about software-defined networks.
+GKAT also stem from the research of the research of software-defined networks~\cite{smolka_ScalableVerificationProbabilistic_2019,smolka_GuardedKleeneAlgebra_2020}, and quickly found applications in probabilistic verification~\cite{ro.zowski_ProbabilisticGuardedKAT_2023}, probabilistic program logic~\cite{gomes_KleeneAlgebraTests_2024}, networks~\cite{wasserstein_GUARDEDNETKATSOUNDNESS_2023}, and control-flow validation~\cite{zhang_CFGKATEfficientValidation_2025}.
+It would be interesting to see how our symbolic algorithm can be used to speed up these applications.
+
 
 
 

@@ -26,3 +26,4 @@ sub-coalgebras
 bifunctorial
 inequivalence
 recurse
+sentential
