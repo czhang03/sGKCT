@@ -1381,8 +1381,18 @@ Crucially, the states in the derivative coalgebra \(D̂\) are expressions, which
 Whereas, Thompson's construction only requires inductively going through the expression once to construct the entire coalgebra \(Ŝ_{e}\), and its states can be represented by more efficient constructs, like integers. 
 
 \section{Implementation}
+We implement our symbolic on-the-fly bisimulation algorithm~(\Cref{alg:symb-bisim}) in Rust along with derivative based~(\Cref{fig:derivatives-rules}) and Thompson's construction based~(\Cref{tab:symb-Thompson-construction}) algorithms for constructing symbolic GKAT coalgebras. The source code and benchmark suite is freely available in our repository TODO.
 
 \subsection{Optimization}\label{sec:optimization-implementation}
+\begin{definition}[blocked transition]
+    For any \(s \in S\), a transition \((b, s', p) \in \hat{\delta}_S(s)\) is blocked if \(b \equiv 0\).
+\end{definition}
+
+Notice that during bisimulation~(\Cref{alg:symb-bisim}) for some \(s \in S\) and \(u \in U\), if there is \((b,s',p) \in \hat{\delta}_S(s)\) where \(b\) is a semantically false boolean expression, then implications of form \((b \land \cdot) \not{\equiv} 0 \Rightarrow \cdot\) are trivially satisfied. In other words, \textit{blocked} transitions in \(S\) do not contribute to the result of bisimulation. The same observation holds true symmetrically for \(U\). So blocked transitions of a coalgebra can be safely pruned without impacting the result of bisimulation.
+
+While blocked transitions are irrelevant regarding the result of bisimulation, they can negatively impact the performance of bisimulation as the algorithm may perform many unneeded satisfiability checks. To prevent performance degradation due to blocked transitions, we remove them through an \textit{eager-pruning} optimization. Basically, in our coalgebra construction algorithms, \(\hat{\delta}\) is constructed with only transitions \((b, s, p)\) where \(b \not{\equiv} 0\). The coalgebras produced in this manner essentially have their blocked transitions pruned at the time of construction (eager). 
+
+Eager-pruning also improves the efficiency of the Thompson's construction algorithm~(\Cref{tab:symb-Thompson-construction}) significantly. This is due to the fact that eager-pruning can reduce the size of \(\hat{\delta}'\) computed recursively for sub-expressions, which in turn makes computing \(\hat{\delta}\) for the overall expression faster.
 
 \subsection{Performance}\label{sec:performance-implementation}
 
