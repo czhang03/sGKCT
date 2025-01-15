@@ -1,5 +1,9 @@
 ###### TEX ######
 
+## PDFs, please don't do *.pdf, because it will also ignore assets.
+main.pdf
+notes.pdf
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
