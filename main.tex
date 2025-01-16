@@ -1934,13 +1934,50 @@ In similar veins, KATch~\cite{moeller_KATchFastSymbolic_2024} is a symbolic solv
 GKAT also stem from the research of the research of software-defined networks~\cite{smolka_ScalableVerificationProbabilistic_2019,smolka_GuardedKleeneAlgebra_2020}, and quickly found applications in probabilistic verification~\cite{ro.zowski_ProbabilisticGuardedKAT_2023}, probabilistic program logic~\cite{gomes_KleeneAlgebraTests_2024}, networks~\cite{wasserstein_GUARDEDNETKATSOUNDNESS_2023}, and control-flow validation~\cite{zhang_CFGKATEfficientValidation_2025}.
 It would be interesting to see how our symbolic algorithm can be used to speed up these applications.
 
-
-
-
 \printbibliography
 
-\newpage
+\clearpage
 \appendix
 
+\begin{onecolumn}
+\begin{lstlisting}[
+    caption=Dead State Detection Implementation,
+    label=lst:dead-state-detection
+]
+pub struct Solver {
+    // search states
+    pub(super) dead_states: HashSet<Exp>,
+    pub(super) explored: HashSet<Exp>,
+    pub(super) uf_table: HashMap<Exp, UnionFindNode<()>>,
+    // caching
+    pub(super) eps_cache: LruCache<Exp, BExp>,
+    pub(super) deriv_cache: LruCache<Exp, Vec<(BExp, Exp, u64)>>,
+}
+
+impl Solver {
+    pub fn is_dead(&mut self, gkat: &mut Gkat, exp: &Exp) -> bool {
+        let mut stack = Vec::new();
+        stack.push(exp.clone());
+        self.explored.clear();
+        while let Some(exp) = stack.pop() {
+            if self.dead_states.contains(&exp) || self.explored.contains(&exp) {
+                continue;
+            }
+            self.explored.insert(exp.clone());
+            let eps = self.epsilon(gkat, &exp);
+            if eps.is_false() {
+                for (_, e, _) in self.derivative(gkat, &exp) {
+                    stack.push(e);
+                }
+            } else {
+                return false;
+            }
+        }
+        self.dead_states.extend(self.explored.iter().cloned());
+        return true;
+    }
+}
+\end{lstlisting}
+\end{onecolumn}
 
 \end{document}
