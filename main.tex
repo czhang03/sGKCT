@@ -634,7 +634,7 @@ This algorithm mostly consists of recursively checking the conditions in~\Cref{t
 \begin{lemma}\label{thm:dead-construction-greedy-bisim}
     Given any eager bisimulation \({≈} ⊆ S × U\) with the underlying bisimulation \({∼}\), the following relation \({∼_d} ⊆ S × U\):
     \[{∼_d} ≜ {∼} ∪ \{(s, u) ∣ \text{\(s\) and \(u\) are dead in \(S\) and \(U\)}\},\]
-    form a GKAT coalgebra the transition function \(δ_≈\) in~\Cref{def:norm-bisim}, which implies \({≈} ⊑ \)
+    form a GKAT coalgebra the transition function \(δ_≈\) in~\Cref{def:norm-bisim}, which implies \({≈} ⊑ {∼_d}\).
     Furthermore, \(\norm(∼_d)\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\).
 \end{lemma}
 
@@ -1318,7 +1318,11 @@ This algorithm mostly consists of recursively checking the conditions in~\Cref{t
 % \end{proof}
 
 \begin{theorem}\label{thm:greedy-bisim-one-dead}
-    
+    Consider two states in GKAT coalgebras \(s ∈ S, u ∈ U\) and an arbitrary bisimulation \(≈\), if \(s\) is dead, then 
+    \begin{itemize}
+        \item if \(u\) is not dead, then \((s, u) ∉ {≈}\).
+        \item if \(u\) is dead, 
+    \end{itemize}
 \end{theorem}
 
 Before we introduce the optimized algorithm, we will first briefly sketch the liveness-check algorithm, which will use a depth-first search to check whether the there exists any accepting states in reachable states of \(s ∈ S\): if there exists any accepting state in \(⟨s⟩_S\), then the algorithm terminates immediately, and return that \(s\) is live, otherwise it would return all the states in \(⟨s⟩\), and by~\cref{thm:dead-iff-all-reachable-dead}, all the states in \(⟨s⟩\) is dead.
