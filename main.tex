@@ -1318,12 +1318,25 @@ This algorithm mostly consists of recursively checking the conditions in~\Cref{t
 % \end{proof}
 
 \begin{theorem}\label{thm:greedy-bisim-one-dead}
-    Consider two states in GKAT coalgebras \(s ∈ S, u ∈ U\) and an arbitrary bisimulation \(≈\), if \(s\) is dead, then 
-    \begin{itemize}
-        \item if \(u\) is not dead, then \((s, u) ∉ {≈}\).
-        \item if \(u\) is dead, 
-    \end{itemize}
+    Consider two states in GKAT coalgebras \(s ∈ S, u ∈ U\) and an arbitrary bisimulation \({∼} ⊆ \norm(S) × \norm(U)\), if \(s\) is dead, then 
+    \begin{enumerate}
+        \item\label{itm:greedy-bisim-one-dead-then-both-dead} if \(s ∼ u\), then \(u\) is dead.
+        \item\label{itm:remove-dead-pairs-sound} if \(u\) is dead, then \({∼} ∖ ⟨(s, u)⟩_∼\) is also a bisimulation between \(\norm(S)\) and \(\norm(U)\).
+    \end{enumerate}
 \end{theorem}
+
+\begin{proof}
+    \Cref{itm:greedy-bisim-one-dead-then-both-dead} is a consequence of bisimulation preserves liveness (\Cref{thm:bisim-preserve-liveness}) and normalization preserves liveness (\Cref{thm:norm-perserve-liveness}).
+
+    \Cref{itm:remove-dead-pairs-sound} can be proven by realizing that \((s, u)\) is a dead state in \(∼\) (\Cref{thm:bisim-preserve-liveness}) which means that all the states in \(⟨(s, u)⟩_∼\) are dead.
+    Because \(∼\) is a normalized GKAT coalgebra (\Cref{thm:}), therefore no state can transition into dead states like \(⟨(s, u)⟩_∼\), hence \({∼} ∖ ⟨(s, u)⟩_∼\) is still closed under its transition, and form a GKAT coalgebra.
+    And the fact that \({∼} ∖ ⟨(s, u)⟩_∼\) is also a bisimulation can be proven by factoring through \(∼\) via the inclusion homomorphism:
+    \begin{align*}
+        ({∼} ∖ ⟨(s, u)⟩_∼) \xrightarrow{i} {∼} \xrightarrow{π₁} \norm(S) \\
+        ({∼} ∖ ⟨(s, u)⟩_∼) \xrightarrow{i} {∼} \xrightarrow{π₂} \norm(U)
+    \end{align*}
+    TODO: extract the above to a lemma.
+\end{proof}
 
 Before we introduce the optimized algorithm, we will first briefly sketch the liveness-check algorithm, which will use a depth-first search to check whether the there exists any accepting states in reachable states of \(s ∈ S\): if there exists any accepting state in \(⟨s⟩_S\), then the algorithm terminates immediately, and return that \(s\) is live, otherwise it would return all the states in \(⟨s⟩\), and by~\cref{thm:dead-iff-all-reachable-dead}, all the states in \(⟨s⟩\) is dead.
 In this case, we use depth-first search for its simplicity to implement, other search algorithm will also be sound.
