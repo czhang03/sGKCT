@@ -231,7 +231,7 @@ London, United Kingdom \\
 \IEEEauthorblockA{\textit{Department of Computer Science} \\
 \textit{Boston University}\\
 Boston, USA \\
-email address or ORCID}
+qcfu@bu.edu}
 \and
 \IEEEauthorblockN{Hang Ji}
 \IEEEauthorblockA{\textit{Department of Computer Science} \\
@@ -1699,8 +1699,8 @@ This fact can be proven by case analysis on the shape of the source expression, 
 Another way to construct a coalgebra from a GKAT expression is via Thompson's construction, we lift the original construction to the symbolic setting.
 A useful operation for Thompson's construction is the following guard operation, denoted by \(⟨B|\), where \(B\) is a set of boolean expressions: for a transition function \(δ̂\), a accepting function \(ϵ̂\), and a state \(s\),
 \begin{align*}
-    ⟨B|ϵ̂(s) & ≜ \{b ∧ c ∣ b ∈ B, c ∈ ϵ(s)\}; \\
-    ⟨B|δ̂(s) & ≜ \{(b ∧ c, s', p) ∣ b ∈ B, (c, s', p) ∈ δ(s)\}.
+    ⟨B|ϵ̂(s) & ≜ \{b ∧ c ∣ b ∈ B, c ∈ \hat{\epsilon}(s)\}; \\
+    ⟨B|δ̂(s) & ≜ \{(b ∧ c, s', p) ∣ b ∈ B, (c, s', p) ∈ \hat{\delta}(s)\}.
 \end{align*}
 Besides guarding transition and acceptance with different conditions in if statements and while loops, the guard operator can also be used to simulate uniform continuation. Specifically, we can use \(⟨ϵ̂(s)|δ(s')\) to connecting all the accepting transition of \(s\) to the dynamic \(δ(s')\).
 
@@ -1973,6 +1973,12 @@ Eager-pruning also improves the efficiency of the Thompson's construction algori
 
 As mentioned in \Cref{sec:symb-gkat-construction}, our implementation of Thompson's construction uses start dynamics (pseudo-state) instead of an explicit start state. This reduces the number of indirections needed to access the behaviors \(\hat{\epsilon}(s^*) \) and \(\hat{\delta}(s^*)\) of start state \(s^*\). More specifically, we track the behaviors \(\epsilon^*\) and \(\delta^*\) which characterize \(\hat{\epsilon}(s^*) \) and \(\hat{\delta}(s^*)\) respectively. The start state \(s^*\) does not appear explicitly during coalgebra construction. After the construction algorithm terminates, we generate a fresh state \(s^*\) and set \(\hat{\epsilon}(s^*) = \epsilon^*\) and \(\hat{\delta}(s^*) = \delta^*\). The final coalgebra that our implementation produces is equivalent to what would have been obtained from the original algorithm (\Cref{tab:symb-Thompson-construction}) modulo consistent renaming of states.
 
+The final optimization that we perform is collapsing the sets of boolean expressions of \(\hat{\epsilon}(s)\) into a single boolean expression. Basically, each \(\hat{\epsilon}(s)\) is represented by the boolean disjunction of its elements. Consider the guard operation defined in \Cref{sec:symb-gkat-construction}.
+\begin{align*}
+    ⟨\hat{\epsilon_1}(s_1)|\hat{\epsilon_2}(s_2) & ≜ \{b ∧ c ∣ b ∈ \hat{\epsilon_1}(s_1), c ∈ \hat{\epsilon_2}(s_2)\}
+\end{align*}
+If \(\hat{\epsilon_1}(s_1)\) and \(\hat{\epsilon_2}(s_2)\) are sets of boolean expressions, then the guard operation would produce a set whose size is proportional to \(|\hat{\epsilon_1}(s_1)| \times |\hat{\epsilon_2}(s_2)|\). However, if the collapsed representation is used, \(\hat{\epsilon_1}(s_1)\) and \(\hat{\epsilon_2}(s_2)\) become just boolean expressions instead of sets of expressions. The guard operation now produces a single boolean expression. The distributivity of boolean conjunction and disjunction ensures the correctness of this optimization.
+
 \subsection{Performance}\label{sec:performance-implementation}
 Our experiments are performed on a laptop with an Apple M4 Pro CPU and 24 GB RAM. \Cref{tab:benchmark} presents the results of equivalence checking based on derivatives (DRV), Thompson's construction (TC) and SymKAT~\cite{pous_SymbolicAlgorithmsLanguage_2015} (SK). Each benchmark consists of 50 expression pairs with properties described by the benchmark's name. For example, expressions in E250B5P10RD have around 250 primitive actions in total (E250), a maximum boolean expression size of 5 (B5), 10 possible unique primitive actions (P10) and are completely random (RD). Benchmarks with the suffix EQ have expression pairs that are known to be equivalent. The time columns measure the total time used (in seconds) for checking all expression pairs in the benchmarks. The mem columns measure the peak memory used (in MB).
 
@@ -2021,13 +2027,50 @@ In similar veins, KATch~\cite{moeller_KATchFastSymbolic_2024} is a symbolic solv
 GKAT also stem from the research of the research of software-defined networks~\cite{smolka_ScalableVerificationProbabilistic_2019,smolka_GuardedKleeneAlgebra_2020}, and quickly found applications in probabilistic verification~\cite{ro.zowski_ProbabilisticGuardedKAT_2023}, probabilistic program logic~\cite{gomes_KleeneAlgebraTests_2024}, networks~\cite{wasserstein_GUARDEDNETKATSOUNDNESS_2023}, and control-flow validation~\cite{zhang_CFGKATEfficientValidation_2025}.
 It would be interesting to see how our symbolic algorithm can be used to speed up these applications.
 
-
-
-
 \printbibliography
 
-\newpage
+\clearpage
 \appendix
 
+\begin{onecolumn}
+\begin{lstlisting}[
+    caption=Dead State Detection Implementation,
+    label=lst:dead-state-detection
+]
+pub struct Solver {
+    // search states
+    pub(super) dead_states: HashSet<Exp>,
+    pub(super) explored: HashSet<Exp>,
+    pub(super) uf_table: HashMap<Exp, UnionFindNode<()>>,
+    // caching
+    pub(super) eps_cache: LruCache<Exp, BExp>,
+    pub(super) deriv_cache: LruCache<Exp, Vec<(BExp, Exp, u64)>>,
+}
+
+impl Solver {
+    pub fn is_dead(&mut self, gkat: &mut Gkat, exp: &Exp) -> bool {
+        let mut stack = Vec::new();
+        stack.push(exp.clone());
+        self.explored.clear();
+        while let Some(exp) = stack.pop() {
+            if self.dead_states.contains(&exp) || self.explored.contains(&exp) {
+                continue;
+            }
+            self.explored.insert(exp.clone());
+            let eps = self.epsilon(gkat, &exp);
+            if eps.is_false() {
+                for (_, e, _) in self.derivative(gkat, &exp) {
+                    stack.push(e);
+                }
+            } else {
+                return false;
+            }
+        }
+        self.dead_states.extend(self.explored.iter().cloned());
+        return true;
+    }
+}
+\end{lstlisting}
+\end{onecolumn}
 
 \end{document}
