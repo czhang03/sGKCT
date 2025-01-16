@@ -1606,8 +1606,8 @@ This fact can be proven by case analysis on the shape of the source expression, 
 Another way to construct a coalgebra from a GKAT expression is via Thompson's construction, we lift the original construction to the symbolic setting.
 A useful operation for Thompson's construction is the following guard operation, denoted by \(⟨B|\), where \(B\) is a set of boolean expressions: for a transition function \(δ̂\), a accepting function \(ϵ̂\), and a state \(s\),
 \begin{align*}
-    ⟨B|ϵ̂(s) & ≜ \{b ∧ c ∣ b ∈ B, c ∈ ϵ(s)\}; \\
-    ⟨B|δ̂(s) & ≜ \{(b ∧ c, s', p) ∣ b ∈ B, (c, s', p) ∈ δ(s)\}.
+    ⟨B|ϵ̂(s) & ≜ \{b ∧ c ∣ b ∈ B, c ∈ \hat{\epsilon}(s)\}; \\
+    ⟨B|δ̂(s) & ≜ \{(b ∧ c, s', p) ∣ b ∈ B, (c, s', p) ∈ \hat{\delta}(s)\}.
 \end{align*}
 Besides guarding transition and acceptance with different conditions in if statements and while loops, the guard operator can also be used to simulate uniform continuation. Specifically, we can use \(⟨ϵ̂(s)|δ(s')\) to connecting all the accepting transition of \(s\) to the dynamic \(δ(s')\).
 
@@ -1879,6 +1879,12 @@ While blocked transitions are irrelevant regarding the result of bisimulation, t
 Eager-pruning also improves the efficiency of the Thompson's construction algorithm~(\Cref{tab:symb-Thompson-construction}) significantly. This is due to the fact that eager-pruning can reduce the size of \(\hat{\delta}'\) computed recursively for sub-expressions, which in turn makes computing \(\hat{\delta}\) for the overall expression faster.
 
 As mentioned in \Cref{sec:symb-gkat-construction}, our implementation of Thompson's construction uses start dynamics (pseudo-state) instead of an explicit start state. This reduces the number of indirections needed to access the behaviors \(\hat{\epsilon}(s^*) \) and \(\hat{\delta}(s^*)\) of start state \(s^*\). More specifically, we track the behaviors \(\epsilon^*\) and \(\delta^*\) which characterize \(\hat{\epsilon}(s^*) \) and \(\hat{\delta}(s^*)\) respectively. The start state \(s^*\) does not appear explicitly during coalgebra construction. After the construction algorithm terminates, we generate a fresh state \(s^*\) and set \(\hat{\epsilon}(s^*) = \epsilon^*\) and \(\hat{\delta}(s^*) = \delta^*\). The final coalgebra that our implementation produces is equivalent to what would have been obtained from the original algorithm (\Cref{tab:symb-Thompson-construction}) modulo consistent renaming of states.
+
+The final optimization that we perform is collapsing the sets of boolean expressions of \(\hat{\epsilon}(s)\) into a single boolean expression. Basically, each \(\hat{\epsilon}(s)\) is represented by the boolean disjunction of its elements. Consider the guard operation defined in \Cref{sec:symb-gkat-construction}.
+\begin{align*}
+    ⟨\hat{\epsilon_1}(s_1)|\hat{\epsilon_2}(s_2) & ≜ \{b ∧ c ∣ b ∈ \hat{\epsilon_1}(s_1), c ∈ \hat{\epsilon_2}(s_2)\}
+\end{align*}
+If \(\hat{\epsilon_1}(s_1)\) and \(\hat{\epsilon_2}(s_2)\) are sets of boolean expressions, then the guard operation would produce a set whose size is proportional to \(|\hat{\epsilon_1}(s_1)| \times |\hat{\epsilon_2}(s_2)|\). However, if the collapsed representation is used, \(\hat{\epsilon_1}(s_1)\) and \(\hat{\epsilon_2}(s_2)\) become just boolean expressions instead of sets of expressions. The guard operation now produces a single boolean expression. The distributivity of boolean conjunction and disjunction ensures the correctness of this optimization.
 
 \subsection{Performance}\label{sec:performance-implementation}
 Our experiments are performed on a laptop with an Apple M4 Pro CPU and 24 GB RAM. \Cref{tab:benchmark} presents the results of equivalence checking based on derivatives (DRV), Thompson's construction (TC) and SymKAT~\cite{pous_SymbolicAlgorithmsLanguage_2015} (SK). Each benchmark consists of 50 expression pairs with properties described by the benchmark's name. For example, expressions in E250B5P10RD have around 250 primitive actions in total (E250), a maximum boolean expression size of 5 (B5), 10 possible unique primitive actions (P10) and are completely random (RD). Benchmarks with the suffix EQ have expression pairs that are known to be equivalent. The time columns measure the total time used (in seconds) for checking all expression pairs in the benchmarks. The mem columns measure the peak memory used (in MB).
