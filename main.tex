@@ -277,7 +277,7 @@ component, formatting, style, styling, insert.
 
 \subsection{Concepts in Universal Coalgebra}
 
-In this paper, we will make heavy use of coalgebraic theory, thus it is empirical for us to recall some notions and useful theorems in universal coalgebra.
+In this paper, we will make heavy use of coalgebraic theory, thus we will recall useful notions and theorems in universal coalgebra.
 Given a functor \(F\) on the category of set and functions, a \emph{coalgebra over \(F\)} or \emph{\(F\)-coalgebra} consists of a set \(S\) and a function \(σ_S: S → F(S)\).
 We typically call elements in \(S\) the \emph{states} of the coalgebra, and \(σ_S(s)\) the \emph{dynamic} of state \(s\).
 We will sometimes use the states \(S\) to denote the coalgebra, when no ambiguity can arise. 
@@ -321,7 +321,7 @@ Similar to sub-coalgebra, principle sub-coalgebra is also preserved under homomo
 \begin{proof}
     We will need to show that \(h(⟨s⟩_{S})\) is the smallest sub-GKAT coalgebra of \(S\) that contain \(h(s)\). 
     By definition of image, \(h(⟨s⟩_{S})\) indeed contain \(h(s)\). 
-    By \Cref{thm:hom-(pre)img-preserve-sub-coalg}, \(h(⟨s⟩_S) ⊑ U\), i.e. \(h(⟨s⟩_S)\) is a sub-coalgebra of\(U\).
+    By \Cref{thm:hom-(pre)img-preserve-sub-coalg}, \(h(⟨s⟩_S) ⊑ U\), i.e. \(h(⟨s⟩_S)\) is a sub-coalgebra of \(U\).
     Finally, take any sub-coalgebra \(U' ⊑ U\) s.t. \(h(s) ∈ U'\): 
     \begin{align*}
         h(s) ∈ U' 
@@ -433,13 +433,20 @@ However, to truly understand our on-the-fly algorithms, we will first need to de
 
 \subsection{Liveness and Sub-GKAT coalgebras}
 
-Traditionally, live and dead states are defined by whether they can reach an accepting state~\cite{smolka_GuardedKleeneAlgebra_2020}. 
-However, we can use induction on the length of the path to show that principle sub-coalgebra \(⟨s⟩_S\) contains exactly the reachable states of \(s\) in any GKAT coalgebra \(S\). 
-Thus, the classical definition is equivalent to the following:
-\begin{definition}[liveness of states]\label{def:liveness-of-states}
-    A state \(s\) is \emph{accepting} if there exists an atom \(α ∈ \At\) s.t. \(δ(s, α) = \accept\); a state \(s'\) is \emph{live} if there exists an accepting state \(s' ∈ ⟨s⟩\); and a state \(s'\) is \emph{dead} if there is no accepting state in \(⟨s⟩\).
+Traditionally, live and dead states are defined by whether they can reach an accepting state~\cite{smolka_GuardedKleeneAlgebra_2020}.
+\begin{definition}[Liveness]\label{def:liveness-of-states}
+    A state \(s\) is \emph{accepting} if there exists an atom \(α ∈ \At\) s.t. \(δ(s, α) = \accept\).
+    A state \(s₀\) is \emph{live} if there exists an accepting state \(sₙ\) s.t. there is a liveness chain:
+    \[s₀ \transvia{α₁ ∣ p₁} s₁ \transvia{α₂ ∣ p₂} s₂ ⋯ \transvia{αₙ ∣ pₙ} sₙ.\]
+    A state is \emph{dead} if it is not dead.
 \end{definition}
-This alternative liveness definition can help us prove important theorems regarding reachability and liveness without explicitly performing induction on traces. 
+However, besides directly working with this explicit definition, we can also give a more coalgebraic characterization of these properties.
+Specifically, by induction on the length of the path from one state to the next, we can show that the principle sub-coalgebra \(⟨s⟩_S\) exactly contains all the reachable state of \(s\) in the GKAT coalgebra \(S\).
+Thus we obtain the following coalgebraic characterization of liveness:
+\begin{theorem}\label{thm:liveness-principle-sub-coalg}
+    A state \(s\) is \emph{live} if there exists an accepting state \(s' ∈ ⟨s⟩\); and a state \(s\) is \emph{dead} if there is no accepting state in \(⟨s⟩\).
+\end{theorem}
+This alternative liveness definition can help us prove important theorems regarding reachability and liveness without explicitly performing induction on the liveness chain. 
 We show the following theorems as examples:
 \begin{lemma}\label{thm:dead-iff-all-reachable-dead}
     A state \(s\) is dead if and only if all elements in \(⟨s⟩\) is dead.
