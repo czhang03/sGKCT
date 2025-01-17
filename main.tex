@@ -672,7 +672,7 @@ Although the proof of~\Cref{thm:dead-construction-greedy-bisim} is basically by 
 Specifically, \(∼_d\) serves a connection between \(≈\) and its underlying bisimulation \(∼\), and the order \({∼} ⊆ {≈} ⊑ {~_d}\) will reveal many structural properties of \(≈\).
 We show the following corollary to demonstrate the usefulness of \(∼_d\).
 
-\begin{corollary}\label{thm:norm-bisim-exists-unique}
+\begin{corollary}\label{thm:greedy-bisim-exists-unique}
     For any bisimulation between two normalized GKAT coalgebra \({∼} ⊆ \norm(S) × \norm(U)\), a greedy bisimulation \(≈\) with \(∼\) as underlying bisimulation exists and is unique.
 \end{corollary}
 
@@ -724,29 +724,30 @@ We show the following corollary to demonstrate the usefulness of \(∼_d\).
 \begin{proof}
     The \(⟹\) direction, we let \(∼_d\) be defined as in~\Cref{thm:dead-construction-greedy-bisim}.
     Because \({≈} ⊑ {∼_d}\) and~\Cref{thm:norm-sub-coalg}, \(\norm(≈) ⊑ \norm(∼_d)\). 
-    Because \(\norm(∼_d)\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\), therefore \(\norm(≈)\) is a bisimulation by~\cref{thm:}
+    Because \(\norm(∼_d)\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\), therefore \(\norm(≈)\) is a bisimulation (\Cref{thm:greedy-bisim-iff-norm-bisim}).
 
     The \(⟸\) direction can be proven by simply letting \(\norm(≈)\) be the underlying bisimulation of \(≈\), because \(\norm(≈)\) has the same carrier set of \(≈\), then \(≈\) has to be the least GKAT coalgebra with \(δ_≈\) that contains \(\norm(≈)\), satisfying all the conditions for greedy bisimulation.
 \end{proof}
 
-We then establish the correctness of greedy bisimulation, i.e. it is equivalent to trace equivalence.
+% Similar to the correctness of bisimulation between normalized coalgebra (\Cref{thm:norm-bisim-correctness}), we also establish a correctness theorem for greedy bisimulation, i.e. there exists 
 
-\begin{theorem}[Correctness]
-    Given two states in GKAT coalgebras \(s ∈ S\) and \(u ∈ ,U\), there exists a greedy bisimulation \({≈} ⊆ S × U\) s.t. \(s ≈ u\), if and only if \(⟦s⟧_S = ⟦u⟧_U\).
-\end{theorem}
+% \begin{theorem}[Correctness]
+%     Given two states in GKAT coalgebras \(s ∈ S\) and \(u ∈ ,U\), there exists a greedy bisimulation \({≈} ⊆ S × U\) s.t. \(s ≈ u\), if and only if \(⟦s⟧_S = ⟦u⟧_U\).
+% \end{theorem}
 
-\begin{proof}
-    \(⟹\) direction, because normalization preserves carrier set, therefore \((s, u) ∈ \norm(≈)\).
-    And because \(\norm(≈)\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\) (\Cref{thm:greedy-bisim-iff-norm-bisim}), \(⟦s⟧_S = ⟦u⟧_U\).
+% \begin{proof}
+%     \(⟹\) direction, because normalization preserves carrier set, therefore \((s, u) ∈ \norm(≈)\).
+%     And because \(\norm(≈)\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\) (\Cref{thm:greedy-bisim-iff-norm-bisim}), \(⟦s⟧_S = ⟦u⟧_U\).
 
-    \(⟸\) direction, because \(⟦s⟧_S = ⟦u⟧_U\), then by~\cref{thm:norm-bisim-correctness}, then there a bisimulation \(∼ ⊆ \norm(S) × \norm(U)\) s.t. \(s ∼ u\). 
-    Because~\Cref{thm:norm-bisim-exists-unique}, therefore there exists a greedy bisimulation \(≈\) with \(∼\) as its underlying bisimulation. 
-    Because the carriers \({∼} ⊆ {≈}\), therefore \(s ∼ u\) implies \(s ≈ u\).
-\end{proof}
+%     \(⟸\) direction, because \(⟦s⟧_S = ⟦u⟧_U\), then by~\cref{thm:norm-bisim-correctness}, then there a bisimulation \(∼ ⊆ \norm(S) × \norm(U)\) s.t. \(s ∼ u\). 
+%     Because~\Cref{thm:greedy-bisim-exists-unique}, therefore there exists a greedy bisimulation \(≈\) with \(∼\) as its underlying bisimulation. 
+%     Because the carriers \({∼} ⊆ {≈}\), therefore \(s ∼ u\) implies \(s ≈ u\).
+% \end{proof}
 
 Despite proving many desirable structural properties, the definition of greedy bisimulation is still coalgebraic.
-To design an equivalence-checking algorithm to construct a greedy bisimulation still requires turning the coalgebra into a set of concrete criteria, that can be checked by an algorithm.
-In the following theorem, we will present four conditions, and the algorithm will be largely based on recursively checking these conditions to establish a greedy bisimulation.
+In order for our equivalence-checking algorithm to construct a greedy bisimulation, we need to turn the coalgebra into a set of concrete criteria, that can be checked by an algorithm.
+In the following theorem, we will present such necessary and sufficient conditions to construct a greedy bisimulation.
+Our algorithm will be largely based on recursively checking these conditions to establish a greedy bisimulation.
 
 \begin{theorem}[Recursive Construction]\label{thm:recursive-construction}
     Given a relation \({≈} ⊆ S × U\), \(≈\) is a carrier of some greedy bisimulation if and only if all the following condition are satisfied: for all pair of states \(s ≈ u\),
