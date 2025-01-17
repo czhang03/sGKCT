@@ -913,7 +913,7 @@ Because the non-symbolic version of liveness checking is similar to the symbolic
 TODO: give the link to the section.
 
 
-\begin{algorithm}
+\begin{algorithm*}
     \caption{On-the-fly bisimulation algorithm}\label{alg:bisim}
     \begin{algorithmic}
         \Function{equiv}{$s ∈ S, u ∈ U$}
@@ -924,33 +924,42 @@ TODO: give the link to the section.
         \If {\Call{knownDead\(_U\)}{$u$}} 
             \State\Return \Call{isDead\(_S\)}{$s$}
         \EndIf
-        \For{\(α ∈ \At\)}{}{
-            \Match{$δ_{S}(s, α), δ_{U}(u, α)$}
-            \Case{\(\accept, \accept\)} {\Continue} \EndCase
-            \Case{\(\reject, \reject\)} {\Continue} \EndCase
-            \Case{\(\reject, (u', q)\)} 
-                \State\Return \Call{isDead\(_U\)}{$u'$} 
-            \EndCase
-            \Case{\((s', p), \reject\)}
-                \State\Return\Call{isDead\(_S\)}{$s'$}
-            \EndCase
-            \Case{\((s', p), (u', q)\)} {
-                \If {\(p = q\)}
-                    \State\Call{union}{$s, u$}
-                    \State\Return \Call{equiv}{$s, t$} 
-                \EndIf
-                \If{\Call{isDead\(_S\)}{$s$} and \Call{isDead\(_U\)}{$u$}}
-                    \State\Continue
-                \EndIf
-                \State\Return false
-            } \EndCase
-            \Default { \Return false } \EndDefault
-            \EndMatch
-        }\EndFor
-        \State\Return true
+        \State\Return \(∀ α ∈ \At\) \Comment{conditions in~\Cref{thm:recursive-construction}}
+        \\\vspace{5px}
+        \(\qquad\begin{aligned}
+            & s \transAcc{S}{α} \text{ iff } u \transAcc{U}{α} \mathrel{\&\!\&}\\  
+            & s \transRej{S}{α} \text{ and } u \transvia{α ∣ p}_U u' \text{ implies } \Call{isDead\(_U\)}{u'} \mathrel{\&\!\&}\\  
+            & s \transvia{α ∣ p}_S s' \text{ and } u \transRej{U}{α} \text{ implies } \Call{isDead\(_U\)}{s'} \mathrel{\&\!\&}\\  
+            & s \transvia{α ∣ p}_S s' \text{ and } u \transvia{α ∣ p}_U u' \text{ implies } \Call{union}{s, u}; \Call{equiv}{s', u'} \mathrel{\&\!\&}\\
+            & s \transvia{α ∣ p}_S s' \text{ and } u \transvia{α ∣ q}_U u' \text{ and } p ≠ q \text{ implies } \Call{isDead\(_S\)}{s'} \text{ and } \Call{isDead\(_U\)}{u'}
+        \end{aligned}\)
+        % \Forall{\(α ∈ \At\)}{}{
+        %     \Match{$δ_{S}(s, α), δ_{U}(u, α)$}
+        %     \Case{\(\accept, \accept\)} {\Continue} \EndCase
+        %     \Case{\(\reject, \reject\)} {\Continue} \EndCase
+        %     \Case{\(\reject, (u', q)\)} 
+        %         \State\Return \Call{isDead\(_U\)}{$u'$} 
+        %     \EndCase
+        %     \Case{\((s', p), \reject\)}
+        %         \State\Return\Call{isDead\(_S\)}{$s'$}
+        %     \EndCase
+        %     \Case{\((s', p), (u', q)\)} {
+        %         \If {\(p = q\)}
+        %             \State\Call{union}{$s, u$}
+        %             \State\Return \Call{equiv}{$s, t$} 
+        %         \EndIf
+        %         \If{\Call{isDead\(_S\)}{$s$} and \Call{isDead\(_U\)}{$u$}}
+        %             \State\Continue
+        %         \EndIf
+        %         \State\Return false
+        %     } \EndCase
+        %     \Default { \Return false } \EndDefault
+        %     \EndMatch
+        % }\EndFor
+        % \State\Return true
         \EndFunction
     \end{algorithmic}
-\end{algorithm}
+\end{algorithm*}
 
 Finally, we present our equivalence-checking algorithm as~\cref{alg:bisim}, where we first check if one of \(s\) or \(u\) is known to be dead, if so we only need to check whether the other is dead, because of~\Cref{thm:greedy-bisim-one-dead}; otherwise, we will check the conditions in~\Cref{thm:recursive-construction}.
 Because trace equivalence is an equivalence relation, therefore we can organize the previously explored states into equivalent classes using an efficient union-find structure, instead of a set of state pairs.
@@ -1130,18 +1139,15 @@ We can then define the symbolic equivalence algorithm, with its correctness stat
         \ElsIf {\Call{knownDead\(_U\)}{$u$}} {\Return \Call{isDead\(_S\)}{$s$}} 
         \Else {}
         \Return {
-            \Comment{conditions of ~\cref{thm:symb-recursive-construction}}
+            \Comment{conditions of ~\Cref{thm:symb-recursive-construction}}
             \\\vspace{5px}
             \(\qquad
             \begin{aligned}
                 & ⋁ ϵ̂_S(s) ≡ ⋁ ϵ̂_U(u) \mathrel{\&\!\&} \\  
-                & ∀ (b, s', p) ∈ δ̂_S(s), (c, u', q) ∈ δ̂_U(u), (b ∧ c) ≢ 0 ⟹ 
-                \begin{cases}
-                    \text{\Call{isDead$_S$}{$s$}} ∧ \text{\Call{isDead$_U$}{$u$}} & \text{if \(p ≠ q\)} \\
-                    \text{\Call{Union}{$s$, $u$}}; \text{\Call{Equiv}{$s', u'$}} & \text{if \(p = q\)}
-                \end{cases} \mathrel{\&\!\&}\\
-                & ∀ (b, s', p) ∈ δ̂_S(s), c ∈ ρ̂_U(u), (b ∧ c) ≢ 0 ⟹ \text{\Call{isDead$_S$}{$s'$}} \mathrel{\&\!\&}\\
-                & ∀ b ∈ ρ̂_S(s), (c, u', q) ∈ δ̂_U(u), (b ∧ c) ≢ 0 ⟹ \text{\Call{isDead$_U$}{$u'$}}
+                & s \transvia{b ∣ p} s' \text{ and } (b ∧ ρ̂_U(u)) ≢ 0 \text{ implies \Call{isDead$_S$}{$s'$}} \mathrel{\&\!\&}\\
+                & u \transvia{b ∣ p} u' \text{ and } (ρ̂_S(s) ∧ b) ≢ 0 \text{ implies \Call{isDead$_U$}{$u'$}} \mathrel{\&\!\&}\\
+                & s \transvia{b ∣ p} s' \text{ and } u \transvia{c ∣ p} u' \text{ implies } \text{\Call{Union}{$s$, $u$}}; \text{\Call{Equiv}{$s', u'$}} \mathrel{\&\!\&}\\
+                & s \transvia{b ∣ p} s' \text{ and } u \transvia{c ∣ q} u' \text{ and } p ≠ q \text{ implies \Call{isDead}{$s'$} and \Call{isDead}{$u'$}}
             \end{aligned}\)
         }
         \EndIf
