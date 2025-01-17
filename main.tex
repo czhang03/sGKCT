@@ -1626,29 +1626,40 @@ It would be interesting to see how our symbolic algorithm can be used to speed u
     caption=Dead State Detection Implementation,
     label=lst:dead-state-detection
 ]
+pub type Deriv = Vec<(BExp, Exp, u64)>;
+
 pub struct Solver {
     // search states
-    pub(super) dead_states: HashSet<Exp>,
-    pub(super) explored: HashSet<Exp>,
-    pub(super) uf_table: HashMap<Exp, UnionFindNode<()>>,
+    dead_states: HashSet<Exp>,
+    explored: HashSet<Exp>,
+    uf_table: HashMap<Exp, UnionFindNode<()>>,
     // caching
-    pub(super) eps_cache: LruCache<Exp, BExp>,
-    pub(super) deriv_cache: LruCache<Exp, Vec<(BExp, Exp, u64)>>,
+    eps_cache: LruCache<Exp, BExp>,
+    deriv_cache: LruCache<Exp, Deriv>,
 }
 
 impl Solver {
+    #[inline]
+    pub fn known_dead(&self, exp: &Exp) -> bool {
+        self.dead_states.contains(&exp)
+    }
+
     pub fn is_dead(&mut self, gkat: &mut Gkat, exp: &Exp) -> bool {
         let mut stack = Vec::new();
         stack.push(exp.clone());
         self.explored.clear();
         while let Some(exp) = stack.pop() {
-            if self.dead_states.contains(&exp) || self.explored.contains(&exp) {
+            if self.known_dead(&exp) || self.explored.contains(&exp) {
                 continue;
             }
             self.explored.insert(exp.clone());
             let eps = self.epsilon(gkat, &exp);
             if eps.is_false() {
-                for (_, e, _) in self.derivative(gkat, &exp) {
+                for (b, e, _) in self.derivative(gkat, &exp) {
+                    // check is not strictly needed due to eager-pruning
+                    if b.is_false() {
+                        continue;
+                    }
                     stack.push(e);
                 }
             } else {
