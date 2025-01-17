@@ -258,13 +258,16 @@ email address or ORCID}
 \endgroup
 
 \begin{abstract}
-This document is a model and instructions for \LaTeX.
-This and the IEEEtran.cls file define the components of your paper [title, text, heads, etc.]. *CRITICAL: Do Not Use Symbols, Special Characters, Footnotes, 
-or Math in Paper Title or Abstract.
+We present several new algorithms to efficiently decide Guarded Kleene Algebra with Tests (GKAT) equivalences.
+Although the current algorithm scales nearly-linearly with the size of the expression, its performance is hindered by the need to compute the entire coalgebra for the sake of normalization and exponential performance degradation when expanding the set of primitive tests.
+To address these problems, we introduce two new algorithms for bisimulation checking: an on-the-fly bisimulation algorithm based on greedy bisimulation, which enables immediate termination upon discovering a counter-example and supports on-the-fly coalgebra generation with derivatives; and a symbolic algorithm that builds upon the on-the-fly algorithm while leveraging efficient SAT solvers to speed up boolean comparisons and compress the transition structures of GKAT coalgebra.
+To utilize the symbolic bisimulation checking, we also provide two methods to generate symbolic GKAT coalgebras from GKAT expressions, analogous to derivative and Thompson's construction in previous works.
+We have proven the correctness of our algorithms and conducted detailed complexity analyses.
+Finally, we implemented the symbolic algorithms in Rust, demonstrating significant performance improvements over state-of-the-art tools.
 \end{abstract}
 
 \begin{IEEEkeywords}
-component, formatting, style, styling, insert.
+Guarded Kleene Algebra With Tests, Kleene Algebra, Coalgebra, Program Verification, Algorithm
 \end{IEEEkeywords}
 
 
