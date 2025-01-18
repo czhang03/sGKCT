@@ -1569,23 +1569,23 @@ The final optimization that we perform is collapsing the sets of boolean express
 If \(\hat{\epsilon_1}(s_1)\) and \(\hat{\epsilon_2}(s_2)\) are sets of boolean expressions, then the guard operation would produce a set whose size is proportional to \(|\hat{\epsilon_1}(s_1)| \times |\hat{\epsilon_2}(s_2)|\). However, if the collapsed representation is used, \(\hat{\epsilon_1}(s_1)\) and \(\hat{\epsilon_2}(s_2)\) become just boolean expressions instead of sets of expressions. The guard operation now produces a single boolean expression. The distributivity of boolean conjunction and disjunction ensures the correctness of this optimization.
 
 \subsection{Performance}\label{sec:performance-implementation}
-Our experiments are performed on a laptop with an Apple M4 Pro CPU and 24 GB RAM. \Cref{tab:benchmark} presents the results of equivalence checking based on derivatives (DRV), Thompson's construction (TC) and SymKAT~\cite{pous_SymbolicAlgorithmsLanguage_2015} (SK). Each benchmark consists of 50 expression pairs with properties described by the benchmark's name. For example, expressions in E250B5P10RD have around 250 primitive actions in total (E250), a maximum boolean expression size of 5 (B5), 10 possible unique primitive actions (P10) and are completely random (RD). Benchmarks with the suffix EQ have expression pairs that are known to be equivalent. The time columns measure the total time used (in seconds) for checking all expression pairs in the benchmarks. The mem columns measure the peak memory used (in MB).
+Our experiments are performed on a laptop with an Apple M4 Pro CPU and 24 GB RAM. \Cref{tab:benchmark} presents the results of equivalence checking based on derivatives (DRV), Thompson's construction (TC) and SymKAT~\cite{pous_SymbolicAlgorithmsLanguage_2015} (SK). Each benchmark consists of 50 expression pairs with properties described by the benchmark's name. For example, expressions in E250B5P10RD have around 250 primitive actions in total (E250), a maximum boolean expression size of 5 (B5), 10 possible unique primitive tests (P10) and are completely random (RD). Benchmarks with the suffix EQ have expression pairs that are known to be equivalent. The time columns measure the \textit{total time} used (in seconds) for checking all expression pairs in the benchmarks. The mem columns measure the \textit{peak memory} used (in MB).
 
-It is clear from these results that our algorithms (DRV and TC) are more efficient than SymKAT in terms of both time and memory usage. Moreover, our Thompson's construction (TC) based algorithm is the only one which successfully completed all benchmarks without timeout.
+It is clear from these results that our algorithms (DRV and TC) can efficiently check even large programs in just a few seconds.
 
 \begin{table*}
 \centering
-\begin{tabular}{l l l l l l l}
+\begin{tabular}{l r r r r r r}
     Benchmark & Time (DRV) & Time (TC) & Time (SK) & Mem (DRV) & Mem (TC) & Mem (SK) \\
     \hline
-    E250B5P10RD    & 0.26    & 0.25  & 16.99   & 15.36  & 14.76  & 329.48  \\
-    E250B5P10EQ    & 0.28    & 0.25  & 2.99    & 15.56  & 14.95  & 100.48  \\
-    E500B5P50RD    & 0.30    & 0.28  & 113.88  & 16.26  & 15.49  & 1560.54 \\
-    E500B5P50EQ    & 0.35    & 0.28  & 14.06   & 17.97  & 15.54  & 546.91  \\
-    E1000B10P100RD & 0.43    & 0.37  & Timeout & 18.36  & 21.41  & N/A     \\
-    E1000B10P100EQ & 0.61    & 0.35  & 77.83   & 21.49  & 17.66  & 5822.66 \\
-    E2000B20P200RD & 3.25    & 2.62  & Timeout & 241.07 & 283.45 & N/A     \\
-    E2000B20P200EQ & Timeout & 46.45 & Timeout & N/A    & 638.00 & N/A     \\
+    E250B5P10RD    & 0.19 & 0.18 & 5.82    & 15.36  & 14.76  & 114.06  \\
+    E250B5P10EQ    & 0.21 & 0.18 & 2.83    & 15.56  & 14.95  & 100.48  \\
+    E500B5P50RD    & 0.23 & 0.22 & 37.28   & 16.26  & 15.49  & 524.89  \\
+    E500B5P50EQ    & 0.26 & 0.21 & 14.06   & 17.97  & 15.54  & 546.91  \\
+    E1000B10P100RD & 0.31 & 0.37 & Timeout & 18.36  & 21.41  & N/A     \\
+    E1000B10P100EQ & 0.37 & 0.28 & 77.83   & 20.41  & 17.66  & 5822.66 \\
+    E2000B20P200RD & 1.50 & 2.75 & Timeout & 239.71 & 283.45 & N/A     \\
+    E2000B20P200EQ & 3.34 & 3.03 & Timeout & 107.92 & 102.46 & N/A     \\
 \end{tabular}
 \caption{Benchmarks}\label{tab:benchmark}
 \end{table*}
