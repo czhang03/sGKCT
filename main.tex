@@ -1590,7 +1590,7 @@ Due to the fact that our symbolic algorithms are generic regarding the choice of
     e3000b30p200eq &  17.86 &  22.59 & 1.09 & 5.25 & timeout \\
     degenerate     & 220.53 & 232.63 & 0.42 & 0.93 & timeout
 \end{tabular}
-\caption{Total Time Usage}\label{tab:benchmark-time}
+\caption{Total Time Usage (seconds)}\label{tab:benchmark-time}
 \end{table}
 
 \begin{table}[H]
@@ -1612,7 +1612,7 @@ Due to the fact that our symbolic algorithms are generic regarding the choice of
     e3000b30p200eq & 245.92 &  228.85 & 21.41 & 18.15 & timeout \\
     degenerate     & 631.47 & 1229.30 & 19.62 & 18.43 & timeout
 \end{tabular}
-\caption{Peak Memory Usage}\label{tab:benchmark-memory}
+\caption{Peak Memory Usage (megabytes)}\label{tab:benchmark-memory}
 \end{table}
 
 We observe that all variants of DV and TC perform better than SymKAT in terms of time and memory usage. When comparing BDD to SAT, notice that BDD is marginally faster than SAT for smaller benchmarks, however, its time and memory usage degrades for larger ones. On the other hand, the performance of SAT is stable for all benchmarks. Furthermore, we have encountered BDD-degenerative expressions (the `degenerate' benchmark) which greatly reduce BDD performance but can be efficiently solved by SAT. We did not encounter any SAT-degenerative expressions where BDD performed significantly better than SAT.
