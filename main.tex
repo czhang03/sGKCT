@@ -1615,7 +1615,7 @@ Due to the fact that our symbolic algorithms are generic regarding the choice of
 \caption{Peak Memory Usage (megabytes)}\label{tab:benchmark-memory}
 \end{table}
 
-We observe that all variants of DV and TC perform better than SymKAT in terms of time and memory usage. When comparing BDD to SAT, notice that BDD is marginally faster than SAT for smaller benchmarks, however, its time and memory usage increases for larger ones. On the other hand, the performance of SAT is stable for all benchmarks. Furthermore, we have encountered degenerative expression pairs (the `degenerate' benchmark) which greatly reduce BDD performance but can be efficiently checked by SAT. We did not encounter any expression pairs where BDD performed significantly better than SAT.
+We observe that all variants of DV and TC perform better than SymKAT in terms of time and memory usage. When comparing the solver backends, BDD is marginally faster than SAT for smaller benchmarks, however, its time and memory usage increases for larger ones. On the other hand, the performance of SAT is stable for all benchmarks. Furthermore, we have encountered degenerative expression pairs (the `degenerate' benchmark) which greatly reduce BDD performance but can be efficiently checked by SAT. We did not encounter any expression pairs where BDD performed significantly better than SAT.
 
 \section{Related Works and Discussions}
 
