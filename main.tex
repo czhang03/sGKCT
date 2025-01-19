@@ -1637,7 +1637,7 @@ Another notable difference is that our equivalence checking also need to handle 
 GKAT is a guarded fragment of Kleene Algebra with Tests (KAT), which enjoys a symbolic algorithm~\cite{pous_SymbolicAlgorithmsLanguage_2015}.
 This algorithm by~\citeauthor{pous_SymbolicAlgorithmsLanguage_2015} generalizes the notion of derivatives also to boolean expressions, which uses binary decision diagram (BDD) as transition between symbolic expressions.
 Although some of our examples utilizes BDD to solve equivalence and inequivalence of boolean expressions, because of the structure of GKAT, our algorithm is not bounded by a particular boolean representation or solvers.
-In fact, we have demonstrated that in many scenarios, solvers like z3 and sentential decision diagram (SDD) can achieve better performance than BDD.
+In fact, we have demonstrated that in many scenarios, SAT solvers like MiniSat~\cite{een_MINISAT_2004} can achieve better performance than BDD.
 
 In similar veins, KATch~\cite{moeller_KATchFastSymbolic_2024} is a symbolic solver for NetKAT~\cite{anderson_NetKATSemanticFoundations_2014} based on forwarding decision diagram, and achieved outstanding performance among state-of-the-art tools for reasoning about software-defined networks.
 GKAT also stem from the research of the research of software-defined networks~\cite{smolka_ScalableVerificationProbabilistic_2019,smolka_GuardedKleeneAlgebra_2020}, and quickly found applications in probabilistic verification~\cite{ro.zowski_ProbabilisticGuardedKAT_2023}, probabilistic program logic~\cite{gomes_KleeneAlgebraTests_2024}, networks~\cite{wasserstein_GUARDEDNETKATSOUNDNESS_2023}, and control-flow validation~\cite{zhang_CFGKATEfficientValidation_2025}.
