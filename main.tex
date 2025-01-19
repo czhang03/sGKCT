@@ -1569,26 +1569,53 @@ The final optimization that we perform is collapsing the sets of boolean express
 If \(\hat{\epsilon_1}(s_1)\) and \(\hat{\epsilon_2}(s_2)\) are sets of boolean expressions, then the guard operation would produce a set whose size is proportional to \(|\hat{\epsilon_1}(s_1)| \times |\hat{\epsilon_2}(s_2)|\). However, if the collapsed representation is used, \(\hat{\epsilon_1}(s_1)\) and \(\hat{\epsilon_2}(s_2)\) become just boolean expressions instead of sets of expressions. The guard operation now produces a single boolean expression. The distributivity of boolean conjunction and disjunction ensures the correctness of this optimization.
 
 \subsection{Performance}\label{sec:performance-implementation}
-Our experiments are performed on a laptop with an Apple M4 Pro CPU and 24 GB RAM. \Cref{tab:benchmark} presents the results of equivalence checking based on derivatives (DRV), Thompson's construction (TC) and SymKAT~\cite{pous_SymbolicAlgorithmsLanguage_2015} (SK). Each benchmark consists of 50 expression pairs with properties described by the benchmark's name. For example, expressions in E250B5P10RD have around 250 primitive actions in total (E250), a maximum boolean expression size of 5 (B5), 10 possible unique primitive tests (P10) and are completely random (RD). Benchmarks with the suffix EQ have expression pairs that are known to be equivalent. The time columns measure the \textit{total time} used (in seconds) for checking all expression pairs in the benchmarks. The mem columns measure the \textit{peak memory} used (in MB).
+Our experiments are performed on a laptop with an Apple M4 Pro CPU and 24 GB RAM. \Cref{tab:benchmark-time,tab:benchmark-memory} present the results of equivalence checking based on derivatives (DV), Thompson's construction (TC) and SymKAT~\cite{pous_SymbolicAlgorithmsLanguage_2015} (SK). Each benchmark consists of 50 expression pairs with properties described by the benchmark's name. For example, expressions in E250B5P10RD have around 250 primitive actions in total (E250), a maximum boolean expression size of 5 (B5), 10 possible unique primitive tests (P10) and are completely random (RD). Benchmarks with the suffix EQ have expression pairs that are known to be equivalent. The time columns measure the \textit{total time} used (in seconds) for checking all expression pairs in the benchmarks. The mem columns measure the \textit{peak memory} used (in MB).
 
 It is clear from these results that our algorithms (DRV and TC) can efficiently check even large programs in just a few seconds.
 
-\begin{table*}
+\begin{table}
+\footnotesize
 \centering
-\begin{tabular}{l r r r r r r}
-    Benchmark & Time (DRV) & Time (TC) & Time (SK) & Mem (DRV) & Mem (TC) & Mem (SK) \\
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{l r r r r r}
+    Benchmark & DV$_{\textsf{BDD}}$ & TC$_{\textsf{BDD}}$ & DV$_{\textsf{SAT}}$ & TC$_{\textsf{SAT}}$ & SK \\
     \hline
-    E250B5P10RD    & 0.19 & 0.18 & 5.82    & 15.36  & 14.76  & 114.06  \\
-    E250B5P10EQ    & 0.21 & 0.18 & 2.83    & 15.56  & 14.95  & 100.48  \\
-    E500B5P50RD    & 0.23 & 0.22 & 37.28   & 16.26  & 15.49  & 524.89  \\
-    E500B5P50EQ    & 0.26 & 0.21 & 14.06   & 17.97  & 15.54  & 546.91  \\
-    E1000B10P100RD & 0.31 & 0.37 & Timeout & 18.36  & 21.41  & N/A     \\
-    E1000B10P100EQ & 0.37 & 0.28 & 77.83   & 20.41  & 17.66  & 5822.66 \\
-    E2000B20P200RD & 1.50 & 2.75 & Timeout & 239.71 & 283.45 & N/A     \\
-    E2000B20P200EQ & 3.34 & 3.03 & Timeout & 107.92 & 102.46 & N/A     \\
+    e250b5p10rd    &   0.19 &   0.18 & 0.20 & 0.23 &    5.82 \\
+    e250b5p10eq    &   0.21 &   0.18 & 0.18 & 0.29 &    2.83 \\
+    e500b5p50rd    &   0.23 &   0.22 & 0.27 & 0.39 &   37.28 \\
+    e500b5p50eq    &   0.26 &   0.21 & 0.28 & 0.57 &   14.06 \\
+    e1000b10p100rd &   0.31 &   0.37 & 0.48 & 0.85 & timeout \\
+    e1000b10p100eq &   0.37 &   0.28 & 0.44 & 1.04 &   77.83 \\
+    e2000b20p200rd &   1.50 &   2.75 & 0.99 & 2.01 & timeout \\
+    e2000b20p200eq &   3.34 &   3.03 & 0.67 & 3.14 & timeout \\
+    e3000b30p200rd &   1.75 &  26.38 & 1.91 & 4.46 & timeout \\
+    e3000b30p200eq &  17.86 &  22.59 & 1.09 & 5.25 & timeout \\
+    degenerate     & 220.53 & 232.63 & 0.42 & 0.93 & timeout
 \end{tabular}
-\caption{Benchmarks}\label{tab:benchmark}
-\end{table*}
+\caption{Benchmark Time Usage}\label{tab:benchmark-time}
+\end{table}
+
+\begin{table}
+\footnotesize
+\centering
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{l r r r r r}
+    Benchmark & DV$_{\textsf{BDD}}$ & TC$_{\textsf{BDD}}$ & DV$_{\textsf{SAT}}$ & TC$_{\textsf{SAT}}$ & SK \\
+    \hline
+    e250b5p10rd    &  15.36 &   14.76 &  6.81 &  7.02 &  114.06 \\
+    e250b5p10eq    &  15.56 &   14.95 &  7.06 &  7.25 &  100.48 \\
+    e500b5p50rd    &  16.26 &   15.49 &  7.02 &  7.25 &  524.89 \\
+    e500b5p50eq    &  17.97 &   15.54 &  7.07 &  7.27 &  546.91 \\
+    e1000b10p100rd &  18.36 &   21.41 &  8.22 &  7.99 & timeout \\
+    e1000b10p100eq &  20.41 &   17.66 &  8.69 &  7.63 & 5822.66 \\
+    e2000b20p200rd & 239.71 &  283.45 & 13.33 & 11.92 & timeout \\
+    e2000b20p200eq & 107.92 &  102.46 & 13.20 & 14.02 & timeout \\
+    e3000b30p200rd & 112.59 & 1235.46 & 21.44 & 20.10 & timeout \\
+    e3000b30p200eq & 245.92 &  228.85 & 21.41 & 18.15 & timeout \\
+    degenerate     & 631.47 & 1229.30 & 19.62 & 18.43 & timeout
+\end{tabular}
+\caption{Benchmark Memory Usage}\label{tab:benchmark-memory}
+\end{table}
 
 \section{Related Works and Discussions}
 
@@ -1626,25 +1653,25 @@ It would be interesting to see how our symbolic algorithm can be used to speed u
     caption=Dead State Detection Implementation,
     label=lst:dead-state-detection
 ]
-pub type Deriv = Vec<(BExp, Exp, u64)>;
+pub type Deriv<B> = Vec<(B, Exp<B>, u64)>;
 
-pub struct Solver {
+pub struct Solver<B> {
     // search states
-    dead_states: HashSet<Exp>,
-    explored: HashSet<Exp>,
-    uf_table: HashMap<Exp, UnionFindNode<()>>,
+    dead_states: HashSet<Exp<B>>,
+    explored: HashSet<Exp<B>>,
+    uf_table: HashMap<Exp<B>, UnionFindNode<()>>,
     // caching
-    eps_cache: LruCache<Exp, BExp>,
-    deriv_cache: LruCache<Exp, Deriv>,
+    eps_cache: HashMap<Exp<B>, B>,
+    drv_cache: HashMap<Exp<B>, Deriv<B>>,
 }
 
-impl Solver {
+impl<B: BExp> Solver<B> {
     #[inline]
-    pub fn known_dead(&self, exp: &Exp) -> bool {
+    pub fn known_dead(&self, exp: &Exp<B>) -> bool {
         self.dead_states.contains(&exp)
     }
 
-    pub fn is_dead(&mut self, gkat: &mut Gkat, exp: &Exp) -> bool {
+    pub fn is_dead<G: Gkat<B>>(&mut self, gkat: &mut G, exp: &Exp<B>) -> bool {
         let mut stack = Vec::new();
         stack.push(exp.clone());
         self.explored.clear();
@@ -1654,12 +1681,8 @@ impl Solver {
             }
             self.explored.insert(exp.clone());
             let eps = self.epsilon(gkat, &exp);
-            if eps.is_false() {
-                for (b, e, _) in self.derivative(gkat, &exp) {
-                    // check is not strictly needed due to eager-pruning
-                    if b.is_false() {
-                        continue;
-                    }
+            if gkat.is_false(&eps) {
+                for (_, e, _) in self.derivative(gkat, &exp) {
                     stack.push(e);
                 }
             } else {
