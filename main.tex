@@ -93,6 +93,9 @@
 \lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
 \lstset{framextopmargin=50pt,frame=bottomline}
 \lstset{language=caml, escapeinside={[*}{*]}}
+% Clever ref names
+\crefname{lstlisting}{listing}{listings}
+\Crefname{lstlisting}{Listing}{Listings}
 
 % for algorithm
 \usepackage{algorithm}
@@ -716,16 +719,6 @@ We show the following corollary to demonstrate the usefulness of \(∼_d\).
     \end{align*}
 \end{proof}
 
-\begin{corollary}\label{thm:max-bisim-is-max-greedy-bisim}
-    Given two GKAT coalgebra \(S\) and \(U\), carrier of the maximal bisimulation \({≡} ⊆ S × U\) is also the carrier of maximal greedy bisimulation.
-    We will abuse the notation \(≡\) to represent both the maximal bisimulation and maximal greedy bisimulation.
-\end{corollary}
-
-\begin{proof}
-    Consider the GKAT coalgebra \(≡_d\) as generated in~\cref{thm:dead-construction-greedy-bisim}, then the carrier of \(≡_d\) and \(≡\) coincide, because \(≡\) already contains all the dead state pairs, by~\Cref{thm:bisim-between-dead}.
-    Because the 
-\end{proof}
-
 \begin{corollary}\label{thm:greedy-bisim-iff-norm-bisim}
     Given two GKAT coalgebras \(S\) and \(U\), and a relational GKAT coalgebra \({≈} ⊆ S × U\) with the transition \(δ_≈\) as in~\cref{def:greedy-bisim}.
     \(≈\) is a greedy bisimulation if and only if \(\norm(≈)\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\)
@@ -739,20 +732,39 @@ We show the following corollary to demonstrate the usefulness of \(∼_d\).
     The \(⟸\) direction can be proven by simply letting \(\norm(≈)\) be the underlying bisimulation of \(≈\), because \(\norm(≈)\) has the same carrier set of \(≈\), then \(≈\) has to be the least GKAT coalgebra with \(δ_≈\) that contains \(\norm(≈)\), satisfying all the conditions for greedy bisimulation.
 \end{proof}
 
-% Similar to the correctness of bisimulation between normalized coalgebra (\Cref{thm:norm-bisim-correctness}), we also establish a correctness theorem for greedy bisimulation, i.e. there exists 
+\begin{corollary}\label{thm:max-bisim-is-max-greedy-bisim}
+    Given two GKAT coalgebra \(S\) and \(U\), carrier of the maximal bisimulation \({≡} ⊆ \norm(S) × \norm(U)\) is also the carrier of maximal greedy bisimulation, which we will denote as \(≊ ⊆ S × U\).
+    We will abuse the notation \(≡\) to represent both the maximal bisimulation and maximal greedy bisimulation.
+\end{corollary}
 
-% \begin{theorem}[Correctness]
-%     Given two states in GKAT coalgebras \(s ∈ S\) and \(u ∈ ,U\), there exists a greedy bisimulation \({≈} ⊆ S × U\) s.t. \(s ≈ u\), if and only if \(⟦s⟧_S = ⟦u⟧_U\).
-% \end{theorem}
+\begin{proof}
+    by definition of greedy bisimulation, the carrier of \({≡}\) is a subset of the carrier of \({≊}\). 
+    Then because of~\Cref{thm:greedy-bisim-iff-norm-bisim}, \(\norm(≊)\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\), which implies \(\norm(≡') ⊑ {≡}\).
+    Finally because \(\norm\) do not change the carrier set, therefore the carrier of \(≡\) and \(≊\) necessarily coincide.
 
-% \begin{proof}
-%     \(⟹\) direction, because normalization preserves carrier set, therefore \((s, u) ∈ \norm(≈)\).
-%     And because \(\norm(≈)\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\) (\Cref{thm:greedy-bisim-iff-norm-bisim}), \(⟦s⟧_S = ⟦u⟧_U\).
+    Then we will need to show that \(≡\) with the \(δ_≈\) defined in~\Cref{def:greedy-bisim} is the maximal greedy bisimulation.
+    Take an arbitrary greedy bisimulation \({≈} ⊆ S × U\) with underlying bisimulation \(∼\), and a pair of states \(s ≈ u\), we will need to show \(s ≡ u\).
+    By~\cref{thm:greedy-bisim-dead-or-bisim}, we can case analysis on \(s\) and \(u\): if \(s ∼ u\), then \(s ≡ u\) because \(≡\) is the maximal bisimulation; and if \(s\) and \(u\) are both dead, then by~\cref{thm:bisim-between-dead}, \(s ≡ u\).
+\end{proof}
 
-%     \(⟸\) direction, because \(⟦s⟧_S = ⟦u⟧_U\), then by~\cref{thm:norm-bisim-correctness}, then there a bisimulation \(∼ ⊆ \norm(S) × \norm(U)\) s.t. \(s ∼ u\). 
-%     Because~\Cref{thm:greedy-bisim-exists-unique}, therefore there exists a greedy bisimulation \(≈\) with \(∼\) as its underlying bisimulation. 
-%     Because the carriers \({∼} ⊆ {≈}\), therefore \(s ∼ u\) implies \(s ≈ u\).
-% \end{proof}
+\Cref{thm:max-bisim-is-max-greedy-bisim} allows us to take the maximal bisimulation as a greedy bisimulation, aiding several proofs.
+
+
+
+Similar to the correctness of bisimulation between normalized coalgebra (\Cref{thm:norm-bisim-correctness}), we also establish a correctness theorem for greedy bisimulation, i.e. there exists 
+
+\begin{theorem}[Correctness]
+    Given two states in GKAT coalgebras \(s ∈ S\) and \(u ∈ ,U\), there exists a greedy bisimulation \({≈} ⊆ S × U\) s.t. \(s ≈ u\), if and only if \(⟦s⟧_S = ⟦u⟧_U\).
+\end{theorem}
+
+\begin{proof}
+    \(⟹\) direction, because normalization preserves carrier set, therefore \((s, u) ∈ \norm(≈)\).
+    And because \(\norm(≈)\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\) (\Cref{thm:greedy-bisim-iff-norm-bisim}), \(⟦s⟧_S = ⟦u⟧_U\).
+
+    \(⟸\) direction, because \(⟦s⟧_S = ⟦u⟧_U\), then by~\cref{thm:norm-bisim-correctness}, then there a bisimulation \(∼ ⊆ \norm(S) × \norm(U)\) s.t. \(s ∼ u\). 
+    Because~\Cref{thm:greedy-bisim-exists-unique}, therefore there exists a greedy bisimulation \(≈\) with \(∼\) as its underlying bisimulation. 
+    Because the carriers \({∼} ⊆ {≈}\), therefore \(s ∼ u\) implies \(s ≈ u\).
+\end{proof}
 
 Despite proving many desirable structural properties, the definition of greedy bisimulation is still coalgebraic.
 In order for our equivalence-checking algorithm to construct a greedy bisimulation, we need to turn the coalgebra into a set of concrete criteria, that can be checked by an algorithm.
@@ -866,8 +878,8 @@ Our algorithm will be largely based on recursively checking these conditions to 
     Therefore, for the maximal bisimulation \({≡} ⊆ \norm(S) × \norm(U)\), \(s ≡ u\).
 \end{lemma}
 
-\begin{theorem}[Equivalence Relation]
-    Given two states in GKAT coalgebra \(s ∈ S\) and \(u ∈ U\), there exists a greedy bisimulation \(≈\) between \(S\) and \(U\) s.t. \(s ≈ u\), if and only if there exists a greedy bisimulation that is an \emph{equivalence relation} \(≊\) in \(S + U\) s.t. \(s ≊ u\).
+\begin{theorem}[Equivalence Relation]\label{thm:greedy-bisim-iff-greedy-bisim-equiv}
+    Given two states in GKAT coalgebra \(s ∈ S\) and \(u ∈ U\), there exists a greedy bisimulation \(≈\) between \(S\) and \(U\) s.t. \(s ≈ u\), if and only if there exists a greedy bisimulation that is an \emph{equivalence relation} \(≃\) in \(S + U\) s.t. \(s ≃ u\).
 \end{theorem}
 
 \begin{proof}
@@ -875,52 +887,41 @@ Our algorithm will be largely based on recursively checking these conditions to 
     Because \(S ⊑ S + U\) and \(U ⊑ S + U\) and normalization preserves sub-coalgebra (\Cref{thm:norm-sub-coalg}), we have \(\norm(S) ⊑ \norm(S + U)\) and \(\norm(U) ⊑ \norm(S + U)\); and by~\Cref{thm:sub-coalg-preserve-liveness}, \(s ∈ S\) is dead in \(S + U\) if and only if it is dead in \(S\), and similarly for \(u ∈ U\).
 
     The \(⟹\) direction. 
-    Because sub-coalgebra preserves bisimulation (\Cref{thm:sub-coalg-preserve-bisim}), then \(\norm(≈)\) is a bisimulation between \(\norm(S + U)\) and itself.
-    We consider \(≡\) to be the maximal bisimulation between \(\norm(S + U)\) and itself, then \(≡\) is an equivalence relation~\cite[Corollary 5.6]{rutten_UniversalCoalgebraTheory_2000}.
+    Because sub-coalgebra preserves bisimulation (\Cref{thm:sub-coalg-preserve-bisim}) and \(\norm(S) ⊑ \norm(S + U)\) and \(\norm(U) ⊑ \norm(S + U)\), we have \(\norm(≈)\) is a bisimulation between \(\norm(S + U)\) and itself.
+    let \(≡\) to be the maximal bisimulation within \(\norm(S + U)\), then \(≡\) is an equivalence relation~\cite[Corollary 5.6]{rutten_UniversalCoalgebraTheory_2000}, and so is the maximal greedy bisimulation \(≊\) (\Cref{thm:max-bisim-is-max-greedy-bisim}).
+    This gives us the following chain of set inclusions:
+    \[(s, u) ∈ {≈} = \norm(≈) ⊑ {≡} ⊆ {≊}.\]
+    Thus \(≊\) is a equivalence relation~\cite[Corollary 5.6]{rutten_UniversalCoalgebraTheory_2000} and a greedy bisimulation s.t. \(s ≡ u\).
 
-    Let \(≊\) be the greedy bisimulation generated by \(≡\), then \(≊\) has the same carrier as \(≡\).
-    All the \((s, u) ∈ {≊}\) are either \(s ≡ u\) or \(s\) and \(u\) are dead in \(S\) and \(U\), which implies that both are dead in \(S + U\).
-    However, \(≡\) already contains all the dead pairs (\cref{thm:bisim-between-dead}), therefore for all \((s, u) ∈ {≊}\), they are also in \(≡\), implying \({≡} ⊇ {≊}\).
-    Finally, by definition of greedy bisimulation (\Cref{def:greedy-bisim}), \({≡} ⊆ {≊}\).
-    Therefore, \(≡\) and \(≊\) share the same carrier and \(≊\) is a greedy bisimulation that is also an equivalence relation, which also contains \((s, u)\):
-    \[(s, u) ∈ {≈} = \norm(≈) ⊆ {≡} ⊆ {≊},\]
-    where all the \(=\) and \(⊆\) are orders on the carrier set, instead of the coalgebra.
-
-    The \(⟸\) direction can be split into two cases, by whether \((s, u)\) is in the underlying bisimulation of \(≊\), which we denote as \(≃\): 
-    \begin{itemize}
-        \item If \(s ≃ u\), then we can reflect \(≃\)  through \(\norm(S) ⊑ \norm(S + U)\) and \(\norm(U) ⊑ \norm(S + U)\) (\Cref{thm:sub-coalg-preserve-bisim}) to obtain a bisimulation \({∼} ⊆ \norm(S) × \norm(U)\) and \(s ∼ u\).
-        Taking the greedy bisimulation over \(∼\) will yield a desired greedy bisimulation \(≈\) s.t. \(s ≈ u\).
-        \item If \((s, u)\) are not in \(≃\), then they are both dead in \(S + U\) (\Cref{thm:greedy-bisim-dead-or-bisim}), which implies \(s\) and \(u\) are respectively dead in \(S\) and \(U\) (\Cref{thm:sub-coalg-preserve-liveness}).
-        Then we take \(≈\) to be greedy bisimulation generated form the maximal bisimulation between \(S\) and \(U\), which contains \(s\) and \(u\) (\Cref{thm:bisim-between-dead}).
-        \qedhere
-    \end{itemize}
+    The \(⟸\) direction can be shown by considering the maximal greedy bisimulation \(≊\) within \(S + U\) and maximal bisimulation \(≡\) within \(\norm(S + U)\).
+    By maximality and the carrier of \(≡\) coincide with \(≊\), we have the following set inclusions:
+    \[(s, u) ∈ {≃} ⊑ {≊} = {≡}.\]
+    Finally, we reflect \(≡\) through the inclusion homomorphisms \(\norm(S) ⊑ \norm(S + U)\) and \(\norm(U) ⊑ \norm(S + U)\) as in~\Cref{thm:sub-coalg-preserve-bisim} to obtain \({∼} ⊆ \norm(S) × \norm(U)\) and \(s ∼ u\).
+    Therefore \((s, u)\) is also in the greedy bisimulation \({≈} ⊆ \norm(S) × \norm(U)\), generated by \(∼\).
 \end{proof}
 
+% \begin{theorem}\label{thm:greedy-bisim-one-dead}
+%     Consider two states in GKAT coalgebras \(s ∈ S, u ∈ U\) and an arbitrary bisimulation \({∼} ⊆ \norm(S) × \norm(U)\), if \(s\) is dead, then 
+%     \begin{enumerate}
+%         \item\label{itm:greedy-bisim-one-dead-then-both-dead} if \(s ∼ u\), then \(u\) is dead.
+%         \item\label{itm:remove-dead-pairs-sound} if \(u\) is dead, then \({∼} ∖ ⟨(s, u)⟩_∼\) is also a bisimulation between \(\norm(S)\) and \(\norm(U)\).
+%     \end{enumerate}
+% \end{theorem}
 
+% \begin{proof}
+%     \Cref{itm:greedy-bisim-one-dead-then-both-dead} is a consequence of bisimulation preserves liveness (\Cref{thm:bisim-preserve-liveness}) and normalization preserves liveness (\Cref{thm:norm-perserve-liveness}).
 
-\begin{theorem}\label{thm:greedy-bisim-one-dead}
-    Consider two states in GKAT coalgebras \(s ∈ S, u ∈ U\) and an arbitrary bisimulation \({∼} ⊆ \norm(S) × \norm(U)\), if \(s\) is dead, then 
-    \begin{enumerate}
-        \item\label{itm:greedy-bisim-one-dead-then-both-dead} if \(s ∼ u\), then \(u\) is dead.
-        \item\label{itm:remove-dead-pairs-sound} if \(u\) is dead, then \({∼} ∖ ⟨(s, u)⟩_∼\) is also a bisimulation between \(\norm(S)\) and \(\norm(U)\).
-    \end{enumerate}
-\end{theorem}
-
-\begin{proof}
-    \Cref{itm:greedy-bisim-one-dead-then-both-dead} is a consequence of bisimulation preserves liveness (\Cref{thm:bisim-preserve-liveness}) and normalization preserves liveness (\Cref{thm:norm-perserve-liveness}).
-
-    \Cref{itm:remove-dead-pairs-sound} can be proven by realizing that \((s, u)\) is a dead state in \(∼\) (\Cref{thm:bisim-preserve-liveness}) which means that all the states in \(⟨(s, u)⟩_∼\) are dead.
-    Because \(∼\) is a normalized GKAT coalgebra (\Cref{thm:}), therefore no state can transition into dead states like \(⟨(s, u)⟩_∼\), hence \({∼} ∖ ⟨(s, u)⟩_∼\) is still closed under its transition, and form a sub-coalgebra of \(∼\).
-    Finally because \(∼\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\), then so is \({∼} ∖ ⟨(s, u)⟩_∼\) (\Cref{thm:})
-\end{proof}
+%     \Cref{itm:remove-dead-pairs-sound} can be proven by realizing that \((s, u)\) is a dead state in \(∼\) (\Cref{thm:bisim-preserve-liveness}) which means that all the states in \(⟨(s, u)⟩_∼\) are dead.
+%     Because \(∼\) is a normalized GKAT coalgebra (\Cref{thm:}), therefore no state can transition into dead states like \(⟨(s, u)⟩_∼\), hence \({∼} ∖ ⟨(s, u)⟩_∼\) is still closed under its transition, and form a sub-coalgebra of \(∼\).
+%     Finally because \(∼\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\), then so is \({∼} ∖ ⟨(s, u)⟩_∼\) (\Cref{thm:})
+% \end{proof}
 
 Before we introduce the optimized algorithm, we will first briefly sketch the liveness-check algorithm, which will use a depth-first search to check whether the there exists any accepting states in reachable states of \(s ∈ S\): if there exists any accepting state in \(⟨s⟩_S\), then the algorithm terminates immediately, and return that \(s\) is live, otherwise it would return all the states in \(⟨s⟩\), and by~\cref{thm:dead-iff-all-reachable-dead}, all the states in \(⟨s⟩\) is dead.
 In this case, we use depth-first search for its simplicity to implement, other search algorithm will also be sound.
 
 We will cache all the known dead states from the previous searches; whether a state \(s\) is in this cache can be checked by the function call \Call{knownDead\(_S\)}{$s$}. 
 The function \Call{isDead\(_S\)}{$s$} will first check if \(s\) is known to be dead, and invoke the search algorithm in the coalgebra \(⟨s⟩\), if \(s\) is not in the cached dead states.
-Because the non-symbolic version of liveness checking is similar to the symbolic version, we only provide the symbolic version of this algorithm in appendix
-TODO: give the link to the section.
+Because the non-symbolic version of liveness checking is similar to the symbolic version, we only provide the symbolic version of this algorithm in~\cref{lst:dead-state-detection}.
 
 
 \begin{algorithm*}
@@ -976,8 +977,14 @@ In the algorithm, we use the text ``implies'', ``iff'', ``and'' are logical oper
 Similarly, \(\&\!\&\) is the logical and operation, which is the same as the the written ``and''. 
 We opt to use \(\&\!\&\), instead of ``and'', to separate the conditions for clarity; formally \(\&\!\&\) is the same function as ``and'', but binds less tightly.
 
-Intuitively, starting with the pair of state \((s, u)\), it will explore following \(δ_≈\) in~\cref{def:greedy-bisim}.
-
+Intuitively, starting with the pair of state \((s, u)\), it will explore all of its reachable state following \(δ_≈\) in~\cref{def:greedy-bisim}.
+In other word, if the algorithm terminates and returned true, we will have explored every state in \(⟨(s, u)⟩_{≊}\) where \(≊\) is the maximal greedy bisimulation between \(S\) and \(U\).
+However, our algorithm slightly deviates from the ideal scenario described above, specifically we implemented two optimization.
+First, we uses a union-find data structure to keep track of existing state, which organizes the explored states into equivalence classes.
+Indeed, by looking for a greedy bisimulation that is also equivalence relation, we can use more efficient structures like union-find, instead of set of pairs; and the correctness of such optimization is justified by~\Cref{thm:greedy-bisim-iff-greedy-bisim-equiv}.
+The second optimization is to terminate and return false as soon as we know one of \(s, u\) is dead and the other is not dead.
+Indeed, in order for \(s ≈ u\) for any greedy bisimulation \(≈\), \(s\) and \(u\) necessarily have the same liveness in their respective GKAT coalgebra.
+And in the other case, if both \(s\) and \(u\) are dead in their respective coalgebra, we will skip the check on all the reachable state of \((s, u)\) following \(δ_≈\), because a pair of dead state is necessarily in the maximal greedy bisimulation \(≊\) (\Cref{thm:bisim-between-dead,thm:max-bisim-is-max-greedy-bisim}).
 
 Concerning the complexity, our algorithm have similar worst case complexity as the original algorithm.
 In particular, when deciding the trace equivalence of two states \(s ∈ S\) and \(u ∈ U\), the original algorithm~\cite{smolka_GuardedKleeneAlgebra_2020} requires one pass of \(⟨s⟩\) and \(⟨u⟩\) to normalize them, then the bisimulation will visit each pair of states in \(⟨s⟩ × ⟨u⟩\) at most once, which means that they will visit at most \(|⟨s⟩ + ⟨u⟩ + ⟨s⟩ × ⟨u⟩|\) number of states.
