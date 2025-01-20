@@ -1578,17 +1578,17 @@ Due to the fact that our symbolic algorithms are generic regarding the choice of
 \begin{tabular}{l r r r r r}
     Benchmark & DV$_{\textsf{BDD}}$ & TC$_{\textsf{BDD}}$ & DV$_{\textsf{SAT}}$ & TC$_{\textsf{SAT}}$ & SK \\
     \hline
-    e250b5p10ne    &   0.19 &   0.18 & 0.20 & 0.23 &    5.82 \\
-    e250b5p10eq    &   0.21 &   0.18 & 0.18 & 0.29 &    2.83 \\
-    e500b5p50ne    &   0.23 &   0.22 & 0.27 & 0.39 &   37.28 \\
-    e500b5p50eq    &   0.26 &   0.21 & 0.28 & 0.57 &   14.06 \\
-    e1000b10p100ne &   0.31 &   0.37 & 0.48 & 0.85 & timeout \\
-    e1000b10p100eq &   0.37 &   0.28 & 0.44 & 1.04 &   77.83 \\
-    e2000b20p200ne &   1.50 &   2.75 & 0.99 & 2.01 & timeout \\
-    e2000b20p200eq &   3.34 &   3.03 & 0.67 & 3.14 & timeout \\
-    e3000b30p200ne &   1.75 &  26.38 & 1.91 & 4.46 & timeout \\
-    e3000b30p200eq &  17.86 &  22.59 & 1.09 & 5.25 & timeout \\
-    degenerate     & 220.53 & 232.63 & 0.42 & 0.93 & timeout
+    e250b5p10ne    &   0.19 &   0.18 & 0.17 & 0.21 &    5.82 \\
+    e250b5p10eq    &   0.21 &   0.18 & 0.24 & 0.34 &    2.83 \\
+    e500b5p50ne    &   0.23 &   0.22 & 0.25 & 0.28 &   37.28 \\
+    e500b5p50eq    &   0.26 &   0.21 & 0.24 & 0.34 &   14.06 \\
+    e1000b10p100ne &   0.31 &   0.37 & 0.42 & 0.52 & timeout \\
+    e1000b10p100eq &   0.37 &   0.28 & 0.35 & 0.52 &   77.83 \\
+    e2000b20p200ne &   1.50 &   2.75 & 0.84 & 1.11 & timeout \\
+    e2000b20p200eq &   3.34 &   3.03 & 0.51 & 1.30 & timeout \\
+    e3000b30p200ne &   1.75 &  26.38 & 1.59 & 2.29 & timeout \\
+    e3000b30p200eq &  17.86 &  22.59 & 0.81 & 2.02 & timeout \\
+    degenerate     & 220.53 & 232.63 & 0.28 & 0.37 & timeout
 \end{tabular}
 \caption{Total Time Usage (seconds)}\label{tab:benchmark-time}
 \end{table}
@@ -1602,15 +1602,15 @@ Due to the fact that our symbolic algorithms are generic regarding the choice of
     \hline
     e250b5p10ne    &  15.36 &   14.76 &  6.81 &  7.02 &  114.06 \\
     e250b5p10eq    &  15.56 &   14.95 &  7.06 &  7.25 &  100.48 \\
-    e500b5p50ne    &  16.26 &   15.49 &  7.02 &  7.25 &  524.89 \\
-    e500b5p50eq    &  17.97 &   15.54 &  7.07 &  7.27 &  546.91 \\
-    e1000b10p100ne &  18.36 &   21.41 &  8.22 &  7.99 & timeout \\
+    e500b5p50ne    &  16.26 &   15.49 &  7.02 &  6.99 &  524.89 \\
+    e500b5p50eq    &  17.97 &   15.54 &  7.07 &  7.01 &  546.91 \\
+    e1000b10p100ne &  18.36 &   21.41 &  8.43 &  8.07 & timeout \\
     e1000b10p100eq &  20.41 &   17.66 &  8.69 &  7.63 & 5822.66 \\
-    e2000b20p200ne & 239.71 &  283.45 & 13.33 & 11.92 & timeout \\
-    e2000b20p200eq & 107.92 &  102.46 & 13.20 & 14.02 & timeout \\
-    e3000b30p200ne & 112.59 & 1235.46 & 21.44 & 20.10 & timeout \\
-    e3000b30p200eq & 245.92 &  228.85 & 21.41 & 18.15 & timeout \\
-    degenerate     & 631.47 & 1229.30 & 19.62 & 18.43 & timeout
+    e2000b20p200ne & 239.71 &  283.45 & 13.54 & 12.27 & timeout \\
+    e2000b20p200eq & 107.92 &  102.46 & 13.20 & 13.84 & timeout \\
+    e3000b30p200ne & 112.59 & 1235.46 & 21.69 & 20.33 & timeout \\
+    e3000b30p200eq & 245.92 &  228.85 & 21.79 & 18.33 & timeout \\
+    degenerate     & 631.47 & 1229.30 & 19.75 & 18.57 & timeout
 \end{tabular}
 \caption{Peak Memory Usage (megabytes)}\label{tab:benchmark-memory}
 \end{table}
