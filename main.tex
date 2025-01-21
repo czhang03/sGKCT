@@ -268,8 +268,8 @@ We present several new algorithms to efficiently decide Guarded Kleene Algebra w
 Although the current algorithm scales nearly-linearly with the size of the expression, its performance is hindered by the need to compute the entire coalgebra for the sake of normalization and exponential performance degradation when expanding the set of primitive tests.
 To address these problems, we introduce two new algorithms for bisimulation checking: an on-the-fly bisimulation algorithm based on greedy bisimulation, which enables immediate termination upon discovering a counter-example and supports on-the-fly coalgebra generation with derivatives; and a symbolic algorithm that builds upon the on-the-fly algorithm while leveraging efficient SAT solvers to speed up boolean comparisons and compress the transition structures of GKAT coalgebra.
 To utilize the symbolic bisimulation checking, we also provide two methods to generate symbolic GKAT coalgebras from GKAT expressions, analogous to derivative and Thompson's construction in previous works.
-We have proven the correctness of our algorithms and conducted detailed complexity analyses.
-Finally, we implemented the symbolic algorithms in Rust, demonstrating significant performance improvements over state-of-the-art tools.
+We have proven the correctness of our algorithms and conducted brief complexity analyses.
+Finally, we implemented the symbolic algorithms in Rust, demonstrating orders-of-magnitude performance improvements over existing tools.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -280,9 +280,54 @@ Guarded Kleene Algebra With Tests, Kleene Algebra, Coalgebra, Program Verificati
 
 \section{Introduction}
 
-\paragraph{Notation:} In this paper, we will use un-curried notation to apply curried functions, for example, given a function \(δ: X → Y → Z\), we will write the function applications as \(δ(x): Y → Z\) and \(δ(x, y): Z\).
+Kleene Algebra with Tests (KAT) is a staple algebra system to reason about program equivalence, and have found numerous applications in numerous fields, including software-defined networks~\cite{anderson_NetKATSemanticFoundations_2014a,moeller_KATchFastSymbolic_2024,smolka_ScalableVerificationProbabilistic_2019,smolka_CantorMeetsScott_2017}, program transformations~\cite{kozen_BohmJacopiniTheorem_2008,angus_KleeneAlgebraTests_2001,kozen_NonlocalFlowControl_2008,grathwohl_KAT_2014,kozen_KleeneAlgebraTests_1996}, and program logics~\cite{antonopoulos_AlgebraAlignmentRelational_2023,zhang_DomainReasoningTopKAT_2024,zhang_IncorrectnessLogicKleene_2022c,kozen_HoareLogicKleene_2000,desharnais_ModalKleeneAlgebra_2004}.
+Beyond its massive theoretical achievement, Kleene Algebra with Tests has also inspired numerous practical tools for several domains.
+Interestingly, despite the PSPACE-complete complexity of KAT, many tools developed are able to match, or even exceed, the performance of state-of-the-art tools in their respective domains~\cite{moeller_KATchFastSymbolic_2024,smolka_ScalableVerificationProbabilistic_2019}.
 
-\section{Background on Coalgebra and GKAT}
+This surprising fact lead to the development of Guarded Kleene Algebra with Tests (GKAT)~\cite{smolka_GuardedKleeneAlgebra_2020}, a (co)algebraic system that seeks to understand this efficient fragment of KAT.
+Indeed, the determinism of GKAT gives it a different coalgebra structure as KAT, and allows for GKAT expression to directly be converted to a linear-sized coalgebra, as opposed to the exponential sized coalgebra produced KAT, in general~\cite{smolka_GuardedKleeneAlgebra_2020,kozen_CoalgebraicTheoryKleene_2017}.
+
+However, the desirable theoretical properties of GKAT does not currently translate to tangible real-world performance. 
+surprisingly, the decision procedures for GKAT can often be slower than that of KAT, primarily due to the following two reasons.
+
+First, the natural semantics of GKAT coalgebra is not the finite-trace model, but the infinite-trace model~\cite{smolka_GuardedKleeneAlgebra_2020,schmid_GuardedKleeneAlgebra_2021}.
+Thus, to determine finite-trace equivalence, it is necessary to \emph{normalize} the coalgebra first, requiring to compute the entire coalgebra ahead-of-time; and iterate through its entirety.
+Without the need to normalize prior to computing bisimulation, the decision procedure of KAT equivalence can terminate as soon as a counter-example has been found, sometimes leading to better performance than the original GKAT decision algorithm~\cite{smolka_GuardedKleeneAlgebra_2020}.
+
+The lack of symbolic algorithm also makes GKAT a less desirable foundation for performance-critical applications.
+Although the generated coalgebra from GKAT expression have linear number of states, the number of transitions is exponential to \emph{all} the primitive tests appeared across the entire expression.
+This inefficiency have been noted in several pervious literatures, and poses real limitation on real-world systems~\cite{smolka_GuardedKleeneAlgebra_2020,zhang_CFGKATEfficientValidation_2025}.
+On the other hand, several symbolic algorithm for KAT have been proven to be effective for generic equality solving and domain-specific applications~\cite{pous_SymbolicAlgorithmsLanguage_2015,moeller_KATchFastSymbolic_2024}.
+
+In this paper, we present two algorithms that address both shortcomings, and demonstrate how coalgebra theory of GKAT serves as the bedrock of the design and correctness of these algorithms.
+
+The first algorithm supports on-the-fly coalgebra generation by performing bisimulation in a greedy manner.
+Specifically, the liveness checking of states only kicks in when bisimulation algorithm encountered a disparity.
+We support the correctness of this algorithm by designing a coalgebraic concept which we named \emph{greedy bisimulation}.
+
+The second algorithm builds lifts the first into a symbolic setting, where our development is based on a extension of GKAT coalgebra, where we named \emph{symbolic GKAT coalgebra}.
+In contrast to the symbolic KAT derivative~\cite{pous_SymbolicAlgorithmsLanguage_2015}, the deterministic nature of GKAT coalgebra allows its symbolic variant to transition via boolean expressions, instead of primitive tests. 
+This optimization not only allows more compact coalgebra representation, but also allows us to use arbitrary of-the-shelf SAT solvers to resolve boolean constraint, instead of the binary decision diagram presented by the symbolic algorithm of KAT~\cite{pous_SymbolicAlgorithmsLanguage_2015}. 
+Finally, we lifted both the derivative construction~\cite{schmid_GuardedKleeneAlgebra_2021} and Thompson's construction~\cite{smolka_GuardedKleeneAlgebra_2020} to symbolic setting, and proved their correspondence, correctness, and finiteness.
+
+To evaluate the practical impact of our work, we have implemented our algorithm in rust. 
+Our implementation performs orders of magnitude better than existing implementation for KAT~\cite{pous_SymbolicAlgorithmsLanguage_2015},
+proving the theoretical elegance of GKAT indeed leads to significant real-world performance differences.
+
+We list our contributions and structures of this paper as follows:
+\begin{itemize}
+    \item In~\Cref{sec:background}, we recap the necessary concepts in universal coalgebra, and the coalgebraic theory of GKAT. In particular, we do not define the semantics of GKAT either algebraically or coalgebraically, as we can avoid directly interacting with the semantics by leveraging the coalgebraic theory of GKAT.
+    \item In~\Cref{sec:greedy-bisim}, we define \emph{greedy bisimulation} and developed its coalgebraic theory to serve as the ground for the correctness of our algorithm.
+    We also performs a brief complexity analysis, and argue that our algorithm is almost always more efficient than the original normalize and then bisimulate approach~\cite{smolka_GuardedKleeneAlgebra_2020}.
+    \item In~\Cref{sec:symb-gkat-greedy-bisim}, we introduced \emph{symbolic GKAT coalgebra}, and lifted the greedy bisimulation algorithm to the symbolic setting.
+    \item In~\Cref{sec:symb-gkat-construction}, we lifts the Thompson's construction and derivative construction to the symbolic setting.
+    Then we established their connection via a coalgebra homomorphism, which then allows us to derive the correctness and finiteness of one construction from the other.
+    \item Finally, in~\Cref{sec:implementation}, we described our implementation of symbolic derivable, symbolic Thompson's construction, and symbolic greedy bisimulation.
+    Then we conduct a performance analysis using different SAT solvers, and compared to previous implementations.
+    When using minisat as the SAT solver of choice~\cite{}, our implementation can solve most test cases in less than a second with minimal memory usage, whereas previous implementation~\cite{pous_SymbolicAlgorithmsLanguage_2015} almost always result in a timeout.
+\end{itemize}
+
+\section{Background on Coalgebra and GKAT}\label{sec:background}
 
 \subsection{Concepts in Universal Coalgebra}
 
@@ -615,7 +660,7 @@ This gives us more tool in proving semantic equivalence between two states in GK
     Because \(s ∼ u\) and normalization operation preserves states in \(∼\), therefore \((s, u) ∈ \norm(∼)\), and because \(\norm(∼)\) is a bisimulation between the normalization of \(S\) and \(U\), therefore \(⟦s⟧_{S} = ⟦u⟧_{U}\) (\Cref{thm:norm-bisim-correctness}).
 \end{proofEnd}
 
-\section{On-The-Fly Bisimulation}
+\section{On-The-Fly Bisimulation}\label{sec:greedy-bisim}
 
 The original algorithm for deciding GKAT equivalences~\cite{smolka_GuardedKleeneAlgebra_2020} requires the entire coalgebra to be known prior to the execution of the bisimulation algorithm; specifically, it is necessary to iterate through the entire coalgebra in order to identify the liveness of every single states and perform the normalization operation.
 This limitation poses challenges to design an efficient on-the-fly algorithm for GKAT.
@@ -1076,7 +1121,7 @@ In the extreme case when the two input states are infinite-trace equivalent, the
 %     In a memory-constraint situation, the ``\textnormal{deadStates}'' variable can be cleared periodically to save memory.
 % \end{remark}
 
-\section{Symbolic Coalgebra and Algorithm}
+\section{Symbolic Coalgebra and Algorithm}\label{sec:symb-gkat-greedy-bisim}
 
 Although \cref{alg:bisim} is on-the-fly, it still uses GKAT coalgebra, which contains exponentially many transitions with respect to the number of primitive tests \(|T|\).
 Concretely, the transition function \(δ: S → \At_T → \{\accept, \reject\} + S × K\) requires computing the transition result for each \emph{atom}, and the number of atoms \(\At_T ≅ 2^{T}\) is exponential to the size of primitive tests in \(T\).
