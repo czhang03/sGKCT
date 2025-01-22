@@ -224,44 +224,46 @@
 \begin{document}
 
 \title{On-the-fly Algorithms for GKAT Equivalences
-\thanks{Identify applicable funding agency here. If none, delete this.}
+% \thanks{Identify applicable funding agency here. If none, delete this.}
 }
 
-\author{\IEEEauthorblockN{Cheng Zhang\textsuperscript{\textsection}}
-\IEEEauthorblockA{\textit{Department of Computer Science} \\
-\textit{University College London}\\
-London, United Kingdom \\
-0000-0002-8197-6181}
-\and
-\IEEEauthorblockN{Qiancheng Fu}
-\IEEEauthorblockA{\textit{Department of Computer Science} \\
-\textit{Boston University}\\
-Boston, USA \\
-qcfu@bu.edu}
-\and
-\IEEEauthorblockN{Hang Ji\textsuperscript{\textsection}}
-\IEEEauthorblockA{\textit{Department of Computer Science} \\
-\textit{Cornell University}\\
-Ithaca, USA \\
-hj476@cornell.edu}
-\and
-\IEEEauthorblockN{Ines Santacruz}
-\IEEEauthorblockA{\textit{Department of Computer Science} \\
-\textit{Boston University}\\
-Boston, USA \\
-email address or ORCID}
-\and
-\IEEEauthorblockN{Marco Gaboardi}
-\IEEEauthorblockA{\textit{Department of Computer Science} \\
-\textit{Boston University}\\
-Boston, USA \\
-inessdv15@gmail.com}
-}
+% anonymize authors
+%
+% \author{\IEEEauthorblockN{Cheng Zhang\textsuperscript{\textsection}}
+% \IEEEauthorblockA{\textit{Department of Computer Science} \\
+% \textit{University College London}\\
+% London, United Kingdom \\
+% 0000-0002-8197-6181}
+% \and
+% \IEEEauthorblockN{Qiancheng Fu}
+% \IEEEauthorblockA{\textit{Department of Computer Science} \\
+% \textit{Boston University}\\
+% Boston, USA \\
+% qcfu@bu.edu}
+% \and
+% \IEEEauthorblockN{Hang Ji\textsuperscript{\textsection}}
+% \IEEEauthorblockA{\textit{Department of Computer Science} \\
+% \textit{Cornell University}\\
+% Ithaca, USA \\
+% hj476@cornell.edu}
+% \and
+% \IEEEauthorblockN{Ines Santacruz}
+% \IEEEauthorblockA{\textit{Department of Computer Science} \\
+% \textit{Boston University}\\
+% Boston, USA \\
+% inessdv15@gmail.com}
+% \and
+% \IEEEauthorblockN{Marco Gaboardi}
+% \IEEEauthorblockA{\textit{Department of Computer Science} \\
+% \textit{Boston University}\\
+% Boston, USA \\
+% gaboardi@bu.edu}
+% }
 
 \maketitle
-\begingroup\renewcommand\thefootnote{\textsection}
-\footnotetext{Work largely performed at Boston University}
-\endgroup
+% \begingroup\renewcommand\thefootnote{\textsection}
+% \footnotetext{Work largely performed at Boston University}
+% \endgroup
 
 \begin{abstract}
 We present several new algorithms to efficiently decide Guarded Kleene Algebra with Tests (GKAT) equivalences.
@@ -1638,6 +1640,8 @@ The final optimization that we perform is collapsing the boolean expression set 
 If \(\hat{\epsilon_1}(s_1)\) and \(\hat{\epsilon_2}(s_2)\) are sets of boolean expressions, then the guard operation would produce a set whose size is proportional to \(|\hat{\epsilon_1}(s_1)| \times |\hat{\epsilon_2}(s_2)|\). However, if the collapsed representation is used, \(\hat{\epsilon_1}(s_1)\) and \(\hat{\epsilon_2}(s_2)\) become just boolean expressions instead of sets of expressions. The guard operation now produces a single boolean expression. The distributivity of boolean conjunction and disjunction ensures the correctness of this optimization.
 
 \subsection{Evaluation}\label{sec:performance-implementation}
+Due to the fact that our symbolic algorithms are generic regarding the choice of solvers for boolean satisfiability, we compare their performance using BDD to using a SAT solver (MiniSat~\cite{een_MINISAT_2004}). Our experiments are performed on a laptop with an Apple M4 Pro CPU and 24 GB RAM. \Cref{tab:benchmark-time,tab:benchmark-memory} present the experimental results of equivalence checking based on derivatives (DV), Thompson's construction (TC) and SymKAT~\cite{pous_SymbolicAlgorithmsLanguage_2015} (SK). Note that SymKAT uses BDD internally for checking boolean satisfiability. Each benchmark consists of 50 expression pairs with properties described by the benchmark's name. For example, expressions in `e250b5p10eq' have approximately 250 primitive actions in total (e250), a maximum boolean expression size of 5 (b5), 10 possible unique primitive tests (p10) and are known to be equivalent (eq). Benchmarks with the suffix `ne' have expression pairs that are known to be non-equivalent. 
+
 \begin{table}
 \footnotesize
 \centering
@@ -1681,8 +1685,6 @@ If \(\hat{\epsilon_1}(s_1)\) and \(\hat{\epsilon_2}(s_2)\) are sets of boolean e
 \caption{Peak Memory Usage (megabytes)}\label{tab:benchmark-memory}
 \vspace{-1em}
 \end{table}
-
-Due to the fact that our symbolic algorithms are generic regarding the choice of solvers for boolean satisfiability, we compare their performance using BDD to using a SAT solver (MiniSat~\cite{een_MINISAT_2004}). Our experiments are performed on a laptop with an Apple M4 Pro CPU and 24 GB RAM. \Cref{tab:benchmark-time,tab:benchmark-memory} present the experimental results of equivalence checking based on derivatives (DV), Thompson's construction (TC) and SymKAT~\cite{pous_SymbolicAlgorithmsLanguage_2015} (SK). Note that SymKAT uses BDD internally for checking boolean satisfiability. Each benchmark consists of 50 expression pairs with properties described by the benchmark's name. For example, expressions in `e250b5p10eq' have approximately 250 primitive actions in total (e250), a maximum boolean expression size of 5 (b5), 10 possible unique primitive tests (p10) and are known to be equivalent (eq). Benchmarks with the suffix `ne' have expression pairs that are known to be non-equivalent. 
 
 We observe that DV performs better than TC consistently when both algorithms use the same solver backend and all variants of DV and TC perform better than SymKAT. When comparing the solver backends, BDD and SAT perform similarly for smaller benchmarks, however, BDD's time and memory usage increase considerably for larger benchmarks. On the other hand, the performance of SAT is stable for all benchmarks. Furthermore, we have encountered degenerative expression pairs (the `degenerate' benchmark) which greatly reduce BDD performance but can be efficiently checked by SAT. We did not encounter any expression pairs where BDD performed significantly better than SAT.
 
