@@ -239,11 +239,11 @@ London, United Kingdom \\
 Boston, USA \\
 qcfu@bu.edu}
 \and
-\IEEEauthorblockN{Hang Ji}
+\IEEEauthorblockN{Hang Ji\textsuperscript{\textsection}}
 \IEEEauthorblockA{\textit{Department of Computer Science} \\
-\textit{Boston University}\\
-Boston, USA \\
-email address or ORCID}
+\textit{Cornell University}\\
+Ithaca, USA \\
+hj476@cornell.edu}
 \and
 \IEEEauthorblockN{Ines Santacruz}
 \IEEEauthorblockA{\textit{Department of Computer Science} \\
@@ -425,13 +425,13 @@ A GKAT expression can be unfolded into a KAT expression in the usual manner~\cit
     e +_b f & ≜ b; e + \overline{b}; f &
     e^{(b)} & ≜ (b; e)^*; \overline{b}.
 \end{align*}
-Then the semantics of each expression \(⟦e⟧\) can be computed by the semantics of Kleene Algebra with tests~\cite{kozen_KleeneAlgebraTests_1997c}.
+Then the semantics of each expression \(⟦e⟧\) can be computed by the semantics of Kleene Algebra with Tests~\cite{kozen_KleeneAlgebraTests_1997c}.
 An important construct in the semantics is \emph{atoms}, which are conjunctions of all the primitive tests either in its positive or negative form: for \(T ≜ \{t₁, t₂, …, tₙ\}\)
 \[\At_T ≜ \{t₁' ∧ t₂' ∧ ⋯ ∧ tₙ' ∣ tᵢ' ∈ \{tᵢ, \overline{tᵢ}\}\}.\]
 Follow the conventional notation, we denote an atom using \(α, β\); and we sometimes omit the subscript \(T\) when no confusing can arise.
 Alternatively, atoms can also be thought of as truth assignments to each primitive tests, indicating which primitive tests is satisfied in the current program states; and \(α ≤ b\) if and only if the truth assignment represented by \(α\) satisfies \(b\).
 
-For the sake of brevity, we omit the complete definition of GKAT and KAT semantics, we refer the reader to previous works~\cite{smolka_GuardedKleeneAlgebra_2020,schmid_GuardedKleeneAlgebra_2021,kozen_KleeneAlgebraTests_1997c}, which explains these semantics in detail.
+For the sake of brevity, we omit the complete definition of GKAT and KAT semantics, we refer the reader to previous works~\cite{smolka_GuardedKleeneAlgebra_2020,schmid_GuardedKleeneAlgebra_2021,kozen_KleeneAlgebraTests_1997c}, which explain these semantics in detail.
 Our work avoids direct interaction with the semantics by leveraging prior results in the coalgebraic theory of GKAT, which we will recap below.
 
 Formally, GKAT coalgebras over primitive actions \(K\) and primitive tests \(T\) are coalgebras over the following functor:
@@ -472,22 +472,22 @@ In particular, \(G\) is a simple polynomial functor~\cite{jacobs_IntroductionCoa
     Recall that elementary polynomial functor~\cite{jacobs_IntroductionCoalgebraMathematics_2016} like \(G\) preserves pullback, hence the pullback also uniquely generates a GKAT coalgebra~\cite{rutten_UniversalCoalgebraTheory_2000}
 \end{proofEnd}
 
-Besides nice property with bisimulation, GKAT coalgebra is also deterministic, unlike Kleene coalgebra with tests (KCT)~\cite{kozen_CoalgebraicTheoryKleene_2017}.
+Besides nice property with bisimulation, GKAT coalgebra is also deterministic, unlike Kleene Coalgebra with Tests (KCT)~\cite{kozen_CoalgebraicTheoryKleene_2017}.
 For each atom, states in a KCT can accept or reject the atom (but not both), yet states can also non-deterministically transition to multiple different states via the same atom, while executing different actions.
 As we will see later, the deterministic behavior of GKAT coalgebra not only enables a more versatile symbolic algorithm than KCT~\cite{pous_SymbolicAlgorithmsLanguage_2015}, but also present challenges. 
-Specifically, GKAT coalgebra requires normalization to compute finite trace equivalences~\cite{smolka_GuardedKleeneAlgebra_2020}, where we reroute all the transitions that cannot lead to acceptance immediately into rejection; and states that can never lead to acceptance is called \emph{dead states}.
+Specifically, GKAT coalgebra requires normalization to compute finite trace equivalences~\cite{smolka_GuardedKleeneAlgebra_2020}, where we reroute all the transitions that cannot lead to acceptance immediately into rejection; and states that can never lead to acceptance are called \emph{dead states}.
 
 In previous works, these dead states are detected after the necessary coalgebra is computed and stored.
-This approach requires storing all the transition and states of coalgebra in memory, meaning that the algorithm does not short circuit even if a mismatch can be detected in the starting state; for example, when for some \(α ∈ \At\), \(δ_S(s, α) = \reject\) and \(δ_U(u, α) = \accept\).
+This approach requires storing all the transitions and states of coalgebra in memory, meaning that the algorithm does not short circuit even if a mismatch can be detected in the starting state; for example, when for some \(α ∈ \At\), \(δ_S(s, α) = \reject\) and \(δ_U(u, α) = \accept\).
 
-Our algorithm is lazy in the dead state detection i.e. the dead state are only checked when a mismatch requires it; even then, our dead state detection algorithm will only check the necessary states to compute the liveness of the states causing the mismatch.
-This not only avoids unnecessarily checking the liveness of a state, but also enables allows on-the-fly generation of the coalgebra, like using derivatives, where we can remove irrelevant states from memory after it has been explored. 
+Our algorithm is lazy in the dead states detection i.e. the dead states are only checked when a mismatch requires it; even then, our dead state detection algorithm will only check the necessary states to compute the liveness of the states causing the mismatch.
+This not only avoids unnecessarily checking the liveness of a state, but also enables on-the-fly generation of the coalgebra, like using derivatives, where we can remove irrelevant states from memory after they have been explored. 
 
-However, to truly understand our on-the-fly algorithms, we will first need to define ``dead states'', and its role in defining the coalgebraic semantic of GKAT. 
+However, to truly understand our on-the-fly algorithms, we will first need to define ``dead states'', and their roles in defining the coalgebraic semantic of GKAT. 
 
 \subsection{Liveness and Sub-GKAT coalgebras}
 
-Traditionally, live and dead states are defined by whether they can reach an accepting state~\cite{smolka_GuardedKleeneAlgebra_2020}.
+Traditionally, live and dead states are defined by whether they can reach to an accepting state~\cite{smolka_GuardedKleeneAlgebra_2020}.
 \begin{definition}[Liveness]\label{def:liveness-of-states}
     A state \(s\) is \emph{accepting} if there exists an atom \(α ∈ \At\) s.t. \(δ(s, α) = \accept\).
     A state \(s₀\) is \emph{live} if there exists an accepting state \(sₙ\) s.t. there is a liveness chain:
@@ -556,25 +556,25 @@ The above theorem then leads to several interesting liveness preservation proper
 
 \subsection{Normalization And Semantics}
 
-Infinite-trace model \(𝒢_ω\) is the final coalgebra of GKAT coalgebras~\cite{schmid_GuardedKleeneAlgebra_2021}.
-The finality of the model allows us to define the semantics of each state in a given GKAT coalgebra \(S\), which we will denote as \(⟦-⟧^{ω}_{S}: S → 𝒢_ω\), where the semantic equivalences can identified by bisimulation~\cite{schmid_GuardedKleeneAlgebra_2021}:
+Infinite-trace model \(��_ω\) is the final coalgebra of GKAT coalgebras~\cite{schmid_GuardedKleeneAlgebra_2021}.
+The finality of the model allows us to define the semantics of each state in a given GKAT coalgebra \(S\), which we will denote as \(⟦-⟧^{ω}_{S}: S → ��_ω\), where the semantic equivalences can identified by bisimulation~\cite{schmid_GuardedKleeneAlgebra_2021}:
 \(⟦s⟧^{ω}_{S} = ⟦t⟧^{ω}_{T}\) if and only if there exists a bisimulation \({∼} ⊆ S × T\), s.t. \(s ∼ t\).
 
 The infinite trace equivalences can be directly computed with bisimulation on derivative, which supports on-the-fly algorithm as demonstrated by similar systems~\cite{kozen_CoalgebraicTheoryKleene_2017,almeida_DecidingKATHoare_2012,pous_SymbolicAlgorithmsLanguage_2015}. 
-However, the \emph{finite} trace model \(𝒢\) is the final coalgebra of GKAT coalgebras without dead states, which we call \emph{normal GKAT coalgebra}~\cite{smolka_GuardedKleeneAlgebra_2020}. 
-Fortunately every GKAT coalgebra can be normalized by rerouting all the transition from dead states to rejection.
+However, the \emph{finite} trace model \(��\) is the final coalgebra of GKAT coalgebras without dead states, which we call \emph{normal GKAT coalgebra}~\cite{smolka_GuardedKleeneAlgebra_2020}. 
+Fortunately every GKAT coalgebra can be normalized by rerouting all the transitions from dead states to rejection.
 Concretely, given a GKAT coalgebra \(S ≜ (S, δ_S)\), \(δ_{\norm(S)} : S → G(S)\) is defined as \(δ_{\norm(S)}(s, α) ≜ \reject\) when \(δ_S(s, α) = (s', p)\) and \(s'\) is dead in \(S\); and \(δ_{\norm(S)}(s, α) ≜ δ_S(s, α)\) otherwise. 
 We call \(\norm(S) ≜ (S, δ_{\norm(S)})\) the \emph{normalized} coalgebra of \(S\).
 
-And we use \(⟦-⟧_S: \norm(S) → 𝒢\) to denote the finite trace semantics of GKAT coalgebra, which is the unique homomorphism into the final coalgebra \(𝒢\). 
+And we use \(⟦-⟧_S: \norm(S) → ��\) to denote the finite trace semantics of GKAT coalgebra, which is the unique homomorphism into the final coalgebra \(��\). 
 The finite trace equivalence between \(s ∈ S\) and \(u ∈ U\) can be decided by first normalizing \(S\) and \(U\) then deciding whether there is a bisimulation \({∼} ⊆ \norm(S) × \norm(U)\) s.t. \(s ∼ t\).
-For a more detailed explanation on the finite trace semantics, we refer the reader to the work of \Citeauthor{smolka_GuardedKleeneAlgebra_2020}~\cite{smolka_GuardedKleeneAlgebra_2020}, however we will recall the correctness theorem here.
+For a more detailed explanation on the finite trace semantics, we refer the reader to the work of \Citeauthor{smolka_GuardedKleeneAlgebra_2020}~\cite{smolka_GuardedKleeneAlgebra_2020}, whereas we will recall the correctness theorem here.
 
 \begin{theoremEnd}{theorem}[Correctness~\cite{smolka_GuardedKleeneAlgebra_2020}]\label{thm:norm-bisim-correctness}
     Given two states in two GKAT coalgebra \(s ∈ S\) and \(u ∈ U\), then there exists a bisimulation between normalized coalgebras \({∼} ⊆ \norm(S) × \norm(U)\) s.t. \(s ∼ u\) if and only if \(s\) and \(u\) are trace equivalent \(⟦s⟧_S = ⟦u⟧_U\)
 \end{theoremEnd}
 
-Besides giving us the finite-trace semantics, the normalization operation also satisfy several nice properties.
+Besides giving us the finite-trace semantics, the normalization operation also satisfies several nice properties.
 
 First, normalization preserves liveness, i.e. a state \(s ∈ S\) is dead (live) if and only if it is dead (live) in \(\norm(S)\), allowing us to perform liveness analysis in \(\norm(S)\) to obtain the liveness in \(S\), and vise versa.
 
@@ -594,7 +594,7 @@ First, normalization preserves liveness, i.e. a state \(s ∈ S\) is dead (live)
     Hence, this walk also exists in \(\norm(S)\), and \(s\) is live in \(\norm(S)\).
 \end{proofEnd}
 
-Second, normalization is an endofunctor in the category of GKAT coalgebra, this result can help us obtain sub-coalgebras of normalized coalgebra, and also connect the finite trace and infinite trace semantics.
+Second, normalization is an endofunctor in the category of GKAT coalgebra. This result can help us obtain sub-coalgebras of normalized coalgebra, and also connect the finite trace with infinite trace semantics.
 
 \begin{theoremEnd}{theorem}\label{thm:norm-functor}
     \(\norm\) is an endofunctor in the category GKAT coalgebra.
@@ -1131,8 +1131,8 @@ Symbolic GKAT coalgebra, instead of computing the behavior of each atom individu
 This optimization leads to space-efficient coalgebras and an equivalence checking algorithm making use of off-the-shelf SAT solvers.
 Specifically, given a set of primitive actions \(K\) and primitive tests \(T\), a \emph{symbolic GKAT coalgebra} \(Ŝ ≜ (S, ϵ̂, δ̂)\) consists of a state set \(S\) and an accepting function \(ϵ̂\) and a transition function \(δ̂\):
 \begin{mathpar}
-    ϵ̂: S → 𝒫(\BExp_T), \and
-    δ̂: S → 𝒫(\BExp_T × S × K).
+    ϵ̂: S → ��(\BExp_T), \and
+    δ̂: S → ��(\BExp_T × S × K).
 \end{mathpar}
 This coalgebra is also required to satisfy the disjointedness condition, i.e. for all states \(s ∈ S\), the boolean expressions that \(s\) accepts \(ϵ̂(s)\) and the boolean expressions that enables \(s\) to transition \(\{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) is disjoint; also the conjunction of any two distinct expressions from the set \(ϵ̂(s) ∪ \{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) is equivalent to \(0\) under boolean algebra.
 
@@ -1363,9 +1363,9 @@ A useful operation for Thompson's construction is the following guard operation,
 Besides guarding transition and acceptance with different conditions in if statements and while loops, the guard operator can also be used to simulate uniform continuation. Specifically, we can use \(⟨ϵ̂(s)|δ(s')\) to connecting all the accepting transition of \(s\) to the dynamic \(δ(s')\).
 
 With these definitions in mind, we can define symbolic Thompson's construction inductively as in~\Cref{tab:symb-Thompson-construction}, where we let \((S₁, ϵ̂₁, δ̂₁)\) and \((S₂, ϵ̂₂, δ̂₂)\) to be result of Thompson's construction for \(e₁\) and \(e₂\) respectively.
-In this table, \(S₁ + S₂\) denotes the disjoint union of \(S₁\) and \(S₂\), and for any two transition dynamics \(δ₁(s₁): 𝒫(\BExp × S₁ × K)\) and \(δ₂(s₂): 𝒫(\BExp × S₂ × K)\), we can also compose them in parallel as \(δ₁(s₁) + δ₂(s₂)\):
+In this table, \(S₁ + S₂\) denotes the disjoint union of \(S₁\) and \(S₂\), and for any two transition dynamics \(δ₁(s₁): ��(\BExp × S₁ × K)\) and \(δ₂(s₂): ��(\BExp × S₂ × K)\), we can also compose them in parallel as \(δ₁(s₁) + δ₂(s₂)\):
 \begin{align*}
-    δ₁(s₁) & + δ₂(s₂): 𝒫(\BExp × (S₁ + S₂) × K) \\*
+    δ₁(s₁) & + δ₂(s₂): ��(\BExp × (S₁ + S₂) × K) \\*
     δ₁(s₁) & + δ₂(s₂) ≜ \\*
         & \{(b, \mathrm{inj}ₗ(s₁'), p) ∣ (b, s₁', p) ∈ δ₁(s₁)\} ∪ \\*
         & \{(b, \mathrm{inj}ᵣ(s₂'), p) ∣ (b, s₂', p) ∈ δ₂(s₂)\},
@@ -1586,7 +1586,7 @@ Turns out, all of these questions can be answered by a homomorphism from symboli
 
 \begin{proofEnd}
     By functoriality of lowering~\cref{thm:lowering-functor}, then \(h: S_{e} → D\) is a homomorphism on their lowerings. 
-    Because homomorphism preserves semantics (\Cref{thm:hom-preserves-semantics}) \(⟦s^*⟧^{ω}_{S_{e}} = ⟦h(s^*)⟧^{ω}_{D} = ⟦e⟧^{ω}_{D}\), where \(⟦-⟧^{ω}\) is the infinite trace semantics i.e. the unique map into the final GKAT coalgebra \(𝒢_ω\).
+    Because homomorphism preserves semantics (\Cref{thm:hom-preserves-semantics}) \(⟦s^*⟧^{ω}_{S_{e}} = ⟦h(s^*)⟧^{ω}_{D} = ⟦e⟧^{ω}_{D}\), where \(⟦-⟧^{ω}\) is the infinite trace semantics i.e. the unique map into the final GKAT coalgebra \(��_ω\).
 
     Finally, because infinite trace equivalence implies finite trace equivalence (\Cref{thm:inf-trace-equiv-implies-fin-trace-equiv}) and the correctness of derivative (\Cref{thm:derivative-correctness}), we obtain the following chain of equalities:
     \(⟦s^*⟧_{S_{e}} = ⟦e⟧_{D} = ⟦e⟧\).
