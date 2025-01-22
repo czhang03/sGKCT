@@ -267,7 +267,7 @@ inessdv15@gmail.com}
 We present several new algorithms to efficiently decide Guarded Kleene Algebra with Tests (GKAT) equivalences.
 Although the current algorithm scales nearly-linearly with the size of the expression, its performance is hindered by the need to compute the entire coalgebra for the sake of normalization and exponential performance degradation when expanding the set of primitive tests.
 To address these problems, we introduce two new algorithms for bisimulation checking: an on-the-fly bisimulation algorithm based on greedy bisimulation, which enables immediate termination upon discovering a counter-example and supports on-the-fly coalgebra generation with derivatives; and a symbolic algorithm that builds upon the on-the-fly algorithm while leveraging efficient SAT solvers to speed up boolean comparisons and compress the transition structures of GKAT coalgebra.
-To utilize the symbolic bisimulation checking, we also provide two methods to generate symbolic GKAT coalgebras from GKAT expressions, analogous to derivative and Thompson's construction in previous works.
+Additionally, to utilize the symbolic bisimulation checking, we provide two methods to generate symbolic GKAT coalgebras from GKAT expressions, analogous to derivative and Thompson's construction in previous works.
 We have proven the correctness of our algorithms and conducted brief complexity analyses.
 Finally, we implemented the symbolic algorithms in Rust, demonstrating orders-of-magnitude performance improvements over existing tools.
 \end{abstract}
@@ -280,18 +280,18 @@ Guarded Kleene Algebra With Tests, Kleene Algebra, Coalgebra, Program Verificati
 
 \section{Introduction}
 
-Kleene Algebra with Tests (KAT) is a staple algebra system to reason about program equivalence, and have found applications in numerous fields, including software-defined networks~\cite{anderson_NetKATSemanticFoundations_2014a,moeller_KATchFastSymbolic_2024,smolka_ScalableVerificationProbabilistic_2019,smolka_CantorMeetsScott_2017}, program transformations~\cite{kozen_BohmJacopiniTheorem_2008,angus_KleeneAlgebraTests_2001,kozen_NonlocalFlowControl_2008,grathwohl_KAT_2014,kozen_KleeneAlgebraTests_1996}, and program logics~\cite{antonopoulos_AlgebraAlignmentRelational_2023,zhang_DomainReasoningTopKAT_2024,zhang_IncorrectnessLogicKleene_2022c,kozen_HoareLogicKleene_2000,desharnais_ModalKleeneAlgebra_2004}.
+Kleene Algebra with Tests (KAT) is a staple algebra system to reason about program equivalence. It has found applications in numerous fields including software-defined networks~\cite{anderson_NetKATSemanticFoundations_2014a,moeller_KATchFastSymbolic_2024,smolka_ScalableVerificationProbabilistic_2019,smolka_CantorMeetsScott_2017}, program transformations~\cite{kozen_BohmJacopiniTheorem_2008,angus_KleeneAlgebraTests_2001,kozen_NonlocalFlowControl_2008,grathwohl_KAT_2014,kozen_KleeneAlgebraTests_1996}, and program logics~\cite{antonopoulos_AlgebraAlignmentRelational_2023,zhang_DomainReasoningTopKAT_2024,zhang_IncorrectnessLogicKleene_2022c,kozen_HoareLogicKleene_2000,desharnais_ModalKleeneAlgebra_2004}.
 Beyond its theoretical achievements, Kleene Algebra with Tests has also inspired several practical tools for specialized domains.
 Interestingly, despite the PSPACE-complete complexity of KAT, many tools developed are able to match, or even exceed, the performance of specialized state-of-the-art tools in their respective domains~\cite{moeller_KATchFastSymbolic_2024,smolka_ScalableVerificationProbabilistic_2019}.
 
 This surprising fact lead to the development of Guarded Kleene Algebra with Tests (GKAT)~\cite{smolka_GuardedKleeneAlgebra_2020}, a (co)algebraic system that seeks to encapsulate this efficient fragment of KAT.
-Indeed, the determinism of GKAT gives it a different coalgebra structure from KAT, and allows for a GKAT expression to be directly converted to a linear-sized coalgebra, as opposed to the exponential sized coalgebra produced KAT in general~\cite{smolka_GuardedKleeneAlgebra_2020,kozen_CoalgebraicTheoryKleene_2017}.
+The determinism of GKAT gives it a different coalgebra structure from KAT, and allows for a GKAT expression to be directly converted to a linear-sized coalgebra, as opposed to the exponential sized coalgebra produced KAT in general~\cite{smolka_GuardedKleeneAlgebra_2020,kozen_CoalgebraicTheoryKleene_2017}.
 
-However, as it current stands, the desirable theoretical properties of GKAT do not translate to tangible real-world performance. 
-The decision procedures for GKAT can often be slower than that of KAT, primarily due to the following two reasons.
+However, as it currently stands, the desirable theoretical properties of GKAT do not translate to tangible real-world performance. 
+The decision procedures for GKAT can often be slower than that of KAT, primarily, due to the following two reasons.
 
 First, the natural semantics of GKAT coalgebra is not the finite-trace model, but the infinite-trace model~\cite{smolka_GuardedKleeneAlgebra_2020,schmid_GuardedKleeneAlgebra_2021}.
-Thus, to determine finite-trace equivalence, it is necessary to \emph{normalize} the coalgebra first, requiring one to compute the entire coalgebra ahead-of-time; and iterate through its entirety.
+Thus, to determine finite-trace equivalence, it is necessary to \emph{normalize} the coalgebra first. This requires one to compute the entire coalgebra ahead-of-time and iterate through its entirety.
 Without the need to normalize prior to computing bisimulation, the decision procedure of KAT equivalence can terminate as soon as a counter-example has been found which can lead to better performance than the original GKAT decision algorithm~\cite{smolka_GuardedKleeneAlgebra_2020}.
 
 Secondly, the lack of symbolic algorithms makes GKAT a less desirable foundation for performance-critical applications.
@@ -472,7 +472,7 @@ In particular, \(G\) is a simple polynomial functor~\cite{jacobs_IntroductionCoa
     Recall that elementary polynomial functor~\cite{jacobs_IntroductionCoalgebraMathematics_2016} like \(G\) preserves pullback, hence the pullback also uniquely generates a GKAT coalgebra~\cite{rutten_UniversalCoalgebraTheory_2000}
 \end{proofEnd}
 
-Besides nice property with bisimulation, GKAT coalgebra is also deterministic, unlike Kleene Coalgebra with Tests (KCT)~\cite{kozen_CoalgebraicTheoryKleene_2017}.
+Besides the nice property of bisimulation, GKAT coalgebra is also deterministic, unlike Kleene Coalgebra with Tests (KCT)~\cite{kozen_CoalgebraicTheoryKleene_2017}.
 For each atom, states in a KCT can accept or reject the atom (but not both), yet states can also non-deterministically transition to multiple different states via the same atom, while executing different actions.
 As we will see later, the deterministic behavior of GKAT coalgebra not only enables a more versatile symbolic algorithm than KCT~\cite{pous_SymbolicAlgorithmsLanguage_2015}, but also present challenges. 
 Specifically, GKAT coalgebra requires normalization to compute finite trace equivalences~\cite{smolka_GuardedKleeneAlgebra_2020}, where we reroute all the transitions that cannot lead to acceptance immediately into rejection; and states that can never lead to acceptance are called \emph{dead states}.
@@ -492,7 +492,7 @@ Traditionally, live and dead states are defined by whether they can reach to an 
     A state \(s\) is \emph{accepting} if there exists an atom \(α ∈ \At\) s.t. \(δ(s, α) = \accept\).
     A state \(s₀\) is \emph{live} if there exists an accepting state \(sₙ\) s.t. there is a liveness chain:
     \[s₀ \transvia{α₁ ∣ p₁} s₁ \transvia{α₂ ∣ p₂} s₂ ⋯ \transvia{αₙ ∣ pₙ} sₙ.\]
-    A state is \emph{dead} if it is not dead.
+    A state is \emph{dead} if it is not live.
 \end{definition}
 However, besides directly working with this explicit definition, we can also give a more coalgebraic characterization of these properties.
 Specifically, by induction on the length of the path from one state to the next, we can show that the principle sub-coalgebra \(⟨s⟩_S\) exactly contains all the reachable state of \(s\) in the GKAT coalgebra \(S\).
@@ -557,7 +557,7 @@ The above theorem then leads to several interesting liveness preservation proper
 \subsection{Normalization And Semantics}
 
 Infinite-trace model \(��_ω\) is the final coalgebra of GKAT coalgebras~\cite{schmid_GuardedKleeneAlgebra_2021}.
-The finality of the model allows us to define the semantics of each state in a given GKAT coalgebra \(S\), which we will denote as \(⟦-⟧^{ω}_{S}: S → ��_ω\), where the semantic equivalences can identified by bisimulation~\cite{schmid_GuardedKleeneAlgebra_2021}:
+The finality of the model allows us to define the semantics of each state in a given GKAT coalgebra \(S\), which we will denote as \(⟦-⟧^{ω}_{S}: S → ��_ω\), where the semantic equivalences can be identified by bisimulation~\cite{schmid_GuardedKleeneAlgebra_2021}:
 \(⟦s⟧^{ω}_{S} = ⟦t⟧^{ω}_{T}\) if and only if there exists a bisimulation \({∼} ⊆ S × T\), s.t. \(s ∼ t\).
 
 The infinite trace equivalences can be directly computed with bisimulation on derivative, which supports on-the-fly algorithm as demonstrated by similar systems~\cite{kozen_CoalgebraicTheoryKleene_2017,almeida_DecidingKATHoare_2012,pous_SymbolicAlgorithmsLanguage_2015}. 
@@ -638,7 +638,7 @@ Second, normalization is an endofunctor in the category of GKAT coalgebra. This 
     By letting the homomorphism in~\Cref{thm:norm-functor} to be the inclusion homomorphism \(i: S' → S\)
 \end{proofEnd}
 
-Because of the functoriality, we can show that two states are infinite-trace equivalent implies these two states are finite-trace equivalent.
+Because of the functoriality, we can show that two states that are infinite-trace equivalent implies these two states are finite-trace equivalent.
 This gives us more tool in proving semantic equivalence between two states in GKAT coalgebras: proving bisimulation of these two states in the \emph{non-normalized} GKAT coalgebra can also obtain semantic equivalence for two states.
 
 \begin{theoremEnd}{corollary}\label{thm:inf-trace-equiv-implies-fin-trace-equiv}
@@ -724,7 +724,7 @@ Specifically, \(∼_d\) serves a connection between \(≈\) and its underlying b
 We show the following corollary to demonstrate the usefulness of \(∼_d\).
 
 \begin{theoremEnd}{corollary}\label{thm:greedy-bisim-exists-unique}
-    For any bisimulation between two normalized GKAT coalgebra \({∼} ⊆ \norm(S) × \norm(U)\), a greedy bisimulation \(≈\) with \(∼\) as underlying bisimulation exists and is unique.
+    For any bisimulation between two normalized GKAT coalgebras \({∼} ⊆ \norm(S) × \norm(U)\), a greedy bisimulation \(≈\) with \(∼\) as underlying bisimulation exists and is unique.
 \end{theoremEnd}
 
 \begin{proofEnd}
@@ -964,13 +964,12 @@ Our algorithm will be largely based on recursively checking these conditions to 
 %     Finally because \(∼\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\), then so is \({∼} ∖ ⟨(s, u)⟩_∼\) (\Cref{thm:})
 % \end{proofEnd}
 
-Before we introduce the optimized algorithm, we will first briefly sketch the liveness-check algorithm, which will use a depth-first search to check whether the there exists any accepting states in reachable states of \(s ∈ S\): if there exists any accepting state in \(⟨s⟩_S\), then the algorithm terminates immediately, and return that \(s\) is live, otherwise it would return all the states in \(⟨s⟩\), and by~\cref{thm:dead-iff-all-reachable-dead}, all the states in \(⟨s⟩\) is dead.
+Before we introduce the optimized algorithm, we will first briefly sketch the liveness-check algorithm. It uses a depth-first search to check whether there exists any accepting states in reachable states of \(s ∈ S\): if there exists any accepting state in \(⟨s⟩_S\), then the algorithm terminates immediately, and return that \(s\) is live, otherwise it would return all the states in \(⟨s⟩\), and by~\cref{thm:dead-iff-all-reachable-dead}, all the states in \(⟨s⟩\) is dead.
 In this case, we use depth-first search for its simplicity to implement, other search algorithm will also be sound.
 
 We will cache all the known dead states from the previous searches; whether a state \(s\) is in this cache can be checked by the function call \Call{knownDead\(_S\)}{$s$}. 
 The function \Call{isDead\(_S\)}{$s$} will first check if \(s\) is known to be dead, and invoke the search algorithm in the coalgebra \(⟨s⟩\), if \(s\) is not in the cached dead states.
 Because the non-symbolic version of liveness checking is similar to the symbolic version, we only provide the symbolic version of this algorithm in~\cref{lst:dead-state-detection}.
-
 
 \begin{algorithm*}
     \caption{On-the-fly bisimulation algorithm}\label{alg:bisim}
@@ -1020,7 +1019,7 @@ Because the non-symbolic version of liveness checking is similar to the symbolic
     \end{algorithmic}
 \end{algorithm*}
 
-Finally, we present our equivalence-checking algorithm as~\cref{alg:bisim}, which are mostly checking the conditions in~\cref{thm:recursive-construction}.  
+Finally, we present our equivalence-checking algorithm as~\cref{alg:bisim}, which is mostly checking the conditions in~\cref{thm:recursive-construction}.  
 In the algorithm, we use the text ``implies'', ``iff'', ``and'' are logical operators that takes booleans (i.e. true or false) and return a boolean.
 Similarly, \(\&\!\&\) is the logical and operation, which is the same as the the written ``and''. 
 We opt to use \(\&\!\&\), instead of ``and'', to separate the conditions for clarity; formally \(\&\!\&\) is the same function as ``and'', but binds less tightly.
@@ -1032,17 +1031,17 @@ First, we uses a union-find data structure to keep track of existing state, whic
 Indeed, by looking for a greedy bisimulation that is also equivalence relation, we can use more efficient structures like union-find, instead of set of pairs; and the correctness of such optimization is justified by~\Cref{thm:greedy-bisim-iff-greedy-bisim-equiv}.
 The second optimization is to terminate and return false as soon as we know one of \(s, u\) is dead and the other is not dead.
 Indeed, in order for \(s ≈ u\) for any greedy bisimulation \(≈\), \(s\) and \(u\) necessarily have the same liveness in their respective GKAT coalgebra.
-And in the other case, if both \(s\) and \(u\) are dead in their respective coalgebra, we will skip the check on all the reachable state of \((s, u)\) following \(δ_≈\), because a pair of dead state is necessarily in the maximal greedy bisimulation \(≊\) (\Cref{thm:bisim-between-dead,thm:max-bisim-is-max-greedy-bisim}).
+And in the other case, if both \(s\) and \(u\) are dead in their respective coalgebra, we will skip the check on all the reachable state of \((s, u)\) following \(δ_≈\), because a pair of dead states is necessary in the maximal greedy bisimulation \(≊\) (\Cref{thm:bisim-between-dead,thm:max-bisim-is-max-greedy-bisim}).
 
-Concerning the complexity, our algorithm have similar worst case complexity as the original algorithm.
+Concerning the complexity, our algorithm has similar worst case complexity as the original algorithm.
 In particular, when deciding the trace equivalence of two states \(s ∈ S\) and \(u ∈ U\), the original algorithm~\cite{smolka_GuardedKleeneAlgebra_2020} requires one pass of \(⟨s⟩\) and \(⟨u⟩\) to normalize them, then the bisimulation will visit each pair of states in \(⟨s⟩ × ⟨u⟩\) at most once, which means that they will visit at most \(|⟨s⟩ + ⟨u⟩ + ⟨s⟩ × ⟨u⟩|\) number of states.
 
 Similarly, our equivalence-checking algorithm attempts to find a bisimulation first, which visits each pair in \(⟨s⟩ × ⟨u⟩\) at most once, and when a mismatch is found in the process, the liveness-checking algorithm is then invoked.
-Crucially, our algorithm satisfy the following property: if the liveness-checking algorithm find a live or accepting state, the entire equivalence checking algorithm will halt and return false.
+Crucially, our algorithm satisfies the following property: if the liveness-checking algorithm finds a live or accepting state, the entire equivalence checking algorithm will halt and return false.
 Thus, by caching all the known dead states, the liveness-checking only visits states in \(⟨s⟩\) and \(⟨u⟩\) at most once.
 Therefore, the worst case of our algorithm is also \(|⟨s⟩ × ⟨u⟩ + ⟨s⟩ + ⟨u⟩|\).
 
-However, the on-the-fly algorithm will always out-perform the original algorithm, in terms of number of states visited, because this algorithm only invoke liveness check when necessary.
+However, the on-the-fly algorithm will always out-perform the original algorithm, in terms of number of states visited, because this algorithm only invokes liveness checking when necessary.
 In the extreme case when the two input states are infinite-trace equivalent, the on-the-fly algorithm can skip liveness checking entirely.
 
 
@@ -1167,7 +1166,7 @@ We will then use \(ρ̂(s): \BExp_T\) to represent all the atoms that the state 
     \end{align*} 
     and both \(ϵ̂₁, ϵ̂₂\) will return constant \(0\).
     These two symbolic GKAT coalgebra \(Ŝ₁ ≜ (S, δ̂₁, ϵ̂₁)\) and \(Ŝ₂ ≜ (S, δ̂₂, ϵ̂₂)\) have the same lowering and semantics, yet, they are different.
-    It is possible to construct symbolic representations that satisfies canonicity, yet we opt to use our current representation for ease of construction and computational efficiency.
+    It is possible to construct symbolic representations that satisfy canonicity, yet we opt to use our current representation for ease of construction and computational efficiency.
 \end{remark}
 
 \begin{theoremEnd}{theorem}[Functoriality]\label{thm:lowering-functor}
@@ -1224,7 +1223,7 @@ We can then define the symbolic equivalence algorithm, with its correctness stat
     \end{algorithmic}
 \end{algorithm*}
 
-Similar to the non-symbolic version of the algorithm, \cref{alg:symb-bisim} first check if either of the input states is dead, then  recursively check all the conditions in~\Cref{thm:symb-recursive-construction}, where \(\mathrel{\&\!\&}\) denotes the logical and operator on boolean data type.
+Similar to the non-symbolic version of the algorithm, \cref{alg:symb-bisim} first checks if either of the input states is dead, then  recursively checks all the conditions in~\Cref{thm:symb-recursive-construction}, where \(\mathrel{\&\!\&}\) denotes the logical and operator on boolean data type.
 The symbolic version of the liveness checking algorithm is also based on a graph search algorithm on all the reachable state, where we try to identify an accepting state by checking whether \(⋁ ϵ̂(s) ≡ 0\).
 The only deviation from the non-symbolic cases is that we do not follow empty transitions in the symbolic case, i.e. if \(δ̂(s) ≜ (b, s', p)\) and \(b ≡ 0\), we will not search \(s'\) to check the liveness of \(s'\).
 In~\Cref{sec:optimization-implementation}, we will outline a simple modification for the symbolic GKAT coalgebra generation algorithm in~\Cref{sec:symb-gkat-construction} to avoid generating empty transitions, allowing us to skip the emptiness check when deciding whether a state is dead.
