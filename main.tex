@@ -556,17 +556,17 @@ The above theorem then leads to several interesting liveness preservation proper
 
 \subsection{Normalization And Semantics}
 
-Infinite-trace model \(��_ω\) is the final coalgebra of GKAT coalgebras~\cite{schmid_GuardedKleeneAlgebra_2021}.
-The finality of the model allows us to define the semantics of each state in a given GKAT coalgebra \(S\), which we will denote as \(⟦-⟧^{ω}_{S}: S → ��_ω\), where the semantic equivalences can identified by bisimulation~\cite{schmid_GuardedKleeneAlgebra_2021}:
+Infinite-trace model \(\mathscr{G}_ω\) is the final coalgebra of GKAT coalgebras~\cite{schmid_GuardedKleeneAlgebra_2021}.
+The finality of the model allows us to define the semantics of each state in a given GKAT coalgebra \(S\), which we will denote as \(⟦-⟧^{ω}_{S}: S → \mathscr{G}_ω\), where the semantic equivalences can identified by bisimulation~\cite{schmid_GuardedKleeneAlgebra_2021}:
 \(⟦s⟧^{ω}_{S} = ⟦t⟧^{ω}_{T}\) if and only if there exists a bisimulation \({∼} ⊆ S × T\), s.t. \(s ∼ t\).
 
 The infinite trace equivalences can be directly computed with bisimulation on derivative, which supports on-the-fly algorithm as demonstrated by similar systems~\cite{kozen_CoalgebraicTheoryKleene_2017,almeida_DecidingKATHoare_2012,pous_SymbolicAlgorithmsLanguage_2015}. 
-However, the \emph{finite} trace model \(��\) is the final coalgebra of GKAT coalgebras without dead states, which we call \emph{normal GKAT coalgebra}~\cite{smolka_GuardedKleeneAlgebra_2020}. 
+However, the \emph{finite} trace model \(\mathscr{G}\) is the final coalgebra of GKAT coalgebras without dead states, which we call \emph{normal GKAT coalgebra}~\cite{smolka_GuardedKleeneAlgebra_2020}. 
 Fortunately every GKAT coalgebra can be normalized by rerouting all the transitions from dead states to rejection.
 Concretely, given a GKAT coalgebra \(S ≜ (S, δ_S)\), \(δ_{\norm(S)} : S → G(S)\) is defined as \(δ_{\norm(S)}(s, α) ≜ \reject\) when \(δ_S(s, α) = (s', p)\) and \(s'\) is dead in \(S\); and \(δ_{\norm(S)}(s, α) ≜ δ_S(s, α)\) otherwise. 
 We call \(\norm(S) ≜ (S, δ_{\norm(S)})\) the \emph{normalized} coalgebra of \(S\).
 
-And we use \(⟦-⟧_S: \norm(S) → ��\) to denote the finite trace semantics of GKAT coalgebra, which is the unique homomorphism into the final coalgebra \(��\). 
+And we use \(⟦-⟧_S: \norm(S) → \mathscr{G}\) to denote the finite trace semantics of GKAT coalgebra, which is the unique homomorphism into the final coalgebra \(\mathscr{G}\). 
 The finite trace equivalence between \(s ∈ S\) and \(u ∈ U\) can be decided by first normalizing \(S\) and \(U\) then deciding whether there is a bisimulation \({∼} ⊆ \norm(S) × \norm(U)\) s.t. \(s ∼ t\).
 For a more detailed explanation on the finite trace semantics, we refer the reader to the work of \Citeauthor{smolka_GuardedKleeneAlgebra_2020}~\cite{smolka_GuardedKleeneAlgebra_2020}, whereas we will recall the correctness theorem here.
 
@@ -1131,8 +1131,8 @@ Symbolic GKAT coalgebra, instead of computing the behavior of each atom individu
 This optimization leads to space-efficient coalgebras and an equivalence checking algorithm making use of off-the-shelf SAT solvers.
 Specifically, given a set of primitive actions \(K\) and primitive tests \(T\), a \emph{symbolic GKAT coalgebra} \(Ŝ ≜ (S, ϵ̂, δ̂)\) consists of a state set \(S\) and an accepting function \(ϵ̂\) and a transition function \(δ̂\):
 \begin{mathpar}
-    ϵ̂: S → ��(\BExp_T), \and
-    δ̂: S → ��(\BExp_T × S × K).
+    ϵ̂: S → \mathscr{P}(\BExp_T) \and
+    δ̂: S → \mathscr{P}(\BExp_T × S × K).
 \end{mathpar}
 This coalgebra is also required to satisfy the disjointedness condition, i.e. for all states \(s ∈ S\), the boolean expressions that \(s\) accepts \(ϵ̂(s)\) and the boolean expressions that enables \(s\) to transition \(\{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) is disjoint; also the conjunction of any two distinct expressions from the set \(ϵ̂(s) ∪ \{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) is equivalent to \(0\) under boolean algebra.
 
@@ -1363,9 +1363,9 @@ A useful operation for Thompson's construction is the following guard operation,
 Besides guarding transition and acceptance with different conditions in if statements and while loops, the guard operator can also be used to simulate uniform continuation. Specifically, we can use \(⟨ϵ̂(s)|δ(s')\) to connecting all the accepting transition of \(s\) to the dynamic \(δ(s')\).
 
 With these definitions in mind, we can define symbolic Thompson's construction inductively as in~\Cref{tab:symb-Thompson-construction}, where we let \((S₁, ϵ̂₁, δ̂₁)\) and \((S₂, ϵ̂₂, δ̂₂)\) to be result of Thompson's construction for \(e₁\) and \(e₂\) respectively.
-In this table, \(S₁ + S₂\) denotes the disjoint union of \(S₁\) and \(S₂\), and for any two transition dynamics \(δ₁(s₁): ��(\BExp × S₁ × K)\) and \(δ₂(s₂): ��(\BExp × S₂ × K)\), we can also compose them in parallel as \(δ₁(s₁) + δ₂(s₂)\):
+In this table, \(S₁ + S₂\) denotes the disjoint union of \(S₁\) and \(S₂\), and for any two transition dynamics \(δ₁(s₁): \mathscr{P}(\BExp × S₁ × K)\) and \(δ₂(s₂): \mathscr{P}(\BExp × S₂ × K)\), we can also compose them in parallel as \(δ₁(s₁) + δ₂(s₂)\):
 \begin{align*}
-    δ₁(s₁) & + δ₂(s₂): ��(\BExp × (S₁ + S₂) × K) \\*
+    δ₁(s₁) & + δ₂(s₂): \mathscr{P}(\BExp × (S₁ + S₂) × K) \\*
     δ₁(s₁) & + δ₂(s₂) ≜ \\*
         & \{(b, \mathrm{inj}ₗ(s₁'), p) ∣ (b, s₁', p) ∈ δ₁(s₁)\} ∪ \\*
         & \{(b, \mathrm{inj}ᵣ(s₂'), p) ∣ (b, s₂', p) ∈ δ₂(s₂)\},
@@ -1586,7 +1586,7 @@ Turns out, all of these questions can be answered by a homomorphism from symboli
 
 \begin{proofEnd}
     By functoriality of lowering~\cref{thm:lowering-functor}, then \(h: S_{e} → D\) is a homomorphism on their lowerings. 
-    Because homomorphism preserves semantics (\Cref{thm:hom-preserves-semantics}) \(⟦s^*⟧^{ω}_{S_{e}} = ⟦h(s^*)⟧^{ω}_{D} = ⟦e⟧^{ω}_{D}\), where \(⟦-⟧^{ω}\) is the infinite trace semantics i.e. the unique map into the final GKAT coalgebra \(��_ω\).
+    Because homomorphism preserves semantics (\Cref{thm:hom-preserves-semantics}) \(⟦s^*⟧^{ω}_{S_{e}} = ⟦h(s^*)⟧^{ω}_{D} = ⟦e⟧^{ω}_{D}\), where \(⟦-⟧^{ω}\) is the infinite trace semantics i.e. the unique map into the final GKAT coalgebra \(\mathscr{G}_ω\).
 
     Finally, because infinite trace equivalence implies finite trace equivalence (\Cref{thm:inf-trace-equiv-implies-fin-trace-equiv}) and the correctness of derivative (\Cref{thm:derivative-correctness}), we obtain the following chain of equalities:
     \(⟦s^*⟧_{S_{e}} = ⟦e⟧_{D} = ⟦e⟧\).
