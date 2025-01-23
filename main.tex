@@ -698,7 +698,7 @@ Given any bisimulation \({∼} ⊆ S × U\), we can construct a GKAT coalgebra \
 \begin{theoremEnd}{lemma}\label{thm:dead-construction-greedy-bisim}
     Given any eager bisimulation \({≈} ⊆ S × U\) with the underlying bisimulation \({∼}\), the following relation \({∼_d} ⊆ S × U\):
     \[{∼_d} ≜ {∼} ∪ \{(s, u) ∣ \text{\(s\) and \(u\) are dead in \(S\) and \(U\)}\},\]
-    form a GKAT coalgebra the transition function \(δ_≈\) in~\Cref{def:greedy-bisim}, which implies \({≈} ⊑ {∼_d}\).
+    forms a GKAT coalgebra with the transition function \(δ_≈\) in~\Cref{def:greedy-bisim}, which implies \({≈} ⊑ {∼_d}\).
     Furthermore, \(\norm(∼_d)\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\).
 \end{theoremEnd}
 
@@ -1180,7 +1180,7 @@ We will then use \(ρ̂(s): \BExp_T\) to represent all the atoms that the state 
     TODO: finish.
 \end{proofEnd}
 
-The functoriality states that a homomorphism on two symbolic coalgebras induces a homomorphism of on their lowing; similarly, a bisimulation on symbolic GKAT coalgebra also induces a bisimulation on their lowering.
+The functoriality states that a homomorphism on two symbolic coalgebras induces a homomorphism of on their lowering; similarly, a bisimulation on symbolic GKAT coalgebra also induces a bisimulation on their lowering.
 However, the converse is not true, precisely because of the canonicity problem noted in~\Cref{rem:canonicity}: take the \(Ŝ₁\) and \(Ŝ₂\) in~\Cref{rem:canonicity}, because they have the same lowering, therefore the identity homomorphism is a homomorphism on their lowerings, but there is no homomorphism from \(Ŝ₁\) to \(Ŝ₂\).
 
 We can then define the symbolic equivalence algorithm, with its correctness stated in~\cref{thm:recursive-construction}.
