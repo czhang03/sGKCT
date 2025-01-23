@@ -1116,18 +1116,18 @@ Although both algorithms have similar worst case complexity, the on-the-fly algo
 
 \section{Symbolic Coalgebra and Algorithm}\label{sec:symb-gkat-greedy-bisim}
 
-Although \cref{alg:bisim} is on-the-fly, it still uses GKAT coalgebra, which contains exponentially many transitions with respect to the number of primitive tests \(|T|\).
+Although \Cref{alg:bisim} is on-the-fly, it still uses GKAT coalgebra, which contains exponentially many transitions with respect to the number of primitive tests \(|T|\).
 Concretely, the transition function \(δ: S → \At_T → \{\accept, \reject\} + S × K\) requires computing the transition result for each \emph{atom}, and the number of atoms \(\At_T ≅ 2^{T}\) is exponential to the size of primitive tests in \(T\).
 This is also why several GKAT-related complexity results only consider constant sized \(T\).
 
 Symbolic GKAT coalgebra, instead of computing the behavior of each atom individually, groups atoms into boolean expressions. 
-This optimization leads to space-efficient coalgebras and an equivalence checking algorithm making use of off-the-shelf SAT solvers.
+This optimization leads to space-efficient coalgebras and an equivalence checking algorithm that can make use of off-the-shelf SAT solvers.
 Specifically, given a set of primitive actions \(K\) and primitive tests \(T\), a \emph{symbolic GKAT coalgebra} \(Ŝ ≜ (S, ϵ̂, δ̂)\) consists of a state set \(S\) and an accepting function \(ϵ̂\) and a transition function \(δ̂\):
 \begin{mathpar}
     ϵ̂: S → \mathscr{P}(\BExp_T) \and
     δ̂: S → \mathscr{P}(\BExp_T × S × K).
 \end{mathpar}
-This coalgebra is also required to satisfy the disjointedness condition, i.e. for all states \(s ∈ S\), the boolean expressions that \(s\) accepts \(ϵ̂(s)\) and the boolean expressions that enables \(s\) to transition \(\{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) is disjoint; also the conjunction of any two distinct expressions from the set \(ϵ̂(s) ∪ \{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) is equivalent to \(0\) under boolean algebra.
+This coalgebra is required to satisfy the disjointedness condition, i.e. for all states \(s ∈ S\), the boolean expressions that \(s\) accepts \(ϵ̂(s)\) and the boolean expressions that enables \(s\) to transition \(\{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) are disjoint; also the conjunction of any two distinct expressions from the set \(ϵ̂(s) ∪ \{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) is equivalent to \(0\) under boolean algebra.
 
 We name \(ϵ̂\) the accepting function because intuitively a state \(s\) accepts an atom \(α\) when there exists a \(b ∈ ϵ̂(s)\), s.t. \(α ≤ b\); similarly, \(δ̂\) is called the transition function because a state \(s\) transitions to \(s'\) via atom \(α\) while executing \(p\) when there exists \((b, s', p) ∈ δ̂(s)\) and \(α ≤ b\).
 With the above intuition in mind, a symbolic GKAT coalgebra \(Ŝ ≜ (S, ϵ̂, δ̂)\) can be lowered into a GKAT coalgebra \(S ≜ (S, δ)\) in the following manner:
@@ -1172,7 +1172,7 @@ We will then use \(ρ̂(s): \BExp_T\) to represent all the atoms that the state 
     TODO: finish.
 \end{proofEnd}
 
-The functoriality states that a homomorphism on two symbolic coalgebras induces a homomorphism of on their lowering; similarly, a bisimulation on symbolic GKAT coalgebra also induces a bisimulation on their lowering.
+Functoriality states that a homomorphism on two symbolic coalgebras induces a homomorphism of on their lowering; similarly, a bisimulation on symbolic GKAT coalgebra also induces a bisimulation on their lowering.
 However, the converse is not true, precisely because of the canonicity problem noted in~\Cref{rem:canonicity}: take the \(Ŝ₁\) and \(Ŝ₂\) in~\Cref{rem:canonicity}, because they have the same lowering, therefore the identity homomorphism is a homomorphism on their lowerings, but there is no homomorphism from \(Ŝ₁\) to \(Ŝ₂\).
 
 We can then define the symbolic equivalence algorithm, with its correctness stated in~\cref{thm:recursive-construction}.
@@ -1217,12 +1217,12 @@ We can then define the symbolic equivalence algorithm, with its correctness stat
     \end{algorithmic}
 \end{algorithm*}
 
-Similar to the non-symbolic version of the algorithm, \cref{alg:symb-bisim} first checks if either of the input states is dead, then  recursively checks all the conditions in~\Cref{thm:symb-recursive-construction}, where \(\mathrel{\&\!\&}\) denotes the logical and operator on boolean data type.
-The symbolic version of the liveness checking algorithm is also based on a graph search algorithm on all the reachable state, where we try to identify an accepting state by checking whether \(⋁ ϵ̂(s) ≡ 0\).
-The only deviation from the non-symbolic cases is that we do not follow empty transitions in the symbolic case, i.e. if \(δ̂(s) ≜ (b, s', p)\) and \(b ≡ 0\), we will not search \(s'\) to check the liveness of \(s'\).
-In~\Cref{sec:optimization-implementation}, we will outline a simple modification for the symbolic GKAT coalgebra generation algorithm in~\Cref{sec:symb-gkat-construction} to avoid generating empty transitions, allowing us to skip the emptiness check when deciding whether a state is dead.
-TODO: I think we need to make sure that we are presenting the dead state checking algorithm ignoring the empty transition.
-After which we can comment it here, to claim that this is for generality.
+Similar to the non-symbolic version of the algorithm, \Cref{alg:symb-bisim} first checks if either of the input states is dead, then  recursively checks all the conditions in~\Cref{thm:symb-recursive-construction}, where \(\mathrel{\&\!\&}\) denotes the logical conjunction operator on booleans.
+The symbolic version of the liveness checking algorithm is also based on a graph search algorithm on all the reachable state where we try to identify an accepting state by checking whether \(⋁ ϵ̂(s) ≡ 0\).
+The only deviation from the non-symbolic case is that we do not follow empty transitions in the symbolic case, i.e. if \(δ̂(s) ≜ (b, s', p)\) and \(b ≡ 0\), we will not search \(s'\) to check the liveness of \(s'\).
+In~\Cref{sec:optimization-implementation}, we will outline a simple modification for the symbolic GKAT coalgebra generation algorithm in~\Cref{sec:symb-gkat-construction} to avoid generating empty transitions, allowing us to skip the emptiness check when deciding whether a state is dead or not.
+% TODO: I think we need to make sure that we are presenting the dead state checking algorithm ignoring the empty transition.
+% After which we can comment it here, to claim that this is for generality.
 
 
 \section{Symbolic GKAT Coalgebra Construction}\label{sec:symb-gkat-construction}
