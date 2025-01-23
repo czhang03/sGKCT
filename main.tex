@@ -665,12 +665,12 @@ This gives us more tool in proving semantic equivalence between two states in GK
 \section{On-The-Fly Bisimulation}\label{sec:greedy-bisim}
 
 The original algorithm for deciding GKAT equivalences~\cite{smolka_GuardedKleeneAlgebra_2020} requires the entire coalgebra to be known prior to the execution of the bisimulation algorithm; specifically, it is necessary to iterate through the entire coalgebra in order to identify the liveness of every single states and perform the normalization operation.
-This limitation poses challenges to design an efficient on-the-fly algorithm for GKAT.
+This limitation poses challenges to the design of an efficient on-the-fly algorithm for GKAT.
 To make the equivalence-checking procedure scalable, we propose to greedily run the bisimulation algorithm and only invoke liveness detection when a discrepancy is found. 
 For example, when deciding the trace equivalence between \(s ∈ S\) and \(u ∈ U\), if \(δ_S(s, α) = (s', p)\) and \(δ_U(u, α) = (u', p)\), we will proceed to recurse on \(s'\) and \(u'\), without checking the liveness of \(s'\) and \(u'\).
-However, if \(s\) rejects \(α\) instead of transitioning to \(s'\), we will then check whether \(u'\) is dead.
+However, if \(s\) rejects \(α\), instead of transitioning to \(s'\), we will check if \(u'\) is dead.
 
-This approach offers several benefit: first, because the liveness detection is only called when necessary, thus it is unlikely to iterate through the entire coalgebra; second, the algorithm can short-circuit on a counter-example, allowing termination even before all the states are explored; finally, the algorithm supports on-the-fly constructions like derivatives, because the coalgebra no longer is required to be fully constructed.
+This approach offers several benefit: first, because the liveness detection is only called when necessary, it is unlikely to iterate through the entire coalgebra; second, the algorithm can short-circuit on a counter-example, allowing termination before all the states are explored; finally, the algorithm supports on-the-fly constructions like derivatives as the coalgebra is no longer required to be fully constructed.
 
 The correctness argument of this on-the-fly algorithm is centered around the following coalgebraic structure, which we named ``greedy bisimulation''.
 
@@ -693,7 +693,7 @@ The correctness argument of this on-the-fly algorithm is centered around the fol
     We call \(∼\) \emph{the underlying bisimulation} of \(≈\).
 \end{definition}
 
-Given any bisimulation \({∼} ⊆ S × U\), we can construct a GKAT coalgebra \(∼_d\) s.t. it is almost a greedy bisimulation, i.e. it is closed under \(δ_≈\) in~\Cref{def:greedy-bisim}, and contains \(∼\), except it is not the \emph{least} GKAT coalgebra that satisfy these properties.
+Given any bisimulation \({∼} ⊆ S × U\), we can construct a GKAT coalgebra \(∼_d\) s.t. it is almost a greedy bisimulation, i.e. it is closed under \(δ_≈\) in~\Cref{def:greedy-bisim}, and contains \(∼\), except it is not necessarily the \emph{least} GKAT coalgebra that satisfies these properties.
 
 \begin{theoremEnd}{lemma}\label{thm:dead-construction-greedy-bisim}
     Given any eager bisimulation \({≈} ⊆ S × U\) with the underlying bisimulation \({∼}\), the following relation \({∼_d} ⊆ S × U\):
@@ -721,7 +721,7 @@ Given any bisimulation \({∼} ⊆ S × U\), we can construct a GKAT coalgebra \
     TODO: bisimulation are uniquely determined by its carrier.
 \end{proofEnd}
 
-Although the proof of~\Cref{thm:dead-construction-greedy-bisim} is basically by unfolding the definition, \(∼_d\) turns out to be a important structure. 
+Although the proof of~\Cref{thm:dead-construction-greedy-bisim} basically proceeds by unfolding the definition, \(∼_d\) turns out to be an important structure. 
 Specifically, \(∼_d\) serves a connection between \(≈\) and its underlying bisimulation \(∼\), and the order \({∼} ⊆ {≈} ⊑ {~_d}\) will reveal many structural properties of \(≈\).
 We show the following corollary to demonstrate the usefulness of \(∼_d\).
 
@@ -797,11 +797,9 @@ We show the following corollary to demonstrate the usefulness of \(∼_d\).
     By~\cref{thm:greedy-bisim-dead-or-bisim}, we can case analysis on \(s\) and \(u\): if \(s ∼ u\), then \(s ≡ u\) because \(≡\) is the maximal bisimulation; and if \(s\) and \(u\) are both dead, then by~\cref{thm:bisim-between-dead}, \(s ≡ u\).
 \end{proofEnd}
 
-\Cref{thm:max-bisim-is-max-greedy-bisim} allows us to take the maximal bisimulation as a greedy bisimulation, aiding several proofs.
+\Cref{thm:max-bisim-is-max-greedy-bisim} allows us to take the maximal bisimulation as a greedy bisimulation, aiding several proofs. 
 
-
-
-Similar to the correctness of bisimulation between normalized coalgebra (\Cref{thm:norm-bisim-correctness}), we also establish a correctness theorem for greedy bisimulation, i.e. there exists 
+Similarly to the correctness of bisimulation between normalized coalgebra (\Cref{thm:norm-bisim-correctness}), we also establish a correctness theorem for greedy bisimulation, i.e. there exists a greedy bisimulation between two states if and only if they are semantically equivalent.
 
 \begin{theoremEnd}{theorem}[Correctness]
     Given two states in GKAT coalgebras \(s ∈ S\) and \(u ∈ ,U\), there exists a greedy bisimulation \({≈} ⊆ S × U\) s.t. \(s ≈ u\), if and only if \(⟦s⟧_S = ⟦u⟧_U\).
@@ -966,11 +964,10 @@ Our algorithm will be largely based on recursively checking these conditions to 
 %     Finally because \(∼\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\), then so is \({∼} ∖ ⟨(s, u)⟩_∼\) (\Cref{thm:})
 % \end{proofEnd}
 
-Before we introduce the optimized algorithm, we will first briefly sketch the liveness-check algorithm. It uses a depth-first search to check whether there exists any accepting states in reachable states of \(s ∈ S\): if there exists any accepting state in \(⟨s⟩_S\), then the algorithm terminates immediately, and return that \(s\) is live, otherwise it would return all the states in \(⟨s⟩\), and by~\cref{thm:dead-iff-all-reachable-dead}, all the states in \(⟨s⟩\) is dead.
-In this case, we use depth-first search for its simplicity to implement, other search algorithm will also be sound.
+Before we introduce the optimized algorithm, we will first briefly sketch the liveness-check algorithm. It uses depth-first search to check whether there exists any accepting states in the reachable states of \(s ∈ S\): if there exists an accepting state in \(⟨s⟩_S\), then the algorithm terminates immediately, and returns that \(s\) is live, otherwise it would return all the states in \(⟨s⟩\), and by~\cref{thm:dead-iff-all-reachable-dead}, all the states in \(⟨s⟩\) are dead. Note that we use depth-first search here for its simplicity, other search algorithms will also be sound.
 
-We will cache all the known dead states from the previous searches; whether a state \(s\) is in this cache can be checked by the function call \Call{knownDead\(_S\)}{$s$}. 
-The function \Call{isDead\(_S\)}{$s$} will first check if \(s\) is known to be dead, and invoke the search algorithm in the coalgebra \(⟨s⟩\), if \(s\) is not in the cached dead states.
+We cache all the known dead states from the previous searches; whether a state \(s\) is in this cache can be checked by the function call \Call{knownDead\(_S\)}{$s$}. 
+The function \Call{isDead\(_S\)}{$s$} will first check if \(s\) is known to be dead, and invoke the search algorithm in the coalgebra \(⟨s⟩\) if \(s\) is not in the cached dead states.
 Because the non-symbolic version of liveness checking is similar to the symbolic version, we only provide the symbolic version of this algorithm in~\cref{lst:dead-state-detection}.
 
 \begin{algorithm*}
@@ -1021,30 +1018,25 @@ Because the non-symbolic version of liveness checking is similar to the symbolic
     \end{algorithmic}
 \end{algorithm*}
 
-Finally, we present our equivalence-checking algorithm as~\cref{alg:bisim}, which is mostly checking the conditions in~\cref{thm:recursive-construction}.  
-In the algorithm, we use the text ``implies'', ``iff'', ``and'' are logical operators that takes booleans (i.e. true or false) and return a boolean.
-Similarly, \(\&\!\&\) is the logical and operation, which is the same as the the written ``and''. 
-We opt to use \(\&\!\&\), instead of ``and'', to separate the conditions for clarity; formally \(\&\!\&\) is the same function as ``and'', but binds less tightly.
+Finally, we present our equivalence-checking algorithm as~\Cref{alg:bisim} which basically just checks the conditions in~\Cref{thm:recursive-construction}. In the algorithm, ``implies'', ``iff'', ``and'' are logical operators that take booleans (i.e. true or false) and return a boolean. Additionally, \(\&\!\&\) is the logical conjunction operation. It is the same as the the written ``and''. We use \(\&\!\&\), instead of ``and'', to separate the conditions for clarity; logically \(\&\!\&\) is the same function as ``and'', but syntactically binds less tightly.
 
-Intuitively, starting with the pair of state \((s, u)\), it will explore all of its reachable state following \(δ_≈\) in~\cref{def:greedy-bisim}.
-In other word, if the algorithm terminates and returned true, we will have explored every state in \(⟨(s, u)⟩_{≊}\) where \(≊\) is the maximal greedy bisimulation between \(S\) and \(U\).
-However, our algorithm slightly deviates from the ideal scenario described above, specifically we implemented two optimization.
-First, we uses a union-find data structure to keep track of existing state, which organizes the explored states into equivalence classes.
-Indeed, by looking for a greedy bisimulation that is also equivalence relation, we can use more efficient structures like union-find, instead of set of pairs; and the correctness of such optimization is justified by~\Cref{thm:greedy-bisim-iff-greedy-bisim-equiv}.
-The second optimization is to terminate and return false as soon as we know one of \(s, u\) is dead and the other is not dead.
-Indeed, in order for \(s ≈ u\) for any greedy bisimulation \(≈\), \(s\) and \(u\) necessarily have the same liveness in their respective GKAT coalgebra.
-And in the other case, if both \(s\) and \(u\) are dead in their respective coalgebra, we will skip the check on all the reachable state of \((s, u)\) following \(δ_≈\), because a pair of dead states is necessary in the maximal greedy bisimulation \(≊\) (\Cref{thm:bisim-between-dead,thm:max-bisim-is-max-greedy-bisim}).
+Intuitively, starting from a pair of states \((s, u)\), the algorithm will explore all of the reachable states following \(δ_≈\) in~\Cref{def:greedy-bisim}. In other words, if the algorithm terminates and returns true, we will have explored every state in \(⟨(s, u)⟩_{≊}\) where \(≊\) is the maximal greedy bisimulation between \(S\) and \(U\).
+However, our algorithm slightly deviates from the ideal scenario described above. Specifically, we implement two optimizations.
+First, we use a union-find data structure to organize the explored states into equivalence classes.
+Indeed, by looking for a greedy bisimulation that is also an equivalence relation, we can use more efficient structures like union-find, instead of set of pairs; the correctness of this optimization is justified by~\Cref{thm:greedy-bisim-iff-greedy-bisim-equiv}.
+The second optimization is to terminate and return false as soon as we know one of \(s, u\) is dead and the other is not.
+This is because in order to have \(s ≈ u\) for any greedy bisimulation \(≈\), \(s\) and \(u\) must have the same liveness in their respective GKAT coalgebra.
+In the case where both \(s\) and \(u\) are dead in their respective coalgebra, we will skip the check on all the reachable states of \((s, u)\) following \(δ_≈\) because a pair of dead states is necessarily in the maximal greedy bisimulation \(≊\) (\Cref{thm:bisim-between-dead,thm:max-bisim-is-max-greedy-bisim}).
 
-Concerning the complexity, our algorithm has similar worst case complexity as the original algorithm.
-In particular, when deciding the trace equivalence of two states \(s ∈ S\) and \(u ∈ U\), the original algorithm~\cite{smolka_GuardedKleeneAlgebra_2020} requires one pass of \(⟨s⟩\) and \(⟨u⟩\) to normalize them, then the bisimulation will visit each pair of states in \(⟨s⟩ × ⟨u⟩\) at most once, which means that they will visit at most \(|⟨s⟩ + ⟨u⟩ + ⟨s⟩ × ⟨u⟩|\) number of states.
+Concerning the complexity, our algorithm has similar worst case complexity as the original algorithm~\cite{smolka_GuardedKleeneAlgebra_2020}.
+In particular, when deciding the trace equivalence of two states \(s ∈ S\) and \(u ∈ U\), the original algorithm requires one pass of \(⟨s⟩\) and \(⟨u⟩\) to normalize them, and then visits each pair of states in \(⟨s⟩ × ⟨u⟩\) at most once during bisimulation. This means that the algorithm will visit at most \(|⟨s⟩ + ⟨u⟩ + ⟨s⟩ × ⟨u⟩|\) number of states in total.
 
-Similarly, our equivalence-checking algorithm attempts to find a bisimulation first, which visits each pair in \(⟨s⟩ × ⟨u⟩\) at most once, and when a mismatch is found in the process, the liveness-checking algorithm is then invoked.
+Our equivalence-checking algorithm attempts to find a bisimulation first, which visits each pair in \(⟨s⟩ × ⟨u⟩\) at most once. When a mismatch is found, the liveness-checking algorithm is invoked.
 Crucially, our algorithm satisfies the following property: if the liveness-checking algorithm finds a live or accepting state, the entire equivalence checking algorithm will halt and return false.
 Thus, by caching all the known dead states, the liveness-checking only visits states in \(⟨s⟩\) and \(⟨u⟩\) at most once.
 Therefore, the worst case of our algorithm is also \(|⟨s⟩ × ⟨u⟩ + ⟨s⟩ + ⟨u⟩|\).
 
-However, the on-the-fly algorithm will always out-perform the original algorithm, in terms of number of states visited, because this algorithm only invokes liveness checking when necessary.
-In the extreme case when the two input states are infinite-trace equivalent, the on-the-fly algorithm can skip liveness checking entirely.
+Although both algorithms have similar worst case complexity, the on-the-fly algorithm will always out-perform the original algorithm in non-worst case situations. This is because the on-the-fly algorithm only invokes liveness checking when necessary. In the extreme case when the two input states are infinite-trace equivalent, the on-the-fly algorithm can skip liveness checking entirely.
 
 
 % \section{The Algorithm}
