@@ -1007,81 +1007,6 @@ Therefore, the worst case of our algorithm is also \(|⟨s⟩ × ⟨u⟩ + ⟨s�
 Although both algorithms have similar worst case complexity, the on-the-fly algorithm will always out-perform the original algorithm in non-worst case situations. This is because the on-the-fly algorithm only invokes liveness checking when necessary. In the extreme case when the two input states are infinite-trace equivalent, the on-the-fly algorithm can even skip liveness checking entirely.
 
 
-% \section{The Algorithm}
-
-% In this section we will present the pseudo-code for our on-the-fly algorithm. 
-% In order to implement the the inductive construction theorem (\cref{thm:recursive-construction}), we will need to determine the liveness of the state. This can be simply computed via a DFS from the state being checked. 
-
-% TODO: we should merge the two so that it is easier to 
-% \begin{algorithm}
-%     \caption{Check whether a state \(s\) is dead}\label{alg:check-dead-main}
-%     \begin{algorithmic}
-%         \Function{isDeadLoop}{$s ∈ S$, explored}
-%         \If {\(s ∈\) explored} {\Return explored} 
-%         \Else { 
-%             \For{\(α ∈ \At\)}{}{
-%                 \Match{\(δ_{S}(s, α)\)}
-%                 \Case{\(\accept\)} {\Return none} \Comment{\(s\) transition to accept}
-%                 \EndCase
-%                 \Case{\(\reject\)} {\texttt{continue}}
-%                 \Comment{skip if \(s\) transition to reject}
-%                 \EndCase
-%                 \Case{($s', p$)}{ 
-%                     \If{\Call{IsDeadLoop}{$s'$} = none} {\Return none} \Comment{\(s\) transitions to a live state \(s'\)}
-%                     \Else { explored \(←\) (explored \(∪\) \Call{isDeadLoop}{$s'$, explored}) } \EndIf
-%                 } \EndCase
-%                 \EndMatch
-%             }\EndFor}
-%         \EndIf
-%         \State {\Return explored}    
-%         \EndFunction
-%     \end{algorithmic}
-% \end{algorithm}
-
-% By~\cref{thm:dead-iff-all-reachable-dead}, if \(s\) is dead then all the reachable states of \(s\) (denoted by \(⟨s⟩\)). Then by returning all the reachable states of \(s\), we can cache these states to avoid checking them again. To encapsulate the caching, we have the following function, which we will actually use in our bisimulation algorithm.
-
-% \begin{algorithm}
-%     \caption{A cached algorithm to check whether a state is dead}\label{alg:is-dead}
-%     \begin{algorithmic}
-%         \State{deadStates \(← ∅\)}
-
-%         \Function{isDead}{$s ∈ S$}
-%         \If {\(s ∈\) deadStates} {\Return true} 
-%         \ElsIf {\Call{isDeadLoop}{$s, ∅$} = none} {\Return false}
-%         \Else 
-%             \State {deadStates \(←\) (deadStates \(∪\) \Call{isDeadLoop}{$s, ∅$})}
-%             \State {\Return {true}}
-%         \EndIf
-%         \EndFunction
-%     \end{algorithmic}
-% \end{algorithm}
-
-% Given the direct correspondence between bisimulation and bisimulation equivalence and bisimulation in sub-algebra:
-% \begin{align*}
-%     & ∃ \text{ bisimulation } {∼} ⊆ ⟨s⟩ × ⟨t⟩ \text{ s.t. } s ∼ t \\
-%     & ⟺ ∃ \text{ bisimulation } {∼} ⊆ (⟨s⟩∪⟨t⟩) × (⟨s⟩∪⟨t⟩) \text{ s.t. } s ∼ t 
-%         & \text{\cref{thm:sub-coalg-preserve-bisim}}\\  
-%     & ⟺ ∃ \text{ bisimulation equivalence } {≃} ⊆ (⟨s⟩∪⟨t⟩) × (⟨s⟩∪⟨t⟩) \text{ s.t. } s ≃ t 
-%         & \text{\cref{thm:bisim-iff-bisim-equiv}}
-% \end{align*}
-% we can safely replace the bisimulation in inductive construction (\cref{thm:recursive-construction}) with bisimulation equivalence. 
-% Dealing with equivalence relations allows us to leverage efficient data structures like union find in our bisimulation algorithm. 
-
-% We will use \(\Call{union}{$s,t$}\) to denote the operation to equate \(s\) and \(t\) in a union-find, and use \(\Call{eq}{$s,t$}\) to check if \(s\) and \(t\) belongs to the same equivalence class, i.e. share the same representative.
-% Specifically, we will use the union-find structures to keep track of the equivalence classes that we are in the process of checking, hence avoiding repeatedly checking the same pair of states to remove infinite loops.
-
-% Our on-the-fly bisimulation algorithm will decide whether there exists a bisimulation relation in \(⟨s⟩ ∪ ⟨t⟩\) s.t. \(s ∼ t\). This algorithm generally reproduce the setting of inductive construction theorem~\cref{thm:recursive-construction};
-% except by~\cref{thm:bisim-one-dead}, in the special case where \(s\) or \(t\) is dead, then we will only need to check whether the other is dead.
-
-% Because the dead state detection algorithm is coalgebra-specific, we use a subscript on ``deadStates'' and ``\textsc{IsDead}'' to indicate the coalgebra. 
-% The soundness and completeness of~\cref{alg:bisim} can be observed by the fact that \emph{when the algorithm terminate}, the algorithm returns true if and only if there exists a bisimulation between \(⟨s⟩\) and \(⟨t⟩\) s.t. \(s ∼ t\), which is then logically equivalent to trace equivalence.
-% Such equivalence is a direct consequence of~\cref{thm:bisim-one-dead,thm:recursive-construction}.
-
-% \begin{remark}
-%     The caching of dead state and the shortcut to check whether \(s\) is dead when \(t\) is dead and vise versa, is not essential to the soundness and completeness of algorithm, they are here to trade speed with memory. 
-%     In a memory-constraint situation, the ``\textnormal{deadStates}'' variable can be cleared periodically to save memory.
-% \end{remark}
-
 \section{Symbolic Coalgebra and Algorithm}\label{sec:symb-gkat-greedy-bisim}
 
 Although \Cref{alg:bisim} is on-the-fly, it still uses GKAT coalgebra, which contains exponentially many transitions with respect to the number of primitive tests \(|T|\).
@@ -1090,12 +1015,13 @@ This is also why several GKAT-related complexity results only consider constant 
 
 Symbolic GKAT coalgebra, instead of computing the behavior of each atom individually, groups atoms into boolean expressions. 
 This optimization leads to space-efficient coalgebras and an equivalence checking algorithm that can make use of off-the-shelf SAT solvers.
-Specifically, given a set of primitive actions \(K\) and primitive tests \(T\), a \emph{symbolic GKAT coalgebra} \(Ŝ ≜ (S, ϵ̂, δ̂)\) consists of a state set \(S\) and an accepting function \(ϵ̂\) and a transition function \(δ̂\):
+Specifically, given a set of primitive actions \(K\) and primitive tests \(T\), a \emph{symbolic GKAT coalgebra} \(Ŝ ≜ (S, ϵ̂, δ̂)\) consists of a state set \(S\), an accepting function \(ϵ̂\), and a transition function \(δ̂\):
 \begin{mathpar}
     ϵ̂: S → \mathscr{P}(\BExp_T) \and
     δ̂: S → \mathscr{P}(\BExp_T × S × K).
 \end{mathpar}
-This coalgebra is required to satisfy the disjointedness condition, i.e. for all states \(s ∈ S\), the boolean expressions that \(s\) accepts \(ϵ̂(s)\) and the boolean expressions that enables \(s\) to transition \(\{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) are disjoint; also the conjunction of any two distinct expressions from the set \(ϵ̂(s) ∪ \{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) is equivalent to \(0\) under boolean algebra.
+This coalgebra is required to satisfy the \emph{disjointedness condition}, i.e. for all states \(s ∈ S\), the boolean expressions that \(s\) accepts \(ϵ̂(s)\) and the boolean expressions that enables \(s\) to transition \(\{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) are disjoint; i.e. the conjunction of any two distinct expressions from the set \(ϵ̂(s) ∪ \{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) is equivalent to \(0\) under Boolean Algebra.
+Like the non-symbolic case, we use \(s \transAcc{Ŝ}{b}\) to indicate \(b ∈ ϵ̂(s)\) and \(s \transvia{b ∣ p}_{Ŝ} s'\) to indicate \((b, p, s') ∈ δ̂(s)\).
 
 We name \(ϵ̂\) the accepting function because intuitively a state \(s\) accepts an atom \(α\) when there exists a \(b ∈ ϵ̂(s)\), s.t. \(α ≤ b\); similarly, \(δ̂\) is called the transition function because a state \(s\) transitions to \(s'\) via atom \(α\) while executing \(p\) when there exists \((b, s', p) ∈ δ̂(s)\) and \(α ≤ b\).
 With the above intuition in mind, a symbolic GKAT coalgebra \(Ŝ ≜ (S, ϵ̂, δ̂)\) can be lowered into a GKAT coalgebra \(S ≜ (S, δ)\) in the following manner:
@@ -1110,7 +1036,7 @@ With the above intuition in mind, a symbolic GKAT coalgebra \(Ŝ ≜ (S, ϵ̂, 
     \reject & \text{otherwise}
 \end{cases}
 \end{align}
-This is well-defined, i.e. exactly one clause can be satisfied for any \(s ∈ S\) and \(α ∈ \At\), because of the disjointedness condition.
+The function \(δ\) is well-defined, i.e. exactly one clause can be satisfied for any \(s ∈ S\) and \(α ∈ \At\), because of the disjointedness condition.
 We usually use \(S\) to denote the lowering of \(Ŝ\); and the semantics of a state \(s ∈ Ŝ\) is defined as its semantics in the lowering \(⟦s⟧_{Ŝ} ≜ ⟦s⟧_{S}.\)
 
 We will then use \(ρ̂(s): \BExp_T\) to represent all the atoms that the state \(s\) rejects in the lowering, and \(ρ̂(s)\) is computed as follows:
@@ -1126,7 +1052,7 @@ We will then use \(ρ̂(s): \BExp_T\) to represent all the atoms that the state 
         {δ̂}₁(s) & ≜ \{b ↦ (s, p), \overline{b} ↦ (s, p)\} \\
         {δ̂}₂(s) & ≜ \{⊤ ↦ (s, p)\},
     \end{align*} 
-    and both \(ϵ̂₁, ϵ̂₂\) will return constant \(0\).
+    and both \(ϵ̂₁, ϵ̂₂\) return constant \(0\).
     These two symbolic GKAT coalgebra \(Ŝ₁ ≜ (S, δ̂₁, ϵ̂₁)\) and \(Ŝ₂ ≜ (S, δ̂₂, ϵ̂₂)\) have the same lowering and semantics, yet, they are different.
     It is possible to construct symbolic representations that satisfy canonicity, yet we opt to use our current representation for ease of construction and computational efficiency.
 \end{remark}
@@ -1146,13 +1072,13 @@ However, the converse is not true, precisely because of the canonicity problem n
 We can then define the symbolic equivalence algorithm, with its correctness stated in~\cref{thm:recursive-construction}.
 
 \begin{theoremEnd}{theorem}[Symbolic Recursive Construction]\label{thm:symb-recursive-construction}
-    Given two symbolic GKAT coalgebra \(Ŝ = (S, ϵ̂_S, δ̂_S)\) and \(Û = (U, ϵ̂_U, δ̂_U)\) and two states \(s ∈ S\) and \(u ∈ U\), \(s\) and \(u\) are trace equivalent \(⟦s⟧_{Ŝ} = ⟦u⟧_{Û}\), if and only if all the following holds:
+    Given two symbolic GKAT coalgebra \(Ŝ = (S, ϵ̂_S, δ̂_S)\) and \(Û = (U, ϵ̂_U, δ̂_U)\) and two states \(s ∈ S\) and \(u ∈ U\), \(s\) and \(u\) are trace equivalent \(⟦s⟧_{Ŝ} = ⟦u⟧_{Û}\), if and only there exists a relation \({≈} ⊆ Ŝ × Û\) s.t. the following holds:
     \begin{itemize}
         \item \(⋁ ϵ̂_S(s) ≡ ⋁ ϵ̂_U(u)\); 
-        \item for all \((b, s', p) ∈ δ̂_S(s)\) and \(c ∈ ρ̂_U(u)\), if \(b ∧ c ≢ 0\), then \(s'\) is dead;
-        \item for all \(b ∈ ρ̂_S(s)\) and \((c, u', q) ∈ δ̂_U(u)\), if \(b ∧ c ≢ 0\), then \(u'\) is dead;
-        \item for all \((b, s', p) ∈ δ̂_S(s)\) and \((c, u', q) ∈ δ̂_U(u)\), if \(b ∧ c ≢ 0\) and \(p ≠ q\) then both \(s'\) and \(u'\) is dead; 
-        \item for all \((b, s', p) ∈ δ̂_S(s)\) and \((c, u', q) ∈ δ̂_U(u)\), if \(b ∧ c ≢ 0\) and \(p = q\) then \(⟦s'⟧_{Ŝ} = ⟦u'⟧_{Û}\).
+        \item if \(s \transvia{b ∣ p}_{Ŝ} s'\) and \(b ∧ ρ̂_U(u) ≢ 0\), then \(s'\) is dead;
+        \item if \(u \transvia{c ∣ p}_{Û} u'\) and \(ρ̂_S(s) ∧ c ≢ 0\), then \(u'\) is dead;
+        \item if \(s \transvia{b ∣ p}_{Ŝ} s'\), \(u \transvia{c ∣ p}_{Û} u'\), and \(b ∧ c ≢ 0\), then \(s' ≈ u'\); 
+        \item if \(s \transvia{b ∣ p}_{Ŝ} s'\), \(u \transvia{c ∣ q}_{Û} u'\), \(p ≠ q\), and \(b ∧ c ≢ 0\), then \(s'\) and \(u'\) are both dead.
     \end{itemize}
 \end{theoremEnd}
 
@@ -1185,7 +1111,8 @@ We can then define the symbolic equivalence algorithm, with its correctness stat
     \end{algorithmic}
 \end{algorithm*}
 
-Similar to the non-symbolic version of the algorithm, \Cref{alg:symb-bisim} first checks if either of the input states is dead, then  recursively checks all the conditions in~\Cref{thm:symb-recursive-construction}, where \(\mathrel{\&\!\&}\) denotes the logical conjunction operator on booleans.
+Similar to the non-symbolic version of the algorithm, \Cref{alg:symb-bisim} first checks if either of the input states is dead, then recursively checks all the conditions in~\Cref{thm:symb-recursive-construction}, and organize the explored state in equivalence classes for efficiency.
+The operator ``and'', ``implies'', and \(\mathrel{\&\!\&}\) denotes the corresponding logical operator as in~\Cref{alg:bisim}.
 The symbolic version of the liveness checking algorithm is also based on a graph search algorithm on all the reachable state where we try to identify an accepting state by checking whether \(⋁ ϵ̂(s) ≡ 0\).
 The only deviation from the non-symbolic case is that we do not follow empty transitions in the symbolic case, i.e. if \(δ̂(s) ≜ (b, s', p)\) and \(b ≡ 0\), we will not search \(s'\) to check the liveness of \(s'\).
 In~\Cref{sec:optimization-implementation}, we will outline a simple modification for the symbolic GKAT coalgebra generation algorithm in~\Cref{sec:symb-gkat-construction} to avoid generating empty transitions, allowing us to skip the emptiness check when deciding whether a state is dead or not.
