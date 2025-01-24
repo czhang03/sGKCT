@@ -711,7 +711,7 @@ Given any bisimulation \({∼} ⊆ S × U\), we can construct a GKAT coalgebra \
 
     By~\Cref{thm:bisim-between-dead}, we can construct a bisimulation \(∼_{s,u} ≜ \{(s, u)\} ⊆ \norm(S) × \norm(U)\) between any two dead states \(s ∈ S\) and \(u ∈ U\).
     Then because bisimulation is closed under union~\cite[Theorem 5.5]{rutten_UniversalCoalgebraTheory_2000}, \(\norm(∼_d) = {∼} ∪ ⋃ \{∼_{s, u} ∣ \text{\(s, u\) are dead}\}\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\).
-    TODO: bisimulation are uniquely determined by its carrier.
+    % TODO: bisimulation are uniquely determined by its carrier.
 \end{proofEnd}
 
 Although \Cref{thm:dead-construction-greedy-bisim} can be proved by unfolding the definition, \(∼_d\) turns out to be an important structure. 
@@ -1061,10 +1061,10 @@ We will then use \(ρ̂(s): \BExp_T\) to represent all the atoms that the state 
     The lowering operation is a functor, every symbolic GKAT coalgebra homomorphism \(h: Ŝ → Û\), is also a GKAT coalgebra homomorphism \(h: S → U\).
 \end{theoremEnd}
 
-\begin{proofEnd}
-    Since \(Ŝ\) and \(Û\) have the same states as their lowering, therefore \(h: S → U\) is indeed a function, then we only need to verify the homomorphism condition on \(h\).
-    TODO: finish.
-\end{proofEnd}
+% \begin{proofEnd}
+%     Since \(Ŝ\) and \(Û\) have the same states as their lowering, therefore \(h: S → U\) is indeed a function, then we only need to verify the homomorphism condition on \(h\).
+%     TODO: finish.
+% \end{proofEnd}
 
 Functoriality states that a homomorphism on two symbolic coalgebras induces a homomorphism of on their lowering; similarly, a bisimulation on symbolic GKAT coalgebra also induces a bisimulation on their lowering.
 However, the converse is not true, precisely because of the canonicity problem noted in~\Cref{rem:canonicity}: take the \(Ŝ₁\) and \(Ŝ₂\) in~\Cref{rem:canonicity}, because they have the same lowering, therefore the identity homomorphism is a homomorphism on their lowerings, but there is no homomorphism from \(Ŝ₁\) to \(Ŝ₂\).
@@ -1584,24 +1584,24 @@ We observe that DV performs better than TC consistently when both algorithms use
 There are many studies that utilizes symbolic techniques to solve various problems surrounding (extended) regular expressions, and have found a wide range of real-world applications, including but not limited to low level program analysis~\cite{dallapreda_AbstractSymbolicAutomata_2015a}, list comprehension~\cite{saarikivi_FusingEffectfulComprehensions_2017}, constraint solving~\cite{stanford_SymbolicBooleanDerivatives_2021}, HTML decoding, malware fingerprinting, image blurring, location privacy~\cite{veanes_SymbolicFiniteState_2012}, regex processing, and string sanitizer~\cite{veanes_ApplicationsSymbolicFinite_2013}.
 
 Our study, on the other hand,  focus on GKAT and GKAT automata (represented as coalgebra throughout the paper). 
-Although previous works on deterministic symbolic transducer~\cite{saarikivi_FusingEffectfulComprehensions_2017,veanes_SymbolicFiniteState_2012} might seem similar to that of GKAT, the automata shape are subtly different, specifically, instead of having accept and rejecting states, states in GKAT automata will accept or reject its input.
+Although previous works on deterministic symbolic transducer~\cite{saarikivi_FusingEffectfulComprehensions_2017,veanes_SymbolicFiniteState_2012} might seem similar to that of GKAT, the automata shape are subtly different, specifically, instead of having accept and rejecting states, a state in GKAT automata can accept or reject based on the input atoms.
 
 Another difference between aforementioned works and ours is that we utilize the coalgebraic theory of GKAT to streamline some of our proofs.
 In fact, we are not the first to look at symbolic transition system through the lens of coalgebra, \citeauthor{bonchi_CoalgebraicSymbolicSemantics_2009}~\cite{bonchi_CoalgebraicSymbolicSemantics_2009} have an elegant coalgebra theory surrounding symbolic transition system.
 However, instead of defining the symbolic semantics via the coalgebra theory, we opt to use the notion of lowering to connect symbolic GKAT coalgebra and GKAT coalgebra.
 This approach allows us to leverage previous correctness proofs like in~\Cref{thm:derivative-correctness}, and also enables a non-symbolic equivalence-checking algorithm as in~\cref{alg:bisim}.
-Another notable difference is that our equivalence checking also need to handle normalization, which is a unique property of GKAT not found in general coalgebra.
+Another notable difference is that our equivalence checking also need to handle normalization, which is a unique property of GKAT not found in general coalgebra or automata.
 
 \subsection{KAT and GKAT}
 
 GKAT is a guarded fragment of Kleene Algebra with Tests (KAT), which enjoys a symbolic algorithm~\cite{pous_SymbolicAlgorithmsLanguage_2015}.
-This algorithm by~\citeauthor{pous_SymbolicAlgorithmsLanguage_2015} generalizes the notion of derivatives also to boolean expressions, which uses binary decision diagram (BDD) as transition between symbolic expressions.
-Although some of our examples utilizes BDD to solve equivalence and inequivalence of boolean expressions, because of the structure of GKAT, our algorithm is not bounded by a particular boolean representation or solvers.
+This algorithm by~\citeauthor{pous_SymbolicAlgorithmsLanguage_2015} generalizes the notion of derivatives, and utilizes binary decision diagram (BDD) to form the desired coalgebras.
+Although some of our examples leverage BDD to solve equivalence and inequivalence of boolean expressions, our algorithm is not bounded by a particular boolean representation or solvers.
 In fact, we have demonstrated that in many scenarios, SAT solvers like MiniSat~\cite{een_MINISAT_2004} can achieve better performance than BDD.
 
 In similar veins, KATch~\cite{moeller_KATchFastSymbolic_2024} is a symbolic solver for NetKAT~\cite{anderson_NetKATSemanticFoundations_2014} based on forwarding decision diagram, and achieved outstanding performance among state-of-the-art tools for reasoning about software-defined networks.
-GKAT also stem from the research of the research of software-defined networks~\cite{smolka_ScalableVerificationProbabilistic_2019,smolka_GuardedKleeneAlgebra_2020}, and quickly found applications in probabilistic verification~\cite{ro.zowski_ProbabilisticGuardedKAT_2023}, probabilistic program logic~\cite{gomes_KleeneAlgebraTests_2024}, networks~\cite{wasserstein_GUARDEDNETKATSOUNDNESS_2023}, and control-flow validation~\cite{zhang_CFGKATEfficientValidation_2025}.
-It would be interesting to see how our symbolic algorithm can be used to speed up these applications.
+The system of GKAT also stem from the research of the research of software-defined networks~\cite{smolka_ScalableVerificationProbabilistic_2019,smolka_GuardedKleeneAlgebra_2020}, and quickly found applications in probabilistic verification~\cite{ro.zowski_ProbabilisticGuardedKAT_2023}, probabilistic program logic~\cite{gomes_KleeneAlgebraTests_2024}, networks~\cite{wasserstein_GUARDEDNETKATSOUNDNESS_2023}, and control-flow validation~\cite{zhang_CFGKATEfficientValidation_2025}.
+It would be interesting to see how our symbolic algorithm can be used to speed up these variants of GKAT.
 
 \printbibliography
 
