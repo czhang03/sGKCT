@@ -474,7 +474,7 @@ Specifically, GKAT coalgebra requires normalization to compute finite trace equi
 In previous works, these dead states are detected after the necessary coalgebra is computed and stored.
 This approach requires storing all the transitions and states of coalgebra in memory, meaning that the algorithm does not short circuit even if a mismatch can be detected in the starting state; for example, when for some \(α ∈ \At\), \(δ_S(s, α) = \reject\) and \(δ_U(u, α) = \accept\).
 
-Our algorithm is lazy in the dead states detection i.e. the dead states are only checked when a mismatch requires it; even then, our dead state detection algorithm will only check the necessary states to compute the liveness of the states causing the mismatch.
+Our algorithm is lazy in the dead-state detection i.e. the dead states are only checked when a mismatch requires it; even then, our dead state detection algorithm will only check the necessary states to compute the liveness of the states causing the mismatch.
 This not only avoids unnecessarily checking the liveness of a state, but also enables on-the-fly generation of the coalgebra, where we can remove irrelevant states from memory after they have been explored. 
 
 However, to truly understand our on-the-fly algorithms, we will first need to rigorously define ``dead states'', and their roles in defining the coalgebraic semantic of GKAT. 
@@ -490,7 +490,7 @@ Traditionally, live and dead states are defined by whether they can reach an acc
 \end{definition}
 However, besides directly working with this explicit definition, we can also give a coalgebraic characterization of these properties.
 Specifically, by induction on the length of the path from one state to the next, we can show that the principle sub-coalgebra \(⟨s⟩_S\) exactly contains all the reachable states of \(s\) in the GKAT coalgebra \(S\).
-Thus we obtain the following coalgebraic characterization of liveness:
+Thus, we obtain the following coalgebraic characterization of liveness:
 \begin{theoremEnd}{theorem}\label{thm:liveness-principle-sub-coalg}
     A state \(s\) is \emph{live} if there exists an accepting state \(s' ∈ ⟨s⟩\); and a state \(s\) is \emph{dead} if there is no accepting state in \(⟨s⟩\).
 \end{theoremEnd}
@@ -663,7 +663,7 @@ To make the equivalence-checking procedure scalable, we propose to greedily run 
 For example, when constructing the bisimulation between \(s ∈ S\) and \(u ∈ U\), if \(s \transvia{α ∣ p}_S s'\) and \(u \transvia{α ∣ p}_U u'\), we will proceed to recurse on \(s'\) and \(u'\), without checking the liveness of \(s'\) and \(u'\).
 Whereas, if \(s \transRej{S}{α}\) but \(u \transvia{α ∣ p}_U u'\), then the transition of \(s\) and \(u\) disagree, requiring \(u'\) to be dead.
 
-This approach offers several benefit: first, the liveness detection is only called when necessary, thus unlikely to iterate through the entire coalgebra; second, the algorithm can short-circuit on a counter-example, allowing termination before all the states are explored; finally, the algorithm supports on-the-fly coalgebra constructions like derivatives, as the coalgebra is no longer required to be fully constructed before bisimulation.
+This approach offers several benefits: first, the liveness detection is only called when necessary, thus unlikely to iterate through the entire coalgebra; second, the algorithm can short-circuit on a counter-example, allowing termination before all the states are explored; finally, the algorithm supports on-the-fly coalgebra constructions like derivatives, as the coalgebra is no longer required to be fully constructed before bisimulation.
 
 The intuition of this on-the-fly algorithm can be expressed as the following coalgebraic structure, which we named ``greedy bisimulation''.
 
@@ -689,7 +689,7 @@ The intuition of this on-the-fly algorithm can be expressed as the following coa
 Given any bisimulation \({∼} ⊆ S × U\), we can construct a GKAT coalgebra \(∼_d\) s.t. it is almost a greedy bisimulation, i.e. it is closed under \(δ_≈\) in~\Cref{def:greedy-bisim}, and contains \(∼\), except it is not necessarily the \emph{least} GKAT coalgebra that satisfies these properties.
 
 \begin{theoremEnd}{lemma}\label{thm:dead-construction-greedy-bisim}
-    Given any eager bisimulation \({≈} ⊆ S × U\) with the underlying bisimulation \({∼}\), the following relation \({∼_d} ⊆ S × U\):
+    For any eager bisimulation \({≈} ⊆ S × U\) with the underlying bisimulation \({∼}\), the following relation \({∼_d} ⊆ S × U\):
     \[{∼_d} ≜ {∼} ∪ \{(s, u) ∣ \text{\(s\) and \(u\) are dead in \(S\) and \(U\)}\},\]
     forms a GKAT coalgebra with the transition function \(δ_≈\) in~\Cref{def:greedy-bisim}, which implies \({≈} ⊑ {∼_d}\).
     Furthermore, \(\norm(∼_d)\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\).
@@ -779,7 +779,7 @@ Finally, with all the structural properties in place, we can derive that the max
 \end{theoremEnd}
 
 \begin{proofEnd}
-    by definition of greedy bisimulation, the carrier of \({≡}\) is a subset of the carrier of \({≊}\). 
+    By definition of greedy bisimulation, the carrier of \({≡}\) is a subset of the carrier of \({≊}\). 
     Then because of~\Cref{thm:greedy-bisim-iff-norm-bisim}, \(\norm(≊)\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\), which implies \(\norm(≊) ⊑ {≡}\).
     Finally, because \(\norm\) do not change the carrier set, therefore the carrier of \(≡\) and \(≊\) necessarily coincide.
 \end{proofEnd}
@@ -913,7 +913,7 @@ In the following theorem, we will present such necessary and sufficient conditio
     Therefore, for the maximal bisimulation \({≡} ⊆ \norm(S) × \norm(U)\), \(s ≡ u\).
 \end{theoremEnd}
 
-Besides the construction, a classical optimization of the bisimulation-construction algorithm is to look for a equivalence relation instead of a relation~\cite{smolka_GuardedKleeneAlgebra_2020,hopcroft_LinearAlgorithmTesting_1971}.
+Besides the construction, a classical optimization of the bisimulation-construction algorithm is to look for an equivalence relation instead of a relation~\cite{smolka_GuardedKleeneAlgebra_2020,hopcroft_LinearAlgorithmTesting_1971}.
 This technique also applies to greedy bisimulation.
 
 \begin{theoremEnd}{theorem}[Equivalence Relation]\label{thm:greedy-bisim-iff-greedy-bisim-equiv}
@@ -926,16 +926,16 @@ This technique also applies to greedy bisimulation.
 
     The \(⟹\) direction. 
     Because sub-coalgebra preserves bisimulation (\Cref{thm:sub-coalg-preserve-bisim}) and \(\norm(S) ⊑ \norm(S + U)\) and \(\norm(U) ⊑ \norm(S + U)\), we have \(\norm(≈)\) is a bisimulation between \(\norm(S + U)\) and itself.
-    let \(≡\) to be the maximal bisimulation within \(\norm(S + U)\), then \(≡\) is an equivalence relation~\cite[Corollary 5.6]{rutten_UniversalCoalgebraTheory_2000}, and so is the maximal greedy bisimulation \(≊\) (\Cref{thm:max-bisim-is-max-greedy-bisim}).
+    Let \(≡\) to be the maximal bisimulation within \(\norm(S + U)\), then \(≡\) is an equivalence relation~\cite[Corollary 5.6]{rutten_UniversalCoalgebraTheory_2000}, and so is the maximal greedy bisimulation \(≊\) (\Cref{thm:max-bisim-is-max-greedy-bisim}).
     This gives us the following chain of set inclusions:
     \[(s, u) ∈ {≈} = \norm(≈) ⊑ {≡} ⊆ {≊}.\]
-    Thus \(≊\) is a equivalence relation~\cite[Corollary 5.6]{rutten_UniversalCoalgebraTheory_2000} and a greedy bisimulation s.t. \(s ≡ u\).
+    Thus, \(≊\) is an equivalence relation~\cite[Corollary 5.6]{rutten_UniversalCoalgebraTheory_2000} and a greedy bisimulation s.t. \(s ≡ u\).
 
     The \(⟸\) direction can be shown by considering the maximal greedy bisimulation \(≊\) within \(S + U\) and maximal bisimulation \(≡\) within \(\norm(S + U)\).
     By maximality and the carrier of \(≡\) coincide with \(≊\), we have the following set inclusions:
     \[(s, u) ∈ {≃} ⊑ {≊} = {≡}.\]
     Finally, we reflect \(≡\) through the inclusion homomorphisms \(\norm(S) ⊑ \norm(S + U)\) and \(\norm(U) ⊑ \norm(S + U)\) as in~\Cref{thm:sub-coalg-preserve-bisim} to obtain \({∼} ⊆ \norm(S) × \norm(U)\) and \(s ∼ u\).
-    Therefore \((s, u)\) is also in the greedy bisimulation \({≈} ⊆ \norm(S) × \norm(U)\), generated by \(∼\).
+    Therefore, \((s, u)\) is also in the greedy bisimulation \({≈} ⊆ \norm(S) × \norm(U)\), generated by \(∼\).
 \end{proofEnd}
 
 % \begin{theoremEnd}{theorem}\label{thm:greedy-bisim-one-dead}
@@ -984,14 +984,14 @@ Because the non-symbolic version of liveness checking is similar to the symbolic
     \end{algorithmic}
 \end{algorithm*}
 
-Finally, we present our equivalence-checking algorithm as~\Cref{alg:bisim} which consists of recursively checking the conditions in~\Cref{thm:recursive-construction} with minor optimizations. In the algorithm, ``implies'', ``iff'', ``and'' are logical operators that take booleans (i.e. true or false) and return a boolean. Additionally, \(\&\!\&\) is the logical conjunction operation. It is the same function as the the written ``and''. We use \(\&\!\&\), instead of ``and'', to separate the conditions for clarity; logically \(\&\!\&\) is the same function as ``and'', but syntactically binds less tightly.
+Finally, we present our equivalence-checking algorithm as~\Cref{alg:bisim} which consists of recursively checking the conditions in~\Cref{thm:recursive-construction} with minor optimizations. In the algorithm, ``implies'', ``iff'', ``and'' are logical operators that take booleans (i.e. true or false) and return a boolean. Additionally, \(\&\!\&\) is the logical conjunction operation. It is the same function as the written ``and''. We use \(\&\!\&\), instead of ``and'', to separate the conditions for clarity; logically \(\&\!\&\) is the same function as ``and'', but syntactically binds less tightly.
 
 Intuitively, the algorithm returns true if and only if a greedy bisimulation \(≈\) can be constructed s.t. \(s ≈ u\).
 Note the existence of such \(≈\) is not only equivalent to the trace equivalence of \(s\) and \(u\) (\Cref{thm:greedy-bisim-correctness}), but also equivalent to \(s ≊ u\), where \({≊} ⊆ S × U\) is the maximal bisimulation.
 However, our algorithm slightly deviates from the ideal scenario described above. Specifically, we implement two optimizations.
-First, optimization is to terminate and return false as soon as we know one of \(s, u\) is dead and the other is not.
-This is because in order to have \(s ≈ u\) for any greedy bisimulation \(≈\), \(s\) and \(u\) must have the same liveness in their respective GKAT coalgebra (\Cref{thm:greedy-bisim-perserve-liveness}).
-In the case where both \(s\) and \(u\) are dead in their respective coalgebra, we will immediate return true, because any dead states pair are necessarily in \(≊\) (\Cref{thm:bisim-between-dead,thm:max-bisim-is-max-greedy-bisim}).
+First optimization is to terminate and return false as soon as we know one of \(s, u\) is dead, and the other is not.
+This early termination is sound, because in order for \(s ≈ u\) for any greedy bisimulation, \(s\) and \(u\) need to have the same liveness (\Cref{thm:greedy-bisim-perserve-liveness}).
+In the case where both \(s\) and \(u\) are dead in their respective coalgebra, we will immediately return true, because all dead-state pairs are in \(≊\) (\Cref{thm:bisim-between-dead,thm:max-bisim-is-max-greedy-bisim}).
 Then, we use a union-find data structure to organize the explored states into equivalence classes, which is justified by~\Cref{thm:greedy-bisim-iff-greedy-bisim-equiv}.
 By looking for a greedy bisimulation that is also an equivalence relation, we can use more efficient structures like union-find, instead of set of pairs; the correctness of this optimization is justified by.
 
