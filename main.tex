@@ -287,7 +287,7 @@ Kleene Algebra with Tests (KAT) is a staple algebra system to reason about progr
 Beyond its theoretical achievements, Kleene Algebra with Tests has also inspired several practical tools for specialized domains.
 Interestingly, despite the PSPACE-complete complexity of KAT, many tools developed are able to match, or even exceed, the performance of specialized state-of-the-art tools in their respective domains~\cite{moeller_KATchFastSymbolic_2024,smolka_ScalableVerificationProbabilistic_2019}.
 
-This surprising fact lead to the development of Guarded Kleene Algebra with Tests (GKAT)~\cite{smolka_GuardedKleeneAlgebra_2020}, a (co)algebraic system that seeks to characterize this efficient fragment of KAT.
+This surprising fact leads to the development of Guarded Kleene Algebra with Tests (GKAT)~\cite{smolka_GuardedKleeneAlgebra_2020}, a (co)algebraic system that seeks to characterize this efficient fragment of KAT.
 The determinism of GKAT gives it a different coalgebra structure from KAT, and allows for a GKAT expression to be directly converted to a linear-sized coalgebra, as opposed to the exponential sized coalgebra produced by KAT expressions~\cite{smolka_GuardedKleeneAlgebra_2020,kozen_CoalgebraicTheoryKleene_2017}.
 
 However, as it currently stands, the desirable theoretical properties of GKAT do not translate to tangible real-world performance. 
@@ -513,9 +513,7 @@ We show the following theorems as examples:
 \end{theoremEnd}
 
 \begin{proofEnd}
-    Because homomorphic image preserves principle sub-GKAT coalgebra (\Cref{thm:homo-img-preserve-principle-sub-coalg})
-    \[h(⟨s⟩_S) = ⟨h(s)⟩_U;\]
-    therefore for any state \(s' ∈ S\):
+    Because homomorphic image preserves principle sub-GKAT coalgebra (\Cref{thm:homo-img-preserve-principle-sub-coalg}) \(h(⟨s⟩_S) = ⟨h(s)⟩_U;\) therefore for any state \(s' ∈ S\):
     \[s' ∈ ⟨s⟩_S ⟺ h(s') ∈ h(⟨s⟩_S) ⟺ h(s') ∈ ⟨h(s)⟩_U.\]
     And because \(s'\) is accepting if and only if \(h(s')\) accepting by definition of homomorphism; then \(⟨s⟩_S\) contains an accepting state if and only if \(⟨h(s)⟩_U\) contains an accepting state. 
     Therefore, \(s\) is live in \(S\) if and only if \(h(s)\) is live in \(U\).
@@ -532,7 +530,7 @@ The above theorem then leads to several interesting liveness preservation proper
 \end{proofEnd}
 
 \begin{theoremEnd}{corollary}[bisimulation preserves liveness]\label{thm:bisim-preserve-liveness}
-    If there exists a bisimulation \(∼\) between GKAT coalgebra \(S\) and \(U\) s.t. \(s ∼ u\) for some states \(s ∈ S\) and \(u ∈ U\), then \(s\) and \(u\) has to be either both accepting, both live or both dead.
+    For two states in GKAT coalgebras \(s ∈ S\) and \(u ∈ U\), with a bisimulation \({∼} ⊆ S × U\) s.t. \(s ∼ u\), then \(s\), \(u\), and \((s, u)\) has the same liveness, i.e. needs to be all accepting, all live, or all dead, in \(S\), \(U\), and \(∼\) respectively.
 \end{theoremEnd}
 
 \begin{proofEnd}
