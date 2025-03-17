@@ -230,41 +230,41 @@
 
 % anonymize authors
 %
-% \author{\IEEEauthorblockN{Cheng Zhang\textsuperscript{\textsection}}
-% \IEEEauthorblockA{\textit{Department of Computer Science} \\
-% \textit{University College London}\\
-% London, United Kingdom \\
-% 0000-0002-8197-6181}
-% \and
-% \IEEEauthorblockN{Qiancheng Fu}
-% \IEEEauthorblockA{\textit{Department of Computer Science} \\
-% \textit{Boston University}\\
-% Boston, USA \\
-% qcfu@bu.edu}
-% \and
-% \IEEEauthorblockN{Hang Ji\textsuperscript{\textsection}}
-% \IEEEauthorblockA{\textit{Department of Computer Science} \\
-% \textit{Cornell University}\\
-% Ithaca, USA \\
-% hj476@cornell.edu}
-% \and
-% \IEEEauthorblockN{Ines Santacruz}
-% \IEEEauthorblockA{\textit{Department of Computer Science} \\
-% \textit{Boston University}\\
-% Boston, USA \\
-% inessdv15@gmail.com}
-% \and
-% \IEEEauthorblockN{Marco Gaboardi}
-% \IEEEauthorblockA{\textit{Department of Computer Science} \\
-% \textit{Boston University}\\
-% Boston, USA \\
-% gaboardi@bu.edu}
-% }
+\author{\IEEEauthorblockN{Cheng Zhang\textsuperscript{\textsection}}
+\IEEEauthorblockA{\textit{Department of Computer Science} \\
+\textit{University College London}\\
+London, United Kingdom \\
+0000-0002-8197-6181}
+\and
+\IEEEauthorblockN{Qiancheng Fu}
+\IEEEauthorblockA{\textit{Department of Computer Science} \\
+\textit{Boston University}\\
+Boston, USA \\
+qcfu@bu.edu}
+\and
+\IEEEauthorblockN{Hang Ji\textsuperscript{\textsection}}
+\IEEEauthorblockA{\textit{Department of Computer Science} \\
+\textit{Cornell University}\\
+Ithaca, USA \\
+hj476@cornell.edu}
+\and
+\IEEEauthorblockN{Ines Santacruz}
+\IEEEauthorblockA{\textit{Department of Computer Science} \\
+\textit{Boston University}\\
+Boston, USA \\
+inessdv15@gmail.com}
+\and
+\IEEEauthorblockN{Marco Gaboardi}
+\IEEEauthorblockA{\textit{Department of Computer Science} \\
+\textit{Boston University}\\
+Boston, USA \\
+gaboardi@bu.edu}
+}
 
 \maketitle
-% \begingroup\renewcommand\thefootnote{\textsection}
-% \footnotetext{Work largely performed at Boston University}
-% \endgroup
+\begingroup\renewcommand\thefootnote{\textsection}
+\footnotetext{Work largely performed at Boston University}
+\endgroup
 
 \begin{abstract}
 We present several new algorithms to efficiently decide Guarded Kleene Algebra with Tests (GKAT) equivalences.
@@ -352,7 +352,7 @@ In fact, the function \(σ_{S'}\) is uniquely determined by the states \(S'\)~\c
 Sub-coalgebras are also preserved under homomorphic images and pre-images: 
 \begin{theoremEnd}{lemma}[Theorem 6.3~\cite{rutten_UniversalCoalgebraTheory_2000}]\label{thm:hom-(pre)img-preserve-sub-coalg}
     given a homomorphism \(h: S → U\), and sub-coalgebras \(S' ⊑ S\) and \(U' ⊑ U\), then 
-    \[h(S') ⊑ U \text{ and } h^{-1}(U') ⊑ S.\]
+    \(h(S') ⊑ U \text{ and } h^{-1}(U') ⊑ S.\)
 \end{theoremEnd}
 
 One particularly important sub-coalgebra of a coalgebra \(S\) is the least sub-coalgebra that contains a state \(s\). 
@@ -364,7 +364,7 @@ For all coalgebra \(S\) and a state \(s ∈ S\), principle sub-coalgebra \(⟨s�
 Similar to sub-coalgebra, principle sub-coalgebra is also preserved under homomorphic image:
 \begin{theoremEnd}{theorem}\label{thm:homo-img-preserve-principle-sub-coalg}
     Homomorphic image preserves principle sub-GKAT coalgebra. Specifically, given a homomorphism \(h: S → U\):
-    \[h(⟨s⟩_S) = ⟨h(s)⟩_U\]
+    \(h(⟨s⟩_S) = ⟨h(s)⟩_U\)
 \end{theoremEnd}
 
 \begin{proofEnd}
@@ -396,7 +396,7 @@ and its projections \(π₁: {∼} → S\) and \(π₂: {∼} → U\) are both h
         F(S) & F(∼) \ar{l}{F(π₁)} \ar[swap]{r}{F(π₂)} & F(T)
     \end{tikzcd}
 \]
-We sometimes use \({∼} ⊆ S × U\) to specify that \(∼\) is a bisimulation between \(S\) and \(U\).
+We sometimes abuse the notation \({∼} ⊆ S × U\) to specify that \(∼\) is a bisimulation between \(S\) and \(U\).
 
 When given a homomorphism \(h: S → U\), we can construct a bisimulation \({∼} ⊆ S × U\) where it relates all the states \(s ∈ S\) with \(h(s) ∈ U\). Each component of the pair will transition individually via their respective transition function \(δ_∼ ≜ δ_S × δ_U\).
 \begin{theoremEnd}{corollary}\label{thm:hom-preserves-semantics}
@@ -468,12 +468,12 @@ In particular, \(G\) is a simple polynomial functor~\cite{jacobs_IntroductionCoa
 \end{proofEnd}
 
 Besides the nice property of bisimulation, GKAT coalgebra is also deterministic, unlike Kleene Coalgebra with Tests (KCT)~\cite{kozen_CoalgebraicTheoryKleene_2017}.
-For each atom, states in a KCT can accept or reject the atom (but not both), yet states can also non-deterministically transition to multiple different states via the same atom, while executing different actions.
+For each atom, states in a KCT can non-deterministically accept, reject (but not both), or transition to multiple different states while executing different actions.
 As we will see later, while the deterministic behavior of GKAT coalgebra enables a more versatile symbolic algorithm than KCT~\cite{pous_SymbolicAlgorithmsLanguage_2015}, it also comes with unique challenges. 
 Specifically, GKAT coalgebra requires normalization to compute finite trace equivalences~\cite{smolka_GuardedKleeneAlgebra_2020}, where we reroute all the transitions that cannot lead to acceptance immediately into rejection; and states that can never lead to acceptance are called \emph{dead states}.
 
 In previous works, these dead states are detected after the necessary coalgebra is computed and stored.
-This approach requires storing all the transitions and states of coalgebra in memory, meaning that the algorithm does not short circuit even if a mismatch can be detected in the starting state; for example, when for some \(α ∈ \At\), \(δ_S(s, α) = \reject\) and \(δ_U(u, α) = \accept\).
+This approach requires storing all the transitions and states of coalgebra in memory, meaning that the algorithm does not short circuit even if a mismatch can be detected in the starting state; for example, when for some \(α ∈ \At\), \(δ_S(s, α) = \reject\) and \(δ_U(u, α) = \accept\), then we can conclude \(s, u\) have different trace semantics, without needing to compute the rest of the coalgebra.
 
 Our algorithm is lazy in the dead-state detection i.e. the dead states are only checked when a mismatch requires it; even then, our dead state detection algorithm will only check the necessary states to compute the liveness of the states causing the mismatch.
 This not only avoids unnecessarily checking the liveness of a state, but also enables on-the-fly generation of the coalgebra, where we can remove irrelevant states from memory after they have been explored. 
@@ -489,8 +489,8 @@ Traditionally, live and dead states are defined by whether they can reach an acc
     \[s₀ \transvia{α₁ ∣ p₁} s₁ \transvia{α₂ ∣ p₂} s₂ ⋯ \transvia{αₙ ∣ pₙ} sₙ.\]
     A state is \emph{dead} if it is not live.
 \end{definition}
-However, besides directly working with this explicit definition, we can also give a coalgebraic characterization of these properties.
-Specifically, by induction on the length of the path from one state to the next, we can show that the principle sub-coalgebra \(⟨s⟩_S\) exactly contains all the reachable states of \(s\) in the GKAT coalgebra \(S\).
+Besides directly working with this explicit definition, we can also give a coalgebraic characterization of liveness.
+Specifically, by induction on the length of the path from state \(s\) to an arbitrary reachable state from \(s\), we can show that the principle sub-coalgebra \(⟨s⟩_S\) exactly contains all the reachable states of \(s\) in the GKAT coalgebra \(S\).
 Thus, we obtain the following coalgebraic characterization of liveness:
 \begin{theoremEnd}{theorem}\label{thm:liveness-principle-sub-coalg}
     A state \(s\) is \emph{live} if there exists an accepting state \(s' ∈ ⟨s⟩\); and a state \(s\) is \emph{dead} if there is no accepting state in \(⟨s⟩\).
@@ -502,9 +502,8 @@ We show the following theorems as examples:
 \end{theoremEnd}
 \begin{proofEnd}
     \(⟸\) direction is true, because \(s ∈ ⟨s⟩\): if all \(⟨s⟩\) is dead, then \(s\) is dead. 
-    \(⟹\) direction can be proven as follows.
-    Take any \(s' ∈ ⟨s⟩\), then \(⟨s'⟩ ⊑ ⟨s⟩\) because \(s'\) is the minimal sub-coalgebra that contains \(s'\). 
-    Since there is no accepting state in \(⟨s⟩\), thus there cannot be any accepting state in \(⟨s'⟩\), hence \(s'\) is also dead.
+    \(⟹\) direction can be proven by taking any \(s' ∈ ⟨s⟩\); then we notice \(⟨s'⟩ ⊑ ⟨s⟩\) because \(s'\) is the minimal sub-coalgebra that contains \(s'\). 
+    Since there is no accepting state in \(⟨s⟩\), there cannot be any accepting state in \(⟨s'⟩\), hence \(s'\) is also dead.
 \end{proofEnd}
 
 \begin{theoremEnd}[normal]{theorem}[homomorphism perserves liveness]\label{thm:hom-preserve-liveness}
@@ -562,7 +561,7 @@ We call \(\norm(S) ≜ (S, δ_{\norm(S)})\) the \emph{normalized} coalgebra of \
 
 We use \(⟦-⟧_S: \norm(S) → \mathscr{G}\) to denote the finite trace semantics of GKAT coalgebra, which is the unique homomorphism into the final coalgebra \(\mathscr{G}\). 
 The finite trace equivalence between \(s ∈ S\) and \(u ∈ U\) can be decided by first normalizing \(S\) and \(U\) then deciding whether there is a bisimulation \({∼} ⊆ \norm(S) × \norm(U)\) s.t. \(s ∼ t\).
-For a more detailed explanation on the finite trace semantics, we refer the reader to the work of \Citeauthor{smolka_GuardedKleeneAlgebra_2020}~\cite{smolka_GuardedKleeneAlgebra_2020}, whereas we will recall the correctness theorem here.
+For a more detailed explanation on the finite trace semantics, we refer the reader to the work of \Citeauthor{smolka_GuardedKleeneAlgebra_2020}~\cite{smolka_GuardedKleeneAlgebra_2020}, we will only recall the correctness theorem here.
 
 \begin{theoremEnd}{theorem}[Correctness~\cite{smolka_GuardedKleeneAlgebra_2020}]\label{thm:norm-bisim-correctness}
     Given two states in two GKAT coalgebra \(s ∈ S\) and \(u ∈ U\), then there exists a bisimulation between normalized coalgebras \({∼} ⊆ \norm(S) × \norm(U)\) s.t. \(s ∼ u\) if and only if \(s\) and \(u\) are trace equivalent \(⟦s⟧_S = ⟦u⟧_U\)
@@ -633,7 +632,7 @@ Second, normalization is an endofunctor in the category of GKAT coalgebra. This 
 \end{proofEnd}
 
 Because of the functoriality, we can show that two states that are infinite-trace equivalent implies these two states are finite-trace equivalent.
-This gives us more tool in proving semantic equivalence between two states in GKAT coalgebras: proving bisimulation of these two states in the \emph{non-normalized} GKAT coalgebra can also obtain finite-trance equivalence for the two states.
+This gives us more tool in proving semantic equivalence between two states in GKAT coalgebras: proving bisimulation of these two states in the \emph{non-normalized} GKAT coalgebra is sufficient (but not necessary) to obtain finite-trance equivalence for the two states.
 
 \begin{theoremEnd}{corollary}\label{thm:inf-trace-equiv-implies-fin-trace-equiv}
     Given two states in two GKAT coalgebra \(s ∈ S, u ∈ U\), \(⟦s⟧^{ω}_{S} = ⟦u⟧^{ω}_{U} ⟹ ⟦s⟧_{S} = ⟦u⟧_{U}\).
@@ -685,10 +684,10 @@ The intuition of this on-the-fly algorithm can be expressed as the following coa
     We call \(∼\) \emph{the underlying bisimulation} of \(≈\).
 \end{definition}
 
-Given any bisimulation \({∼} ⊆ S × U\), we can construct a GKAT coalgebra \(∼_d\) s.t. it is almost a greedy bisimulation, i.e. it is closed under \(δ_≈\) in~\Cref{def:greedy-bisim}, and contains \(∼\), except it is not necessarily the \emph{least} GKAT coalgebra that satisfies these properties.
+Given any bisimulation \({∼} ⊆ S × U\), we can construct a GKAT coalgebra \(∼_d\) s.t. it is \emph{almost} a greedy bisimulation, i.e. it is closed under \(δ_≈\) in~\Cref{def:greedy-bisim}, and contains \(∼\), except it is not necessarily the least GKAT coalgebra that satisfies these properties.
 
 \begin{theoremEnd}{lemma}\label{thm:dead-construction-greedy-bisim}
-    For any eager bisimulation \({≈} ⊆ S × U\) with the underlying bisimulation \({∼}\), the following relation \({∼_d} ⊆ S × U\):
+    For any greedy bisimulation \({≈} ⊆ S × U\) with the underlying bisimulation \({∼}\), the following relation \({∼_d} ⊆ S × U\):
     \[{∼_d} ≜ {∼} ∪ \{(s, u) ∣ \text{\(s\) and \(u\) are dead in \(S\) and \(U\)}\},\]
     forms a GKAT coalgebra with the transition function \(δ_≈\) in~\Cref{def:greedy-bisim}, which implies \({≈} ⊑ {∼_d}\).
     Furthermore, \(\norm(∼_d)\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\).
@@ -717,11 +716,11 @@ Although \Cref{thm:dead-construction-greedy-bisim} can be proved by unfolding th
 Specifically, \(∼_d\) serves a connection between \(≈\) and its underlying bisimulation \(∼\), and the order \({∼} ⊆ {≈} ⊑ {∼_d}\) will reveal many structural properties of \(≈\).
 
 \begin{theoremEnd}[normal]{corollary}\label{thm:greedy-bisim-exists-unique}
-    For any bisimulation between two normalized GKAT coalgebras \({∼} ⊆ \norm(S) × \norm(U)\), a greedy bisimulation \(≈\) with \(∼\) as underlying bisimulation exists and is unique.
+    For any bisimulation \({∼} ⊆ \norm(S) × \norm(U)\), a greedy bisimulation \(≈\) with \(∼\) as underlying bisimulation exists and is unique.
 \end{theoremEnd}
 
 \begin{proofEnd}
-    Because sub-coalgebra form a complete lattice under union and intersection~\cite[Theorem 6.4]{rutten_UniversalCoalgebraTheory_2000}, then we can construct \(≈\) by taking the intersection of all the sub-coalgebra of \(∼_d\) in~\Cref{thm:dead-construction-greedy-bisim}.
+    Because sub-coalgebra form a complete lattice under union and intersection~\cite[Theorem 6.4]{rutten_UniversalCoalgebraTheory_2000}, then \(≈\) is the intersection of all the sub-coalgebra of \(∼_d\) (\Cref{thm:dead-construction-greedy-bisim}) containing \(∼\).
 \end{proofEnd}
 
 \begin{theoremEnd}[normal]{corollary}\label{thm:greedy-bisim-dead-or-bisim}
@@ -733,13 +732,7 @@ Specifically, \(∼_d\) serves a connection between \(≈\) and its underlying b
 \end{proofEnd}
 
 \begin{theoremEnd}[normal]{corollary}[Perservation Of Liveness]\label{thm:greedy-bisim-perserve-liveness}
-    Given a pair of states in a greedy bisimulation \(s ≈ u\) where \({≈} ⊆ S × U\), then the following are equivalent
-    \begin{itemize}
-        \item \((s, u)\) is live (or dead) in \({≈}\);
-        \item \(s\) is live (or dead) in \(S\);  
-        \item \(u\) is live (or dead) in \(U\).
-    \end{itemize}
-    Furthermore, if \((s, u)\) is in the underlying bisimulation \(∼\) of \(≈\), then all of above are also equivalent to \((s, u)\) is live (or dead) in \(∼\).
+    Given a pair of states in a greedy bisimulation \(s ≈ u\) where \({≈} ⊆ S × U\), then \((s, u)\), \(s\), \(u\) all have the same liveness in \(≈\), \(S\), and \(U\) respectively.
 \end{theoremEnd}
 
 \begin{proofEnd}
@@ -759,14 +752,14 @@ Specifically, \(∼_d\) serves a connection between \(≈\) and its underlying b
 \end{proofEnd}
 
 \begin{theoremEnd}[normal]{corollary}\label{thm:greedy-bisim-iff-norm-bisim}
-    Given two GKAT coalgebras \(S\) and \(U\), and a relational GKAT coalgebra \({≈} ⊆ S × U\) with the transition \(δ_≈\) as in~\cref{def:greedy-bisim}.
+    Given two GKAT coalgebras \(S\) and \(U\), and a relational GKAT coalgebra \({≈} ⊆ S × U\) with the transition \(δ_≈\) as in~\Cref{def:greedy-bisim}.
     \(≈\) is a greedy bisimulation if and only if \(\norm(≈)\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\)
 \end{theoremEnd}
 
 \begin{proofEnd}
     The \(⟹\) direction, we let \(∼_d\) be defined as in~\Cref{thm:dead-construction-greedy-bisim}.
     Because \({≈} ⊑ {∼_d}\) and~\Cref{thm:norm-sub-coalg}, \(\norm(≈) ⊑ \norm(∼_d)\). 
-    Because \(\norm(∼_d)\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\), therefore \(\norm(≈)\) is a bisimulation (\Cref{thm:greedy-bisim-iff-norm-bisim}).
+    Because \(\norm(∼_d)\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\), therefore \(\norm(≈)\) is also a bisimulation (\Cref{thm:greedy-bisim-iff-norm-bisim}).
 
     The \(⟸\) direction can be proven by simply letting \(\norm(≈)\) be the underlying bisimulation of \(≈\), because \(\norm(≈)\) has the same carrier set of \(≈\), then \(≈\) has to be the least GKAT coalgebra with \(δ_≈\) that contains \(\norm(≈)\), satisfying all the conditions for greedy bisimulation.
 \end{proofEnd}
@@ -799,7 +792,7 @@ Similarly to the correctness of bisimulation between normalized coalgebra (\Cref
 \end{proofEnd}
 
 Despite satisfying many desirable structural properties, the definition of greedy bisimulation is still coalgebraic.
-To aid the design of an algorithm based on greedy bisimulation, we turn the coalgebra into a set of concrete criteria, that can be checked by an algorithm.
+To aid the design of an algorithm based on greedy bisimulation, we establish the correspondence of its definition with a set of concrete criteria, that can be checked by an algorithm.
 In the following theorem, we will present such necessary and sufficient conditions to construct a greedy bisimulation.
 \begin{theoremEnd}{theorem}[Recursive Construction]\label{thm:recursive-construction}
     Given a relation \({≈} ⊆ S × U\), \(≈\) is a carrier of some greedy bisimulation if and only if all the following condition are satisfied: for all pair of states \(s ≈ u\),
@@ -937,27 +930,11 @@ This technique also applies to greedy bisimulation.
     Therefore, \((s, u)\) is also in the greedy bisimulation \({≈} ⊆ \norm(S) × \norm(U)\), generated by \(∼\).
 \end{proofEnd}
 
-% \begin{theoremEnd}{theorem}\label{thm:greedy-bisim-one-dead}
-%     Consider two states in GKAT coalgebras \(s ∈ S, u ∈ U\) and an arbitrary bisimulation \({∼} ⊆ \norm(S) × \norm(U)\), if \(s\) is dead, then 
-%     \begin{enumerate}
-%         \item\label{itm:greedy-bisim-one-dead-then-both-dead} if \(s ∼ u\), then \(u\) is dead.
-%         \item\label{itm:remove-dead-pairs-sound} if \(u\) is dead, then \({∼} ∖ ⟨(s, u)⟩_∼\) is also a bisimulation between \(\norm(S)\) and \(\norm(U)\).
-%     \end{enumerate}
-% \end{theoremEnd}
-
-% \begin{proofEnd}
-%     \Cref{itm:greedy-bisim-one-dead-then-both-dead} is a consequence of bisimulation preserves liveness (\Cref{thm:bisim-preserve-liveness}) and normalization preserves liveness (\Cref{thm:norm-perserve-liveness}).
-
-%     \Cref{itm:remove-dead-pairs-sound} can be proven by realizing that \((s, u)\) is a dead state in \(∼\) (\Cref{thm:bisim-preserve-liveness}) which means that all the states in \(⟨(s, u)⟩_∼\) are dead.
-%     Because \(∼\) is a normalized GKAT coalgebra (\Cref{thm:}), therefore no state can transition into dead states like \(⟨(s, u)⟩_∼\), hence \({∼} ∖ ⟨(s, u)⟩_∼\) is still closed under its transition, and form a sub-coalgebra of \(∼\).
-%     Finally because \(∼\) is a bisimulation between \(\norm(S)\) and \(\norm(U)\), then so is \({∼} ∖ ⟨(s, u)⟩_∼\) (\Cref{thm:})
-% \end{proofEnd}
-
 Before we introduce the algorithm, we will first briefly sketch the liveness-check algorithm. It uses depth-first search to check whether there exists any accepting states in the reachable states of \(s ∈ S\): if there exists an accepting state in \(⟨s⟩_S\), then the algorithm terminates immediately, and returns that \(s\) is live, otherwise it would return all the states in \(⟨s⟩\), and by~\cref{thm:dead-iff-all-reachable-dead}, all the states in \(⟨s⟩\) are dead. Note that we use depth-first search here for its simplicity, other search algorithms will also be sound.
 
 We cache all the known dead states from the previous searches; whether a state \(s\) is in this cache can be checked by the function call \Call{knownDead\(_S\)}{$s$}. 
-The function \Call{isDead\(_S\)}{$s$} will first check if \(s\) is known to be dead, and invoke the search algorithm in the coalgebra \(⟨s⟩\) if \(s\) is not in the cached dead states.
-Because the non-symbolic version of liveness checking is similar to the symbolic version, we only provide the symbolic version of this algorithm in~\cref{lst:dead-state-detection}.
+On the other hand, the function \Call{isDead\(_S\)}{$s$} will first check if \(s\) is known to be dead, and invoke the search algorithm in the coalgebra \(⟨s⟩\) if \(s\) is not in the cached dead states.
+Because the non-symbolic version of liveness checking is similar to the symbolic version, we only present the symbolic version of this algorithm in~\cref{lst:dead-state-detection}.
 
 \begin{algorithm*}
     \caption{On-the-fly bisimulation algorithm}\label{alg:bisim}
@@ -983,17 +960,15 @@ Because the non-symbolic version of liveness checking is similar to the symbolic
     \end{algorithmic}
 \end{algorithm*}
 
-Finally, we present our equivalence-checking algorithm as~\Cref{alg:bisim} which consists of recursively checking the conditions in~\Cref{thm:recursive-construction} with minor optimizations. In the algorithm, ``implies'', ``iff'', ``and'' are logical operators that take booleans (i.e. true or false) and return a boolean. Additionally, \(\&\!\&\) is the logical conjunction operation. It is the same function as the written ``and''. We use \(\&\!\&\), instead of ``and'', to separate the conditions for clarity; logically \(\&\!\&\) is the same function as ``and'', but syntactically binds less tightly.
+Finally, we present our equivalence-checking algorithm as~\Cref{alg:bisim} which consists of recursively checking the conditions in~\Cref{thm:recursive-construction} with two optimization: early termination with known dead states, and the use of union-find data structure; both of which we will justify later. 
+In the algorithm, ``implies'', ``iff'', ``and'' are logical operators that take booleans (i.e. true or false) and return a boolean. We use \(\&\!\&\), instead of ``and'', to separate the conditions for clarity; logically \(\&\!\&\) is the same function as ``and'', but syntactically \(\&\!\&\) binds less tightly than ``and''.
 
 Intuitively, the algorithm returns true if and only if a greedy bisimulation \(≈\) can be constructed s.t. \(s ≈ u\).
-Note the existence of such \(≈\) is not only equivalent to the trace equivalence of \(s\) and \(u\) (\Cref{thm:greedy-bisim-correctness}), but also equivalent to \(s ≊ u\), where \({≊} ⊆ S × U\) is the maximal bisimulation.
-However, our algorithm slightly deviates from the ideal scenario described above. Specifically, we implement two optimizations.
-First optimization is to terminate and return false as soon as we know one of \(s, u\) is dead, and the other is not.
-This early termination is sound, because in order for \(s ≈ u\) for any greedy bisimulation, \(s\) and \(u\) need to have the same liveness (\Cref{thm:greedy-bisim-perserve-liveness}).
-In the case where both \(s\) and \(u\) are dead in their respective coalgebra, we will immediately return true, because all dead-state pairs are in \(≊\) (\Cref{thm:bisim-between-dead,thm:max-bisim-is-max-greedy-bisim}).
-Then, we use a union-find data structure to organize the explored states into equivalence classes, which is justified by~\Cref{thm:greedy-bisim-iff-greedy-bisim-equiv}.
-By looking for a greedy bisimulation that is also an equivalence relation, we can use more efficient structures like union-find, instead of set of pairs; the correctness of this optimization is justified by.
-
+Note the existence of such \(≈\) is not only equivalent to the trace equivalence of \(s\) and \(u\) (\Cref{thm:greedy-bisim-correctness}), but is also equivalent to \(s ≊ u\), where \({≊} ⊆ S × U\) is the maximal greedy bisimulation.
+Our algorithm deviates from the ideal scenario by implementing two algorithm mentioned above. 
+First optimization is to terminate early when one state is known to be dead. 
+If the other state is live, then the algorithm return false, because \(s ≈ u\) implies \(s\) and \(u\) have the same liveness (\Cref{thm:greedy-bisim-perserve-liveness}); if both input state are dead, because all dead state pairs are in \(≊\) (\Cref{thm:bisim-between-dead,thm:max-bisim-is-max-greedy-bisim}).
+Then, we use a union-find data structure to organize the explored states into equivalence classes, which is justified by finding a equivalence relation (\Cref{thm:greedy-bisim-iff-greedy-bisim-equiv}).
 
 Concerning the complexity, our algorithm has similar worst case complexity as the original algorithm~\cite{smolka_GuardedKleeneAlgebra_2020}.
 In particular, when deciding the trace equivalence of two states \(s ∈ S\) and \(u ∈ U\), the original algorithm requires one pass of \(⟨s⟩\) and \(⟨u⟩\) to normalize them, and then visits each pair of states in \(⟨s⟩ × ⟨u⟩\) at most once during bisimulation. This means that the algorithm will visit at most \(|⟨s⟩ + ⟨u⟩ + ⟨s⟩ × ⟨u⟩|\) number of states in total.
@@ -1003,7 +978,9 @@ Crucially, our algorithm satisfies the following property: if the liveness-check
 Thus, by caching all the known dead states, the liveness-checking only visits states in \(⟨s⟩\) and \(⟨u⟩\) at most once.
 Therefore, the worst case of our algorithm is also \(|⟨s⟩ × ⟨u⟩ + ⟨s⟩ + ⟨u⟩|\).
 
-Although both algorithms have similar worst case complexity, the on-the-fly algorithm will always out-perform the original algorithm in non-worst case situations. This is because the on-the-fly algorithm only invokes liveness checking when necessary. In the extreme case when the two input states are infinite-trace equivalent, the on-the-fly algorithm can even skip liveness checking entirely.
+Although both algorithms have similar worst case complexity, the on-the-fly algorithm will almost always out-perform the original algorithm. 
+This is because the on-the-fly algorithm only invokes liveness checking when necessary. 
+In the extreme case when the two input states are infinite-trace equivalent, the on-the-fly algorithm can even skip liveness checking entirely.
 
 
 \section{Symbolic Coalgebra and Algorithm}\label{sec:symb-gkat-greedy-bisim}
@@ -1019,8 +996,9 @@ Specifically, given a set of primitive actions \(K\) and primitive tests \(T\), 
     ϵ̂: S → \mathscr{P}(\BExp_T) \and
     δ̂: S → \mathscr{P}(\BExp_T × S × K).
 \end{mathpar}
-This coalgebra is required to satisfy the \emph{disjointedness condition}, i.e. for all states \(s ∈ S\), the boolean expressions that \(s\) accepts \(ϵ̂(s)\) and the boolean expressions that enables \(s\) to transition \(\{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) are disjoint; i.e. the conjunction of any two distinct expressions from the set \(ϵ̂(s) ∪ \{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) is equivalent to \(0\) under Boolean Algebra.
-Like the non-symbolic case, we use \(s \transAcc{Ŝ}{b}\) to indicate \(b ∈ ϵ̂(s)\) and \(s \transvia{b ∣ p}_{Ŝ} s'\) to indicate \((b, p, s') ∈ δ̂(s)\).
+This coalgebra is required to satisfy the \emph{disjointedness condition}, i.e. for all states \(s ∈ S\), the boolean expressions that \(s\) accepts \(ϵ̂(s)\) and the boolean expressions that enables \(s\) to transition \(\{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) are disjoint.
+Formally, the disjointedness condition states the conjunction of any two distinct expressions from the set \(ϵ̂(s) ∪ \{b ∣ ∃ (b, s', p) ∈ δ(s)\}\) is equivalent to \(0\) under Boolean Algebra.
+Similar to the non-symbolic case, we use \(s \transAcc{Ŝ}{b}\) to indicate \(b ∈ ϵ̂(s)\) and \(s \transvia{b ∣ p}_{Ŝ} s'\) to indicate \((b, p, s') ∈ δ̂(s)\).
 
 We name \(ϵ̂\) the accepting function because intuitively a state \(s\) accepts an atom \(α\) when there exists a \(b ∈ ϵ̂(s)\), s.t. \(α ≤ b\); similarly, \(δ̂\) is called the transition function because a state \(s\) transitions to \(s'\) via atom \(α\) while executing \(p\) when there exists \((b, s', p) ∈ δ̂(s)\) and \(α ≤ b\).
 With the above intuition in mind, a symbolic GKAT coalgebra \(Ŝ ≜ (S, ϵ̂, δ̂)\) can be lowered into a GKAT coalgebra \(S ≜ (S, δ)\) in the following manner:
