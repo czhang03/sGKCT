@@ -111,10 +111,9 @@ Our algorithm, however, simply performs the bisimulation and confirms there is n
 
 
 
-# !!!!!!! NOTES, DO NOT SUBMIT !!!!!!!
+<!-- 
+!!!!!!! NOTES, DO NOT SUBMIT !!!!!!!
 1. Practicality of the tool
-    <!-- - Do people care about GKAT 
-        - not a lot of application of GKAT, because there is no evidence that GKAT is faster than KAT -->
     - Speed up of normalization 
         - discussion at the end of section III;
         - better sketch of liveness checking.
@@ -129,12 +128,11 @@ Our algorithm, however, simply performs the bisimulation and confirms there is n
 3. Tests generation
     - We generate the tests roughly based on the shape of real-world program input 
         - more sequencing than while etc.
-    <!-- - "trivial" tests does not impact the performance evaluation for Thompson
-    - "dead" tests does not impact the performance evaluation -->
     - negative cases are random expression, but they still need to do liveness check
     - We will rework the tests to 
         - reduce the number of trivial and dead tests, 
         - make sure that the random expression do go into dead state detection immediately
 4. Writing
-    - More about the efficiency of laziness
+    - More about the efficiency of laziness 
+-->
 
