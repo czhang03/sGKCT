@@ -80,7 +80,7 @@ Our contribution, to the best of our knowledge, is both a theoretical and practi
 > Theorem 23 is true, but Theorem 23 is not the proper tool to justify the correctness of the algorithm as mentioned on p7c2
 
 A union-find structure represents an equivalence relation. 
-By employing union-find instead of a set of equivalent pairs, algorithm will search for a greedy bisimulation that is also an equivalence relation. 
+By employing union-find instead of a set of equivalent pairs, the algorithm will search for a greedy bisimulation that is also an equivalence relation. 
 While the correctness of greedy bisimulation is established (Theorem 21), there is no inherent justification for why finding a greedy bisimulation that is also an equivalence relation is equivalent to finding just any greedy bisimulation. 
 To address this, we will apply Theorem 23 to demonstrate that there exists a greedy bisimulation that is also an equivalence relation if and only if two states are trace equivalent.
 
