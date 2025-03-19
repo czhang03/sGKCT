@@ -16,7 +16,7 @@ Finally, we emphasize that our contribution extends beyond bisimulation of coalg
 We also presented two methods for generating coalgebras from expressions and proved their correctness, finiteness, and correspondence.
 
 Regarding our experiments, we have revised our tests in our repository. 
-We also stress that trivial tests do not provide any performance benefit for algorithms based on Thompson's construction, and dead tests do not favor our algorithm. 
+We also emphasize that neither trivial nor dead tests provide performance benefit in our current implementation, so submitted tests are reflective of the general cases. 
 As mentioned before, we have conceptual demonstrations of performance improvements in the submitted version. 
 
 # Reviewer Questions
@@ -72,41 +72,4 @@ The classical algorithm would perform a liveness check, iterating through all th
 Our algorithm simply performs the bisimulation, bypassing the liveness check altogether.
 
 
-
-
-
-
-
-<!-- > p5c2 [...] The first two are the same benefit.
-
-The first benefit stems from the laziness of our liveness checking algorithm, allowing us to iterate through fewer states in the classical algorithm (see overall response and the next comment).  
-This benefit is apparent no matter the result or the generation method of the coalgebra. 
-The second benefit stems from the on-the-fly nature of our algorithm.
-Specifically, our algorithm can terminate without generating the rest of the coalgebra, when a counter-example is encountered while applying an on-the-fly generation method (such as derivatives).
-In contrast, the original algorithm requires the complete generation of the coalgebra in order to perform liveness checking first. -->
-
-<!-- 
-!!!!!!! NOTES, DO NOT SUBMIT !!!!!!!
-1. Practicality of the tool
-    - Speed up of normalization 
-        - discussion at the end of section III;
-        - better sketch of liveness checking.
-    - Trivial/Dead Equivalence
-2. Comparison with existing work
-    - Intuitive, but coalgebraic characterization is novel
-    - coalgebraic characterization enables straightforward proofs
-    - Theorem 22 is non-trivial because there is no assumption of finiteness
-3. additional results besides automata
-    - We also presented two ways to generate automata in Section V and proved them correct and equivalent.
-    - Automata shape difference, allow acceptation or rejection based on an atom.
-3. Tests generation
-    - We generate the tests roughly based on the shape of real-world program input 
-        - more sequencing than while etc.
-    - negative cases are random expression, but they still need to do liveness check
-    - We will rework the tests to 
-        - reduce the number of trivial and dead tests, 
-        - make sure that the random expression do go into dead state detection immediately
-4. Writing
-    - More about the efficiency of laziness 
--->
 
