@@ -43,8 +43,9 @@ We will specify in the background section that we assume the function `F` to be 
 Our approach to symbolic transducers diverges from previous works in several key aspects:
 - Our on-the-fly method is tailored to handle normalization, a unique challenge in achieving finite trace equivalence for GKAT. 
 - The signature of GKAT differs from traditional symbolic transducers. Unlike typical accepting or rejecting states, a GKAT state can accept or reject based on different input atoms. This results in a distinct semantics where a trace's end is marked by an atom, representing the output program state.
+In general, we feel our work is a novel contribution, independent of the prior works on symbolic transducers or symbolic coalgebra.
 
-While symbolic bisimulation is pivotal for the efficiency of our equivalence algorithm, it is not our sole theoretical contribution. 
+While symbolic algorithm is pivotal for scaling our equivalence algorithm to more primitive tests, it is not our sole contribution. 
 We have also developed:
 - An on-the-fly algorithm for bisimulation, and proved its correctness using greedy bisimulation, a novel coalgebra construction.
 - Two distinct methods to construct symbolic GKAT coalgebras, while also proved their correctness, finiteness, and correspondence. 
