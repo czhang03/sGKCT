@@ -4,24 +4,26 @@ We would like to express our sincere gratitude for the constructive feedback rec
 We will carefully address the points raised and implement the necessary changes to our paper.
 
 First, we address the efficiency of our lazy normalization approach. 
-The classical algorithm always performs a full traversal of the coalgebra during liveness checking prior to bisimulation checking, our algorithm invokes bisimulation and only run traverses the reachable states of the discrepancy state.
-Therefore, our algorithm consistently traverses fewer states for liveness checking, even for positive results. 
+The classical algorithm performs a full traversal of the coalgebra during liveness checking before bisimulation checking. 
+In contrast, our algorithm invokes bisimulation and only traverses the reachable states of the discrepancy. 
+This results in fewer states being traversed during liveness checking, even for positive results. 
 Additionally, lazy liveness checking enables on-the-fly coalgebra generation using methods like derivatives, which the original algorithm does not support.
 
 Second, we address the theoretical contribution of our work. 
-While the result may seem intuitive, we maintain that our proof is not trivial. 
-In particular, directly connecting the algorithm with bisimulation on the normalized coalgebra will be challenging (similar to Theorem 20), since we assume neither the input coalgebra nor their bisimulation is finite.
-We have reworked the framework several times to pin-down the intuitive and concise coalgebra structure "greedy bisimulation" to sever as a middle ground, so that most of the proof are either unfolding definitions or results of standard coalgebra manipulations.
+While the result may seem intuitive, our proof is not trivial. 
+Directly connecting the algorithm with bisimulation on the normalized coalgebra, similar to Theorem 21, is challenging; partially because we do not assume that the input coalgebra or bisimulation are finite.
+Our development leads to a more general result than the finitary case. 
+We have reworked the framework several times to pin-down the intuitive notion of "greedy bisimulation", leading to modular results that build up to the final correctness result. 
+The effectiveness of greedy bisimulation as a theoretical concept is demonstrated by the simplicity of most proofs, which are either unfoldings of definitions or standard exercises in coalgebra.
 
-Finally, we emphasize that our contribution extends beyond bisimulation of machines (or coalgebras).
-In Section V, we present two methods for generating coalgebras from expressions and prove their correctness, finiteness, and correspondence.
-The finiteness result, in particular, arises naturally from the correspondence result. 
-The simplicity of this result is noted by one of the reviewers.
+Finally, we emphasize that our contribution extends beyond bisimulation of coalgebras (or machines).
+In Section V, we present two methods for generating coalgebras from expressions and prove their correctness, finiteness, and correspondence. 
+The finiteness result elegantly arises from the correspondence result, a point noted by one of the reviewers.
 
-Regarding experiments in our work, we have updated our test cases with all the "trivial" or dead test cases removed, this development can be found in our repository: https://anonymous.4open.science/r/rust-gkat-071E/ .
-Evidently, our performance are minimally impacted by the new test cases. 
-We hypothesize that because our implementation is so fast, non-negligible amount of time are spent on parsing and hash-consing expressions.
-Plus, trivial test cases do not provide any performance benefit for our algorithm based on Thompson's construction, and dead test cases also do not favor our algorithm against other tools. 
+Regarding experiments in our work, We have reworked our test cases, removing all "trivial" or dead test cases. 
+Evidently, our performance is minimally impacted by the new test cases. 
+We hypothesize that our implementation is so fast that a non-negligible amount of time is spent on parsing and hash-consing expressions, causing the performance impact of "trivial" tests to be minimal. 
+Additionally, "trivial" tests do not provide any performance benefit for the algorithm based on Thompson's construction, and dead test cases do not favor our algorithms against other tools.
 
 # Reviewer Questions
 
@@ -67,19 +69,20 @@ Besides, there can be edge cases (depending on the application) where the number
 > there can still be dead states in a normalized coalgebra
 
 As in all the works in GKAT, dead states are indeed preserved in the normalized coalgebra.
-This approach makes the normalized coalgebra share the carrier as the original coalgebra, allowing the semantics of states to be defined via the unique map into final coalgebra, as it is standard.
+This approach allows the semantics of dead states to be defined in the standard manner, i.e. via the unique map into final coalgebra.
 
 > can you say a bit more about SymKAT and why it might perform worse
 
-SymKAT is a symbolic equivalence checker for Kleene Algebra with Tests (KAT).
-Our algorithm is specialized to GKAT, thus able to leverage the deterministic structure to produce smaller automata (coalgebra) and use existing SAT solver to resolve boolean equivalence/inequivalence.
-Our work is both the first theoretical and practical demonstration that GKAT equivalence can be checked more efficiently than KAT, by using a specialized solver like we designed in this paper.
+SymKAT is a symbolic equivalence checker for Kleene Algebra with Tests (KAT). 
+Our algorithm is specialized for GKAT, leveraging its deterministic structure to produce smaller automata (coalgebras) and utilizing existing SAT solvers to resolve boolean equivalence and inequivalence. 
+This work represents the first theoretical and practical demonstration that GKAT equivalence can be checked more efficiently than KAT by employing a specialized solver, as designed in this paper.
 
 > GKAT is a bit artificial
 
-GKAT semantics corresponds to trace semantics, a standard semantics of programming language and control-flow analysis.
-Indeed, as you specified, trace equivalence is a stronger equivalence than input-output equivalence.
-However, trace equivalence turns out to be useful in various applications, as we listed in the last paragraph of the related works section, and in response to reviewer 1.
+GKAT semantics is based on trace semantics, a standard semantics used in programming languages and control-flow analysis. 
+As you noted, trace equivalence is a stronger equivalence than input-output equivalence. 
+However, trace equivalence proves to be useful in various applications, as we detailed in the last paragraph of the related work section and in response to Reviewer 1.
+In fact, we foresee that our works here can be adapted to these applications and greatly improve their performance.
 
 ### Reviewer 3
 
@@ -94,31 +97,22 @@ To address this, we will apply Theorem 23 to demonstrate that there exists a gre
 > -> The first two are the same benefit.
 
 The first benefit stems from the laziness of our liveness checking algorithm, allowing us to iterate through fewer states in the classical algorithm (see overall response and the next comment).  
-This benefit is apparent no matter the result or the generation method of the coalgebra. 
+This benefit exists regardless of the result of the algorithm or the generation method of the coalgebra. 
 The second benefit stems from the on-the-fly nature of our algorithm.
-Specifically, our algorithm can terminate without generating the rest of the coalgebra, when a counter-example is encountered while applying an on-the-fly generation method (such as derivatives).
+Specifically, while we encounter a counter-example while using derivative to generate the coalgebra on-the-fly, our algorithm can terminate without generating the rest of the coalgebra.
 In contrast, the original algorithm requires the complete generation of the coalgebra in order to perform liveness checking first.
 
 > p7c2 "In the extreme case when the two input states are infinite-trace equivalent, the on-the-fly algorithm can even skip liveness checking entirely." 
 > -> yes, but in that case the liveness analysis would be faster (linear instead of almost linear)
 
 We are uncertain why the original algorithm might be faster in this specific case. 
-The original algorithm requires determining the liveness of every single state before performing bisimulation. 
-In contrast, our algorithm only conducts liveness checking on a few states when the bisimulation algorithm detects a discrepancy.
-Consider two bisimilar states (not just finite-trace equivalent) in a GKAT coalgebra composed entirely of live states. 
-The classical algorithm would first perform a liveness check, iterating through all the states, and then proceed with bisimulation, iterating through all the states again. 
-Our algorithm, however, simply performs the bisimulation and confirms there is no discrepancy, effectively bypassing the liveness check altogether.
+Consider two bisimilar states (infinite-trace equivalent) in a GKAT coalgebra with no dead state. 
+The classical algorithm would perform a liveness check, iterating through all the states; then proceed with bisimulation, iterating through all the states again. 
+Our algorithm simply performs the bisimulation; because these two states are bisimilar, our algorithm will bypass the liveness check altogether.
 
 
 > say somewhere that these are more Antimorov' partial derivatives than Brzozowski's derivatives
 
-Although we do have power set in the signature of symbolic GKAT coalgebra, our derivative do not transition in a non-deterministic manner.
-In fact, we are able to out-perform state-of-the-art tools for KAT equivalence precisely because the GKAT fragment is deterministic.
-We believe that our derivative is closer to Brozozowski style derivative, as we will transition to (at most) a single expression given an input expression, as opposed to a set of expression.
-
-
-
-
-
-
-
+While we employ the power set in the signature of the symbolic GKAT coalgebra, our derivatives do not transition in a non-deterministic manner. 
+Specifically, when given an GKAT expression and a (valid) boolean expression, derivative will deterministically transition to a GKAT expression.
+In this sense, our notion of derivative is closer to Brzozowski style than that of Antimorov.
