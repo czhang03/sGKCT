@@ -77,12 +77,31 @@ SymKAT is a symbolic equivalence checker for Kleene Algebra with Tests (KAT).
 Our algorithm is specialized for GKAT, leveraging its deterministic structure to produce smaller automata (coalgebras) and utilizing existing SAT solvers to resolve boolean equivalence and inequivalence. 
 This work represents the first theoretical and practical demonstration that GKAT equivalence can be checked more efficiently than KAT by employing a specialized solver, as designed in this paper.
 
+> "least GKAT coalgebra" doesn't make sense. 
+
+GKAT coalgebra is naturally ordered with sub-GKAT coalgebra relation; then a least GKAT coalgebra satisfying a certain property is a sub-GKAT coalgebra of all the GKAT coalgebra satisfying said property.
+Note that we do not assume such GKAT coalgebra always exists for all properties, the existence and uniqueness of greedy bisimulation is proved later. 
+
+> It should be least relation containing ~ and closed under the transition relation. 
+
+This also would lead to the same coalgebra. 
+Treating greedy bisimulation itself as a GKAT coalgebra allows us to reuse several prior results, like homomorphism preserves liveness.
+In fact, we believe that showing the existence of such ~ showed also require a theorem similar to Lemma 15, and then use the fact that subsets of ~_d form a complete lattice.
+The proof above is essentially the same as our existence proof.
+
+
 > GKAT is a bit artificial
 
 GKAT semantics is based on trace semantics, a standard semantics used in programming languages and control-flow analysis. 
 As you noted, trace equivalence is a stronger equivalence than input-output equivalence. 
 However, trace equivalence proves to be useful in various applications, as we detailed in the last paragraph of the related work section and in response to Reviewer 1.
 In fact, we foresee that our works here can be adapted to these applications and greatly improve their performance.
+
+> Overall, I didn't quite understand, do you need to use bisimulations, or could you have start states and just compare traces directly? 
+
+The algebraic treatment of bisimulation should coincide the normal automata theoretical intuition, at least in the finite case.
+However, by treating (greedy) bisimulation as coalgebras, we are able to use theorems like homomorphism preserves liveness or the functoriality of normalization.
+The coalgebraic treatment makes our proofs more modular, and each proof more concise and straightforward, which we thought LICS appreciates. 
 
 ### Reviewer 3
 
