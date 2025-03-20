@@ -269,7 +269,8 @@ gaboardi@bu.edu}
 \begin{abstract}
 We present several new algorithms to efficiently decide Guarded Kleene Algebra with Tests (GKAT) equivalences.
 Although the current algorithm scales nearly-linearly with the size of the expression, its performance is hindered by the need to compute the entire coalgebra for the sake of normalization and exponential performance degradation when expanding the set of primitive tests.
-To address these problems, we introduce two new algorithms for bisimulation checking: an on-the-fly bisimulation algorithm based on greedy bisimulation, which enables immediate termination upon discovering a counter-example and supports on-the-fly coalgebra generation with derivatives; and a symbolic algorithm that builds upon the on-the-fly algorithm while leveraging efficient SAT solvers to speed up boolean comparisons and compress the transition structures of GKAT coalgebra.
+To address these problems, we introduce two new algorithms for bisimulation checking: an on-the-fly bisimulation algorithm based on greedy bisimulation, a coalgebriac representation of our algorithm; and its symbolic version. 
+Our algorithm enables immediate termination upon discovering a counter-example and supports on-the-fly coalgebra generation with derivatives; and a symbolic algorithm that builds upon the on-the-fly algorithm while leveraging efficient SAT solvers to speed up boolean comparisons and compress the transition structures of GKAT coalgebra.
 Additionally, to utilize the symbolic bisimulation checking, we provide two methods to generate symbolic GKAT coalgebras from GKAT expressions, analogous to derivative and Thompson's construction in previous works.
 We have proven the correctness of our algorithms and conducted brief complexity analyses.
 Finally, we implemented the symbolic algorithms in Rust, demonstrating orders-of-magnitude performance improvements over existing tools.
@@ -684,7 +685,7 @@ The intuition of this on-the-fly algorithm can be expressed as the following coa
     We call \(∼\) \emph{the underlying bisimulation} of \(≈\).
 \end{definition}
 
-Given any bisimulation \({∼} ⊆ S × U\), we can construct a GKAT coalgebra \(∼_d\) s.t. it is \emph{almost} a greedy bisimulation, i.e. it is closed under \(δ_≈\) in~\Cref{def:greedy-bisim}, and contains \(∼\), except it is not necessarily the least GKAT coalgebra that satisfies these properties.
+Given any bisimulation \({∼} ⊆ \norm(S) × \norm(U)\), we can construct a GKAT coalgebra \(∼_d\) s.t. it is \emph{almost} a greedy bisimulation, i.e. it is closed under \(δ_≈\) in~\Cref{def:greedy-bisim}, and contains \(∼\), except it is not necessarily the least GKAT coalgebra that satisfies these properties.
 
 \begin{theoremEnd}{lemma}\label{thm:dead-construction-greedy-bisim}
     For any greedy bisimulation \({≈} ⊆ S × U\) with the underlying bisimulation \({∼}\), the following relation \({∼_d} ⊆ S × U\):
