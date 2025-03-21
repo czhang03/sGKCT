@@ -20,8 +20,8 @@ In Section V, we present two methods for generating coalgebras from expressions 
 The finiteness result elegantly arises from the correspondence result, a point noted by one of the reviewers.
 
 Regarding experiments in our work, We have reworked our test cases, removing all "trivial" or dead test cases. 
-Evidently, our performance is minimally impacted by the new test cases. 
-By analyzing the algorithm, we can see that "trivial" tests do not provide any performance benefit for the algorithm based on Thompson's construction, and dead test cases do not favor our algorithms against other tools.
+Our performance is minimally impacted by the new test cases. 
+By analyzing the algorithm, we can also see that "trivial" tests do not provide any performance benefit for the algorithm based on Thompson's construction, and dead test cases do not favor our algorithms against other tools.
 
 # Reviewer Questions
 
