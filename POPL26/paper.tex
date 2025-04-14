@@ -44,13 +44,209 @@
 %% for your publication.
 %%
 %%
-\documentclass[manuscript,screen,review,anonymous]{acmart}
+\documentclass[
+  manuscript,screen,review,anonymous,
+  natbib=false]{acmart}
 %%
 %% \BibTeX command to typeset BibTeX logo in the docs
 \AtBeginDocument{%
   \providecommand\BibTeX{{%
     Bib\TeX}}}
 
+% Biblatex
+\RequirePackage[
+  datamodel=acmdatamodel,
+  style=acmnumeric,
+  ]{biblatex}
+%% Declare bibliography sources (one \addbibresource command per source)
+\addbibresource{refs.bib}
+
+% For adding inline comments in the text.
+\usepackage[margin=false,inline=true]{fixme}
+\FXRegisterAuthor{aaa}{anaaa}{\color{cyan}AAA}
+\FXRegisterAuthor{mg}{anmg}{\color{red}MG}
+\FXRegisterAuthor{cz}{ancz}{\color{orange}CZ}
+% \newcommand{\aaa}[1]{\aaanote{#1}}
+% \newcommand{\mg}[1]{\mgnote{#1}}
+% \newcommand{\cz}[1]{\cznote{#1}}
+\newcommand{\aaa}[1]{}
+\newcommand{\mg}[1]{}
+\newcommand{\cz}[1]{}
+
+\usepackage{stmaryrd}
+
+\usepackage{stackengine}
+\usepackage{mathrsfs}
+\usepackage{braket}
+\usepackage{annotate-equations}
+\usepackage{scalerel}
+
+% graphs
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata,positioning}
+
+% commutative diagram
+\usepackage{tikz-cd}
+
+% ref
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+% inference rule
+\usepackage{mathpartir}
+% cross-referencing infer rule
+% based on https://tex.stackexchange.com/questions/340788/cross-referencing-inference-rules
+\makeatletter
+\let\originferrule\inferrule
+\DeclareDocumentCommand \inferrule { s O {} m m}{%
+  \IfBooleanTF{#1}%
+  {%
+    \mpr@inferstar[#2]{#3}{#4}%
+  }{%
+    \mpr@inferrule[#2]{#3}{#4}%
+  }%
+  \IfValueT{#2}%
+  {%
+    \my@name@inferrule{#2}%
+  }%
+}
+\NewDocumentCommand \my@name@inferrule { m }{%
+  \def\@currentlabelname{\textsc{#1}}%
+}
+\makeatother
+
+% item spacing
+\usepackage{enumitem}
+
+% for code
+\usepackage{listings}
+\lstset{basicstyle=\footnotesize\ttfamily,breaklines=true}
+\lstset{framextopmargin=50pt,frame=bottomline}
+\lstset{language=caml, escapeinside={[*}{*]}}
+% Clever ref names
+\crefname{lstlisting}{listing}{listings}
+\Crefname{lstlisting}{Listing}{Listings}
+
+% for algorithm
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+% switch statement for pattern matching
+\algnewcommand\algorithmicmatch{\textbf{match}}
+\algnewcommand\algorithmicwith{\textbf{with}}
+\algnewcommand\algorithmiccase{\textbf{case}}
+\algnewcommand\algorithmicdefault{\textbf{default}}
+\algnewcommand\Continue{\textbf{continue}}
+\algdef{SE}[MATCH]{Match}{EndMatch}[1]{\algorithmicmatch\ #1\ \algorithmicwith}{\algorithmicend\ \algorithmicmatch}%
+\algdef{SE}[CASE]{Case}{EndCase}[1]{\algorithmiccase\ #1 \algorithmicthen}{\algorithmicend\ \algorithmiccase}%
+\algdef{SE}[DEFAULT]{Default}{EndDefault}{\hskip\algorithmicindent\algorithmicdefault}{\algorithmicend\algorithmicdefault}%
+\algtext*{EndMatch}%
+\algtext*{EndCase}%
+\algtext*{EndDefault}%
+
+% for better table
+\usepackage{booktabs}
+
+% subcaption
+\usepackage{subcaption} %% For complex figures with subfigures/subcaptions
+                        %% http://ctan.org/pkg/subcaption
+
+% unicode math symbols
+\usepackage{unicode-math}
+% support for hat, overline, underline, vec, and sim combining charactors
+\protected\def\afteracc{\directlua{
+    local nest = tex.nest[tex.nest.ptr]
+    local last = nest.tail
+    if not (last and last.id == 18) then
+      error'I can only put accents on simple noads.'
+    end
+    if last.sub or last.sup then
+      error'If you want accents on a superscript or subscript, please use braces.'
+    end
+    local acc = node.new(21, 1)
+    acc.nucleus = last.nucleus
+    last.nucleus = nil
+    local is_bottom = token.scan_keyword'bot' and 'bot_accent' or 'accent'
+    acc[is_bottom] = node.new(23)
+    acc[is_bottom].fam, acc[is_bottom].char = 0, token.scan_int()
+    nest.head = node.insert_after(node.remove(nest.head, last), nil, acc)
+    nest.tail = acc
+    node.flush_node(last)
+  }}
+\AtBeginDocument{
+\begingroup
+  \def\UnicodeMathSymbol#1#2#3#4{%
+    \ifx#3\mathaccent
+      \def\mytmpmacro{\afteracc#1 }%
+      \global\letcharcode#1=\mytmpmacro
+      \global\mathcode#1="8000
+    \else\ifx#3\mathbotaccentwide
+      \def\mytmpmacro{\afteracc bot#1 }%
+      \global\letcharcode#1=\mytmpmacro
+      \global\mathcode#1="8000
+    \fi\fi
+  }
+  \input{unicode-math-table}
+\endgroup
+}
+
+% math font, this is needed to render \setminus command
+\setmathfont{latinmodern-math}
+\setmathfont[range=\setminus]{STIX Two Math}
+\setmathfont[range=\similarrightarrow]{STIX Two Math}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+
+\newtheorem{definition}{Definition}
+\newtheorem*{definition*}{Definition}
+\newtheorem{example}[definition]{Example}
+\newtheorem{remark}[definition]{Remark}
+
+%%%% Macros %%%%%
+
+% Math?
+\newcommand{\true}{\mathrm{true}}
+\newcommand{\false}{\mathrm{false}}
+\newcommand{\At}{\mathbf{At}}
+
+
+% operators
+\newcommand{\dom}[1]{\mathrm{dom}(#1)}
+\newcommand{\cod}[1]{\mathrm{cod}(#1)}
+\DeclareMathOperator{\post}{\mathrm{post}}
+\newcommand{\reject}{\mathinner{\mathrm{rej}}}
+\newcommand{\accept}{\mathinner{\mathrm{acc}}}
+\DeclareMathOperator*{\bigplus}{\scalerel*{+}{\sum}}
+\newcommand{\clos}[1]{\mathrel{\overline{#1}}}
+\DeclareMathOperator{\norm}{\mathrm{norm}}
+\DeclareMathOperator{\dead}{\mathrm{dead}}
+\DeclareMathOperator{\symb}{\mathrm{symb}}
+\DeclareMathOperator{\unsymb}{\symb^{-1}}
+
+
+% commands 
+\newcommand{\command}[1]{{\mathtt{#1}}}
+\newcommand{\comAssume}[1]{\command{assume}~#1}
+\newcommand{\comITE}[3]{\command{if}~#1~\command{then}~#2~\command{else}~#3}
+\newcommand{\comWhile}[2]{\command{while}~#1~\command{do}~#2}
+
+% set of models
+\newcommand{\theoryOf}[1]{\ensuremath{\mathsf{#1}}}
+\newcommand{\Exp}{\theoryOf{Exp}}
+\newcommand{\BExp}{\theoryOf{BExp}}
+\DeclareMathOperator{\GS}{\mathrm{GS}}
+
+\newcommand\altxrightarrow[2][0pt]{\mathrel{\ensurestackMath{\stackengine%
+  {\dimexpr#1-7.5pt}{\xrightarrow{\phantom{#2}}}{\scriptstyle\!#2\,}%
+  {O}{c}{F}{F}{S}}}}
+\newcommand{\transvia}[1]{
+    \mathrel{\raisebox{-2px}{\(\altxrightarrow[-2px]{#1}\)}}
+}
+\newcommand{\transAcc}[2]{⇒_{#1} #2}
+\newcommand{\transRej}[2]{↓_{#1} #2}
+
+%%%%%%%%%%
 %% Rights management information.  This information is sent to you
 %% when you complete the rights form.  These commands have SAMPLE
 %% values in them; it is your responsibility as an author to replace
@@ -256,6 +452,10 @@
 \section{Introduction}
 
 \section{Control-Flow GKAT}
+
+Control-Flow GKAT (or CF-GKAT) extends Guarded Kleene Algebra with tests with common control-flow operators, including indicator variable, break, continue, and goto's. 
+
+Similar to GKAT, the syntax of CF-GKAT is also two sorted:
 
 \section{Guarded NetKAT}
 
