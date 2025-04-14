@@ -44,22 +44,12 @@
 %% for your publication.
 %%
 %%
-\documentclass[
-  manuscript,screen,review,anonymous,
-  natbib=false]{acmart}
+\documentclass[manuscript,screen,review,anonymous]{acmart}
 %%
 %% \BibTeX command to typeset BibTeX logo in the docs
 \AtBeginDocument{%
   \providecommand\BibTeX{{%
     Bib\TeX}}}
-
-% Biblatex
-\RequirePackage[
-  datamodel=acmdatamodel,
-  style=acmnumeric,
-  ]{biblatex}
-%% Declare bibliography sources (one \addbibresource command per source)
-\addbibresource{refs.bib}
 
 % For adding inline comments in the text.
 \usepackage[margin=false,inline=true]{fixme}
@@ -453,14 +443,17 @@
 
 \section{Control-Flow GKAT}
 
-Control-Flow GKAT (or CF-GKAT) extends Guarded Kleene Algebra with tests with common control-flow operators, including indicator variable, break, continue, and goto's. 
+Control-Flow GKAT (or CF-GKAT)~\cite{zhang_CFGKATEfficientValidation_2025} extends Guarded Kleene Algebra with tests with common control-flow operators, including indicator variable, break, continue, and goto's. 
 
 Similar to GKAT, the syntax of CF-GKAT is also two sorted:
-
+\begin{align*}
+  \BExp & ≜ t ∈ T ∣ 
+\end{align*}
 \section{Guarded NetKAT}
 
 
-
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{refs}
 \end{document}
 \endinput
 %%
