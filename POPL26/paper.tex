@@ -200,6 +200,19 @@
 \newcommand{\false}{\mathrm{false}}
 \newcommand{\At}{\mathbf{At}}
 
+% commands
+\newcommand{\command}[1]{\texttt{#1}}
+\newcommand{\comAssert}[1]{\command{assert}~#1}
+\newcommand{\comSkip}{\command{skip}}
+\newcommand{\comITE}[3]{\command{if}~#1~\command{then}~#2~\command{else}~#3}
+\newcommand{\comIT}[2]{\command{if}~#1~\command{then}~#2}
+\newcommand{\comWhile}[2]{\command{while}~#1~\command{do}~#2}
+\newcommand{\comLabel}[1]{\command{label}~#1}
+\newcommand{\comBrk}{\command{break}}
+\newcommand{\comCont}{\command{continue}}
+\newcommand{\comRet}{\command{return}}
+\newcommand{\comGoto}[1]{\command{goto}~#1}
+\newcommand{\comDup}{\command{dup}}
 
 % operators
 \newcommand{\dom}[1]{\mathrm{dom}(#1)}
@@ -214,16 +227,18 @@
 \DeclareMathOperator{\symb}{\mathrm{symb}}
 \DeclareMathOperator{\unsymb}{\symb^{-1}}
 
-
-% commands 
-\newcommand{\command}[1]{{\mathtt{#1}}}
-\newcommand{\comAssume}[1]{\command{assume}~#1}
-\newcommand{\comITE}[3]{\command{if}~#1~\command{then}~#2~\command{else}~#3}
-\newcommand{\comWhile}[2]{\command{while}~#1~\command{do}~#2}
+% continuations
+\newcommand{\conti}[1]{\mathbf{#1}}
+\newcommand{\acc}[1]{{\conti{acc} ~ #1}}  % accept with an output indicator value
+\newcommand{\setc}[1]{{\conti{set} ~ #1}}  % set variables in NetKAT
+\newcommand{\retc}{{\conti{ret}}}  % return, terminate the program
+\newcommand{\brkc}[1]{\conti{brk} ~ #1}  % break with an output indicator value
+\newcommand{\jmpc}[1]{{\conti{jmp} ~ #1}} % goto a label
 
 % set of models
 \newcommand{\theoryOf}[1]{\ensuremath{\mathsf{#1}}}
 \newcommand{\Exp}{\theoryOf{Exp}}
+\newcommand{\Prog}{\theoryOf{Prog}}
 \newcommand{\BExp}{\theoryOf{BExp}}
 \DeclareMathOperator{\GS}{\mathrm{GS}}
 
@@ -233,7 +248,7 @@
 \newcommand{\transvia}[1]{
     \mathrel{\raisebox{-2px}{\(\altxrightarrow[-2px]{#1}\)}}
 }
-\newcommand{\transAcc}[2]{⇒_{#1} #2}
+\newcommand{\transOut}[2]{⇒_{#1} #2}
 \newcommand{\transRej}[2]{↓_{#1} #2}
 
 %%%%%%%%%%
@@ -299,7 +314,7 @@
 %%
 %% The "title" command has an optional parameter,
 %% allowing the author to define a "short title" to be used in page headers.
-\title{Efficient Algorithms For Variants of GKAT}
+\title{SyGO: Generic On-the-fly Symbolic Algorithms For Variants of GKAT}
 
 %%
 %% The "author" command and its associated commands are used to define
@@ -441,15 +456,244 @@
 
 \section{Introduction}
 
+\section{Overview}
+
+\section{GKAT with Output}
+
+Symbolic GKAT with Output (SyGO) automata extends GKAT automata, where instead of only emitting accepts, it allows to produce a finite set of outputs \(O\).
+In the case of GKAT and Guarded NetKAT, the output set \(O\) is a singleton set \(\acc{}\); whereas in CF-GKAT, the outcome can be any continuations.
+
+Formally, a SyGO Automata is defined over a set of tests \(\BExp\), a set of outputs \(O\), and a set of state \(S\);  
+with a start state \(ŝ ∈ S\), and two functions:
+\begin{align*}
+  ϵ & : S → 𝒫(\BExp × O) & 
+  δ & : S → 𝒫(\BExp × S × Σ).
+\end{align*}
+Intuitively, \(ϵ(s, o)\) returns the condition required to immediately return the output \(o\) when at the state \(s\); and if \((b, s') ∈ δ(s)\) then it means that from state \(s\), when condition \(b\) is met, the machine will transition to \(s'\).
+
+To ensure the determinism of SyGO automata, we will impose a \emph{disjointness condition}, i.e. all the conditions starting from \(s\) will be disjoint.
+Formally, fix any \(s ∈ S\):
+\begin{itemize}
+  \item if \((b₁, o₁) ∈ ϵ(s)\) and \((b₂, o₂) ∈ ϵ(s)\), then \(o₁ ≠ o₂\) implies \(b₁\) is disjoint with \(b₂\);
+  \item if \((b₁, s₁, p) ∈ δ(s)\) and \((b₂, s₂, q) ∈ δ(s)\), then \(s₁ ≠ s₂\) or \(p ≠ q\) implies \(b₁\) is disjoint with \(b₂\);
+  \item for all \(ϵ(s, o)\) is disjoint with all \(b\) s.t. there exists \(s'\) where \((b, s') ∈ δ(s)\).
+\end{itemize}
+
+We list our bisimulation algorithm in~\Cref{alg:symb-bisim}.
+
+\begin{algorithm*}
+  \caption{Symbolic On-the-fly Bisimulation Algorithm}\label{alg:symb-bisim}
+  \begin{algorithmic}
+      \Function{equiv}{$s ∈ S, u ∈ U$}
+      \If {\Call{eq}{$s, u$}} {\Return true}
+      \ElsIf {\Call{knownDead\(_S\)}{$s$}} {\Return \Call{isDead\(_U\)}{$u$}} 
+      \ElsIf {\Call{knownDead\(_U\)}{$u$}} {\Return \Call{isDead\(_S\)}{$s$}} 
+      \Else {}
+      \Return {
+          %\Comment{conditions of ~\Cref{thm:symb-recursive-construction}}
+          \\\vspace{5px}
+          \(\qquad
+          \begin{aligned}
+              & ∀ o ∈ O, ϵ(s, o) ≡ ⋁ ϵ(u, o) \mathrel{\&\!\&} \\  
+              & s \transvia{b ∣ p} s' \text{ and } (b ∧ ρ_U(u)) ≢ 0 \text{ implies \Call{isDead$_S$}{$s'$}} \mathrel{\&\!\&}\\
+              & u \transvia{b ∣ p} u' \text{ and } (ρ_S(s) ∧ b) ≢ 0 \text{ implies \Call{isDead$_U$}{$u'$}} \mathrel{\&\!\&}\\
+              & s \transvia{b ∣ p} s' \text{ and } u \transvia{c ∣ p} u' \text{ implies } \text{\Call{Union}{$s$, $u$}}; \text{\Call{Equiv}{$s', u'$}} \mathrel{\&\!\&}\\
+              & s \transvia{b ∣ p} s' \text{ and } u \transvia{c ∣ q} u' \text{ and } p ≠ q \text{ implies \Call{isDead}{$s'$} and \Call{isDead}{$u'$}}
+          \end{aligned}\)
+      }
+      \EndIf
+      \EndFunction
+  \end{algorithmic}
+\end{algorithm*}
+
+
+\section{Guarded NetKAT}
+
+Guarded NetKAT~\cite{wasserstein_GUARDEDNETKATSOUNDNESS_2023} is a variant of NetKAT that disallows non-deterministic assignments. 
+For Guarded NetKAT, the possible outputs \(O\) contains acceptance \(\acc{}\) and \(\setc{σ}\), where \(σ: X ↛ V\) is a partial function that assign \(σ(x) ∈ V\) to some variable \(x ∈ X\), when \(x\) is in the domain of \(σ\).
+And we can extend \(σ: X ↛ V\):
+\[σ[x ↦ v](y) ≜ \begin{cases}
+  v & \text{if } x = y \\  
+  σ(x) & \text{otherwise}
+\end{cases}\]
+
+Here is the syntax for Guarded NetKAT over a set of values \(V\) and variable \(X\):
+\begin{align*}
+  \BExp ∋ b, c & ≜ 
+    \false 
+    ∣ \true 
+    ∣ {\color{blue} x = v~(x ∈ X, v ∈ V)} 
+    ∣ b ∧ c 
+    ∣ b ∨ c 
+    ∣ ¬ b 
+    ∣ {\color{blue} b[σ]}\\
+  \Exp ∋ e, f & ≜ 
+    b ∈ \BExp
+    ∣ p ∈ \{\comDup\}
+    ∣ {\color{blue}x := v~(x ∈ X, v ∈ V)}
+    ∣ e +_b f 
+    ∣ e; f 
+    ∣ e^{(b)}
+\end{align*}
+Note that we added a boolean expression \(b[σ]\), but following the syntax of original Guarded NetKAT~\cite{wasserstein_GUARDEDNETKATSOUNDNESS_2023}, we disallow this construct from NetKAT programs. 
+\(b[σ]\) generates a new predicate by plugging in the value of \(σ: X ↛ V\) into the boolean expression \(b\).
+Formally \(b[σ]\) is defined inductively as follows:
+\begin{align*}
+  \false[σ] & ≜ \false & 
+  \true[σ] & ≜ \true \\
+  (x = i)[σ] & ≜ \begin{cases}
+    x = i & x ∉ \dom{σ} \\
+    \true & σ(x) = i \\  
+    \false & σ(x) ≠ i 
+  \end{cases} & 
+  (b ∧ c)[σ] & ≜ b[σ] ∧ c[σ] \\
+  (b ∨ c)[σ] & ≜ b[σ] ∨ c[σ] &
+  (¬ b)[σ] & ≜ ¬ (b[σ])
+\end{align*}
+
+The state in the symbolic Guarded NetKAT automata has two components: \(σ: X ↛ V\) indicating the current known assignment to variables, and \(e: \Exp\) representing the rest of the expression
+\begin{mathpar}
+  \inferrule
+  {\\}
+  {(σ, \comAssert{b})\transOut{b[σ]}{\acc{}}}
+  \and  
+  \inferrule
+  {\\}
+  {(σ, x := v)\transOut{\true}{\setc{σ[x ↦ v]}}}
+  \and  
+  \inferrule
+  {\\}
+  {(σ,\comDup)\transvia{b_σ ∣ \comDup} (σ,\comSkip)}
+  \and  
+  \inferrule
+  {(σ, e) \transOut{c}{o} \\ o ∈ O}
+  {(σ, e +_b f) \transOut{b[σ] ∧ c}{o}}
+  \and  
+  \inferrule
+  {(σ, f) \transOut{c}{o} \\ o ∈ O}
+  {(σ, e +_b f) \transOut{¬b[σ] ∧ c}{o}}
+  \and
+  \inferrule
+  {(σ, e) \transvia{c ∣ p} (σ', e')}
+  {(σ, e +_b f) \transvia{b[σ] ∧ c ∣ p} (σ', e')}
+  \and  
+  \inferrule
+  {(σ, f) \transvia{c ∣ p} (σ', f')}
+  {(σ, e +_b f) \transvia{b[σ] ∧ c ∣ p} (σ', f')}
+  \and  
+  \inferrule
+  {(σ, e) \transOut{b}{\acc{}} \\ (σ, f) \transOut{c}{o} \\ o ∈ O}
+  {(σ, e; f) \transOut{b ∧ c}{o}}
+  \and  
+  \inferrule
+  {(σ, e) \transOut{b}{\acc{}} \\ (σ, f) \transvia{b ∣ p} (σ', f')}
+  {(σ, e; f) \transvia{b ∧ c ∣ p} (σ, f')}
+  \and  
+  \inferrule
+  {(σ, e) \transOut{b}{\setc{σ'}} \\ (σ', f) \transOut{c}{o} \\ o ∈ O}
+  {(σ, e; f) \transOut{b ∧ c}{o}}
+  \and  
+  \inferrule
+  {(σ₁, e) \transOut{b}{\setc{σ₂}} \\ (σ₂, f) \transvia{b ∣ p} (σ₃, f')}
+  {(σ₁, e; f) \transvia{b ∧ c ∣ p} (σ₃, f')}
+  \and  
+  \inferrule
+  {(σ, e) \transvia{b ∣ p} (σ', e')}
+  {(σ, e;f) \transvia{b ∣ p} (σ', e';f)}
+  \and  
+  \inferrule
+  {\\}
+  {(σ, e^{(b)}) \transOut{¬b[σ]}{\acc{}}}
+  \and  
+  \inferrule
+  {(σ₁, e) \transOut{c}{\setc{σ₂}} \\  (σ₂, e^{(b)}) \transvia{a ∣ p} (σ₃, f)}
+  {(σ₁, e^{(b)}) \transvia{c ∧ a ∣ p} (σ₃, f)}
+  \and  
+  \inferrule
+  {(σ, e) \transvia{c ∣ p} (σ', e')}
+  {(σ, e^{(b)}) \transvia{b ∧ c ∣ p} (σ', e'; e^{(b)})}
+\end{mathpar}
+
+
 \section{Control-Flow GKAT}
+
+\subsection{Syntax}
 
 Control-Flow GKAT (or CF-GKAT)~\cite{zhang_CFGKATEfficientValidation_2025} extends Guarded Kleene Algebra with tests with common control-flow operators, including indicator variable, break, continue, and goto's. 
 
-Similar to GKAT, the syntax of CF-GKAT is also two sorted:
+Similar to GKAT, the syntax of CF-GKAT is also two sorted, we highlight the newly added :
 \begin{align*}
-  \BExp & ≜ t ∈ T ∣ 
+  \BExp ∋ b, c ≜{}&
+  \false
+  ∣ \true
+  ∣ t  ∈  T
+  ∣ {\color{blue}x = i\ (i ∈ I)}
+  ∣ b  \lor  c
+  ∣ b  \land  c
+  ∣ ¬ b \\
+  \Exp ∋ e, f ≜{}&
+    \comAssert{b}
+    ∣ p  ∈  Σ
+    ∣ {\color{blue}x := i\ (i ∈ I)}
+    ∣ {\color{blue}e ⋆ f}
+    ∣ e; f
+    ∣ e +_b f
+    ∣ \\
+  &
+    e^{(b)}
+    ∣ {\color{blue} \comBrk}
+    ∣ {\color{blue} \comCont}
+    ∣ {\color{blue} \comRet}
+    ∣ {\color{blue} \comGoto{l}\ (l ∈  L)}
+    ∣ {\color{blue} \comLabel{l}\ (l ∈ L)}
 \end{align*}
-\section{Guarded NetKAT}
+Additionally, for a CF-GKAT expression \(e\) to be a CF-GKAT \emph{program} (or \emph{well-formed expressions}), we enforce the following conditions:
+\begin{itemize}
+  \item If \(\comLabel{l}\) does not occur in \(e\), then so is \(\comGoto{l}\).
+  \item Each \(\comLabel{l}\) only appear once in the program \(e\).
+  \item No \(\comBrk\) or \(\comRet\) outside a while-loop.  
+  \item All programs need to end with a return, i.e. \(e\) need to be of the form \(f; \comRet\) where \(f ∈ \Exp\).
+  \item The \(⋆\) operator cannot appear in the program. 
+\end{itemize}
+In addition to the syntax introduced in the original paper~\cite{zhang_CFGKATEfficientValidation_2025}, we added two additional constructions: \(\comCont\), a common control-flow manipulating structure; and the \emph{unfolding star} \(e ⋆ f\) is an expression that is generated from loop unfolding, hence cannot appear in any CF-GKAT programs.
+We use the common shorthand \(\comSkip\) for \(\comAssert{\true}\). On the other hand, \(\comAssert{\false}\) is the divergent or constant rejection program; in fact, it is equivalent to \(\comSkip^{(\true)}\).
+
+\subsection{Label Extraction}
+
+First, we define the label extraction process, where we extract the meaning of each label syntactically: given a label \(l ∈ L\), \((-)_l\) will take an input program, and give the expression that corresponds to the meaning of \(l\) in the input program:
+\begin{align*}
+  (-)_{l}&: \Prog → \Exp \\  
+  (\comLabel{l'})_{l} & ≜ \begin{cases}
+    \comSkip & l = l' \\  
+    \comAssert{\false} & l ≠ l'
+  \end{cases} & 
+  (e +_b f)_{l} & ≜ \begin{cases}
+    (e)_{l} & \text{if \(\comLabel{l}\) occurs in \(e\)}\\
+    (f)_{l} & \text{if \(\comLabel{l}\) occurs in \(f\)}
+  \end{cases} \\  
+  (e; f)_{l} & ≜ \begin{cases}
+    (e)_{l}; f & \text{if \(\comLabel{l}\) occurs in \(e\)}\\
+    (f)_{l} & \text{if \(\comLabel{l}\) occurs in \(f\)}
+  \end{cases} & 
+  (e ⋆ f)_{l} & ≜ \begin{cases}
+    (e)_{l} ⋆ f & \text{if \(\comLabel{l}\) occurs in \(e\)}\\
+    (f)_{l} & \text{if \(\comLabel{l}\) occurs in \(f\)}
+  \end{cases} \\
+  (e^{(b)})_{l} & ≜ 
+    (e)_l ⋆ e^{(b)}
+\end{align*}
+And the label extraction \((e)_l\) for every the other program \(e\) is defined to be \(\comAssert{\false}\).
+Notice the \(⋆\) operation is produced in the loop case, this serves as an example of loop unfolding.
+
+\subsection{Boolean Semantics}
+
+For a boolean expression \(b ∈ \BExp\), the semantics is 
+
+\subsection{Derivatives and Loop Resolution}
+
+The symbolic derivatives of CF-GKAT can be defined as follows:
+
+
 
 
 \bibliographystyle{ACM-Reference-Format}
