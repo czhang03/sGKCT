@@ -510,7 +510,7 @@ We list our bisimulation algorithm in~\Cref{alg:symb-bisim}.
 \section{Guarded NetKAT}
 
 Guarded NetKAT~\cite{wasserstein_GUARDEDNETKATSOUNDNESS_2023} is a variant of NetKAT that disallows non-deterministic assignments. 
-For Guarded NetKAT, the possible outputs \(O\) contains acceptance \(\acc{}\) and \(\setc{σ}\), where \(σ: X ↛ V\) is a partial function that assign \(σ(x) ∈ V\) to some variable \(x ∈ X\), when \(x\) is in the domain of \(σ\).
+For Guarded NetKAT, the possible outputs \(O\) are \emph{partial assignments} \(σ: X ↛ V\), which are partial functions that encodes all the \emph{known} variable assignment at this stage of the execution.
 And we can extend \(σ: X ↛ V\):
 \[σ[x ↦ v](y) ≜ \begin{cases}
   v & \text{if } x = y \\  
@@ -555,23 +555,23 @@ The state in the symbolic Guarded NetKAT automata has two components: \(σ: X �
 \begin{mathpar}
   \inferrule
   {\\}
-  {(σ, \comAssert{b})\transOut{b[σ]}{\acc{}}}
+  {(σ, \comAssert{b})\transOut{b[σ]}{σ}}
   \and  
   \inferrule
   {\\}
-  {(σ, x := v)\transOut{\true}{\setc{σ[x ↦ v]}}}
+  {(σ, x := v)\transOut{\true}{σ[x ↦ v]}}
   \and  
   \inferrule
   {\\}
   {(σ,\comDup)\transvia{b_σ ∣ \comDup} (σ,\comSkip)}
   \and  
   \inferrule
-  {(σ, e) \transOut{c}{o} \\ o ∈ O}
-  {(σ, e +_b f) \transOut{b[σ] ∧ c}{o}}
+  {(σ, e) \transOut{c}{σ'}}
+  {(σ, e +_b f) \transOut{b[σ] ∧ c}{σ'}}
   \and  
   \inferrule
-  {(σ, f) \transOut{c}{o} \\ o ∈ O}
-  {(σ, e +_b f) \transOut{¬b[σ] ∧ c}{o}}
+  {(σ, f) \transOut{c}{σ'}}
+  {(σ, e +_b f) \transOut{¬b[σ] ∧ c}{σ'}}
   \and
   \inferrule
   {(σ, e) \transvia{c ∣ p} (σ', e')}
@@ -582,19 +582,11 @@ The state in the symbolic Guarded NetKAT automata has two components: \(σ: X �
   {(σ, e +_b f) \transvia{b[σ] ∧ c ∣ p} (σ', f')}
   \and  
   \inferrule
-  {(σ, e) \transOut{b}{\acc{}} \\ (σ, f) \transOut{c}{o} \\ o ∈ O}
-  {(σ, e; f) \transOut{b ∧ c}{o}}
+  {(σ₁, e) \transOut{b}{σ₂} \\ (σ₂, f) \transOut{c}{σ₃}}
+  {(σ₁, e; f) \transOut{b ∧ c}{σ₃}}
   \and  
   \inferrule
-  {(σ, e) \transOut{b}{\acc{}} \\ (σ, f) \transvia{b ∣ p} (σ', f')}
-  {(σ, e; f) \transvia{b ∧ c ∣ p} (σ, f')}
-  \and  
-  \inferrule
-  {(σ, e) \transOut{b}{\setc{σ'}} \\ (σ', f) \transOut{c}{o} \\ o ∈ O}
-  {(σ, e; f) \transOut{b ∧ c}{o}}
-  \and  
-  \inferrule
-  {(σ₁, e) \transOut{b}{\setc{σ₂}} \\ (σ₂, f) \transvia{b ∣ p} (σ₃, f')}
+  {(σ₁, e) \transOut{b}{σ₂} \\ (σ₂, f) \transvia{b ∣ p} (σ₃, f')}
   {(σ₁, e; f) \transvia{b ∧ c ∣ p} (σ₃, f')}
   \and  
   \inferrule
@@ -603,16 +595,34 @@ The state in the symbolic Guarded NetKAT automata has two components: \(σ: X �
   \and  
   \inferrule
   {\\}
-  {(σ, e^{(b)}) \transOut{¬b[σ]}{\acc{}}}
+  {(σ, e^{(b)}) \transOut{¬b[σ]}{σ}}
   \and  
   \inferrule
-  {(σ₁, e) \transOut{c}{\setc{σ₂}} \\  (σ₂, e^{(b)}) \transvia{a ∣ p} (σ₃, f)}
-  {(σ₁, e^{(b)}) \transvia{c ∧ a ∣ p} (σ₃, f)}
+  {(σ₁, e) \transOut{c}{σ₂} \\  (σ₂, e^{(b)}) \transOut{a}{σ₃}}
+  {(σ₁, e^{(b)}) \transOut{b[σ] ∧ c ∧ a}{σ₃}}
+  \and  
+  \inferrule
+  {(σ₁, e) \transOut{c}{σ₂} \\  (σ₂, e^{(b)}) \transvia{a ∣ p} (σ₃, f)}
+  {(σ₁, e^{(b)}) \transvia{b[σ] ∧ c ∧ a ∣ p} (σ₃, f)}
   \and  
   \inferrule
   {(σ, e) \transvia{c ∣ p} (σ', e')}
-  {(σ, e^{(b)}) \transvia{b ∧ c ∣ p} (σ', e'; e^{(b)})}
+  {(σ, e^{(b)}) \transvia{b[σ] ∧ c ∣ p} (σ', e'; e^{(b)})}
 \end{mathpar}
+Notice that when \((σ₁, e) \transOut{c}{σ₂}\), the derivative rule with the source \((σ₁, e^{(b)})\) appears to be self-referential. 
+However, since there are only finitely many partial assignments \(σ: X ↛ V\), for any finite set \(X\) and \(V\); there are only finitely many cases to check.
+Practically, we use the following recursive algorithm to compute \(ϵ(σ, e^{(b)})\), where \(Ψ\) denotes the set of all explored \(σ\).
+\begin{align*}
+  ϵ̂(σ, e^{(b)}, Ψ) & ≜ \begin{cases}
+    ∅ & \text{if } σ ∈ Ψ \\  
+    \begin{aligned}
+      & \{(¬b[σ], σ)\} ∪ \\
+      & \{(b[σ] ∧ c ∧ a, σ₂) ∣ (a, σ₂) ∈ ϵ̂(σ₁, e^{(b)}, Ψ ∪ \{σ\})\}
+    \end{aligned}
+     & \text{else, if } (σ, e)\transOut{c}{σ₁}\\
+  \end{cases}\\
+  ϵ(σ, e^{(b)}) & ≜ ϵ̂(σ, e^{(b)}, ∅)
+\end{align*}
 
 
 \section{Control-Flow GKAT}
